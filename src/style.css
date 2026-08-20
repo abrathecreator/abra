@@ -255,6 +255,18 @@ canvas {
   padding: 0 var(--gutter);
 }
 
+@media (min-width: 901px) {
+  .hero {
+    justify-content: flex-start;
+  }
+  .hero__inner {
+    max-width: 720px;
+    margin: 0;
+    padding-left: max(var(--gutter), calc((100vw - var(--max-w)) / 2));
+    padding-right: var(--gutter);
+  }
+}
+
 .hero__eyebrow {
   font-size: 13px;
   letter-spacing: 0.24em;
@@ -266,7 +278,7 @@ canvas {
 .hero__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(88px, 16vw, 240px);
+  font-size: clamp(88px, 13vw, 200px);
   line-height: 0.92;
   letter-spacing: -0.04em;
   color: var(--snow);

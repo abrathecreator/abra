@@ -271,6 +271,7 @@ canvas {
   letter-spacing: -0.04em;
   color: var(--snow);
   margin: 0;
+  max-width: min(720px, 52vw);
 }
 
 .hero__title .line {
@@ -282,11 +283,12 @@ canvas {
   font-family: var(--font-display);
   font-weight: 500;
   font-style: italic;
-  font-size: clamp(28px, 4.4vw, 60px);
+  font-size: clamp(28px, 3.6vw, 52px);
   line-height: 1.05;
   letter-spacing: -0.015em;
   color: var(--accent);
   margin: 16px 0 0;
+  max-width: min(520px, 48vw);
 }
 
 .hero__sub {

@@ -61,6 +61,19 @@ canvas {
   -webkit-backdrop-filter: blur(8px);
 }
 
+@media (max-width: 900px) {
+  .nav {
+    background: linear-gradient(
+      180deg,
+      var(--bg) 0%,
+      rgba(12, 11, 9, 0.95) 70%,
+      rgba(12, 11, 9, 0) 100%
+    );
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
 .nav__logo {
   font-family: var(--font-display);
   font-weight: 700;
@@ -168,33 +181,49 @@ canvas {
 }
 
 @media (max-width: 900px) {
+  .hero {
+    height: auto;
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding-top: 72px;
+  }
+  .hero__canvas {
+    opacity: 0.18;
+  }
   .hero__portrait {
+    position: relative;
+    inset: auto;
     width: 100%;
-    opacity: 0.35;
-    object-position: 65% center;
+    height: 44vh;
+    min-height: 320px;
+    max-height: 460px;
+    opacity: 1;
+    object-position: 62% 30%;
     mask-image: linear-gradient(
       180deg,
-      transparent 0%,
-      rgba(0, 0, 0, 0.6) 20%,
-      #000 45%,
-      #000 100%
+      #000 0%,
+      #000 65%,
+      transparent 100%
     );
     -webkit-mask-image: linear-gradient(
       180deg,
-      transparent 0%,
-      rgba(0, 0, 0, 0.6) 20%,
-      #000 45%,
-      #000 100%
+      #000 0%,
+      #000 65%,
+      transparent 100%
     );
+    z-index: 1;
   }
   .hero::after {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(12, 11, 9, 0.5) 0%,
-        rgba(12, 11, 9, 0.9) 55%,
-        var(--bg) 100%
-      );
+    display: none;
+  }
+  .hero__inner {
+    padding-top: 12px;
+    padding-bottom: 56px;
+  }
+  .hero__scroll {
+    display: none;
   }
 }
 

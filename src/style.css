@@ -190,7 +190,9 @@ canvas {
     padding-top: 72px;
   }
   .hero__canvas {
-    opacity: 0.5;
+    opacity: 0.7;
+    z-index: 3;
+    mix-blend-mode: screen;
   }
   .hero__portrait {
     position: relative;

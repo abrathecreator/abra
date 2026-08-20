@@ -190,7 +190,7 @@ canvas {
     padding-top: 72px;
   }
   .hero__canvas {
-    opacity: 0.18;
+    opacity: 0.5;
   }
   .hero__portrait {
     position: relative;
@@ -201,6 +201,8 @@ canvas {
     max-height: 460px;
     opacity: 1;
     object-position: 62% 30%;
+    transform-origin: 62% 30%;
+    animation: heroPortraitBreath 18s ease-in-out infinite;
     mask-image: linear-gradient(
       180deg,
       #000 0%,
@@ -224,6 +226,21 @@ canvas {
   }
   .hero__scroll {
     display: none;
+  }
+}
+
+@keyframes heroPortraitBreath {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__portrait {
+    animation: none !important;
   }
 }
 

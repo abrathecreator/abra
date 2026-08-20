@@ -278,7 +278,7 @@ canvas {
 .hero__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(88px, 13vw, 200px);
+  font-size: clamp(88px, 12vw, 180px);
   line-height: 0.92;
   letter-spacing: -0.04em;
   color: var(--snow);

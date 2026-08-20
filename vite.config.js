@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig(({ command }) => ({
-  base: command === "build" ? "/abra/" : "/",
+  base: "/",
   build: {
     sourcemap: false,
     minify: "esbuild",

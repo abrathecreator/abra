@@ -3,8 +3,10 @@ import "./metrica.js";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { initHero } from "./hero.js";
+import { initAbraCta } from "./abra-cta.js";
 
 gsap.registerPlugin(ScrollTrigger);
+initAbraCta();
 
 const canvas = document.getElementById("hero-canvas");
 initHero(canvas);
@@ -17,6 +19,7 @@ const heroIntroSelectors = [
   ".hero__subtitle",
   ".hero__sub",
   ".hero__actions .btn",
+  ".hero__actions .abra-cta",
   ".hero__scroll",
 ];
 
@@ -33,7 +36,7 @@ try {
     .from(".hero__subtitle", { y: 30, opacity: 0, duration: 0.8 }, 0.8)
     .from(".hero__sub", { y: 20, opacity: 0, duration: 0.7 }, 1.05)
     .from(
-      ".hero__actions .btn",
+      ".hero__actions .btn, .hero__actions .abra-cta",
       { y: 20, opacity: 0, duration: 0.6, stagger: 0.08 },
       1.2
     )
@@ -221,6 +224,7 @@ const contactForm = document.getElementById("contact-form");
 if (contactForm) {
   const successEl = document.getElementById("contact-success");
   const errorEl = document.getElementById("contact-error");
+  const submitBtn = document.getElementById("contact-submit");
 
   contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -253,6 +257,7 @@ if (contactForm) {
     }
 
     contactForm.classList.add("is-submitting");
+    if (submitBtn) submitBtn.dataset.state = "loading";
     try {
       const res = await fetch(action, {
         method: "POST",
@@ -284,6 +289,7 @@ if (contactForm) {
       }
     } finally {
       contactForm.classList.remove("is-submitting");
+      if (submitBtn) delete submitBtn.dataset.state;
     }
   });
 }

@@ -412,6 +412,14 @@ canvas {
   color: var(--accent);
 }
 
+.section__note {
+  margin: 24px 0 0;
+  max-width: 620px;
+  font-size: 16px;
+  color: var(--text);
+  opacity: 0.75;
+}
+
 /* INSIGHT / FUNNEL */
 .insight {
   border-top: 1px solid var(--border);

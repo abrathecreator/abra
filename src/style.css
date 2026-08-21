@@ -149,6 +149,14 @@ canvas {
   opacity: 0.45;
 }
 
+.hero__stage {
+  position: relative;
+  width: 100%;
+  max-width: 1600px;
+  height: 100%;
+  margin: 0 auto;
+}
+
 .hero__portrait {
   position: absolute;
   top: 0;
@@ -261,8 +269,6 @@ canvas {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: var(--max-w);
-  margin: 0 auto;
   padding: 0 var(--gutter);
 }
 
@@ -282,7 +288,7 @@ canvas {
   letter-spacing: -0.04em;
   color: var(--snow);
   margin: 0;
-  max-width: min(720px, 52vw);
+  max-width: min(500px, 33vw);
 }
 
 .hero__title .line {
@@ -299,15 +305,23 @@ canvas {
   letter-spacing: -0.015em;
   color: var(--accent);
   margin: 16px 0 0;
-  max-width: min(520px, 48vw);
+  max-width: min(440px, 30vw);
 }
 
 .hero__sub {
-  max-width: 560px;
+  max-width: min(460px, 32vw);
   margin: 28px 0 40px;
   font-size: clamp(15px, 1.4vw, 18px);
   color: var(--text);
   opacity: 0.85;
+}
+
+@media (max-width: 900px) {
+  .hero__title,
+  .hero__subtitle,
+  .hero__sub {
+    max-width: none;
+  }
 }
 
 .hero__actions {

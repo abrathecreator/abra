@@ -931,10 +931,218 @@ canvas {
   border-top: 1px solid var(--border);
   padding: 32px var(--gutter);
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
+  gap: 16px 24px;
   font-size: 13px;
   color: var(--text);
+}
+
+.footer__meta,
+.footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  opacity: 0.65;
+}
+
+.footer__legal a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.footer__legal a:hover {
+  color: var(--snow);
+  border-bottom-color: var(--accent);
+}
+
+/* LEGAL PAGES */
+.legal {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: clamp(120px, 15vh, 180px) var(--gutter) clamp(80px, 12vh, 140px);
+}
+
+.legal__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 40px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.legal__back:hover {
+  opacity: 1;
+}
+
+.legal__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(28px, 3.6vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--snow);
+  margin: 0 0 12px;
+}
+
+.legal__meta {
+  color: var(--text);
   opacity: 0.6;
+  font-size: 14px;
+  margin: 0 0 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.legal__meta span + span::before {
+  content: "·";
+  margin: 0 10px;
+  opacity: 0.5;
+}
+
+.legal h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(20px, 2vw, 26px);
+  color: var(--snow);
+  margin: 40px 0 16px;
+  letter-spacing: -0.01em;
+}
+
+.legal h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--snow);
+  margin: 28px 0 12px;
+  letter-spacing: 0.01em;
+}
+
+.legal p {
+  margin: 0 0 16px;
+  color: var(--text);
+  opacity: 0.88;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.legal ul,
+.legal ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+  color: var(--text);
+  opacity: 0.88;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.legal li {
+  margin-bottom: 6px;
+}
+
+.legal a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(184, 115, 51, 0.35);
+  transition: border-color 0.2s ease;
+}
+
+.legal a:hover {
+  border-bottom-color: var(--accent);
+}
+
+.legal hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 40px 0;
+}
+
+/* CONSENT CHECKBOX IN CONTACT FORM */
+.field--consent {
+  grid-column: span 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.field--consent input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg-warm);
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  position: relative;
+}
+
+.field--consent input[type="checkbox"]:hover {
+  border-color: rgba(206, 201, 195, 0.25);
+}
+
+.field--consent input[type="checkbox"]:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.field--consent input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.field--consent input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 11px;
+  border: solid #1a1108;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.field--consent label {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  opacity: 0.75;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.field--consent a {
+  color: var(--snow);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: border-color 0.2s ease;
+}
+
+.field--consent a:hover {
+  border-bottom-color: var(--accent);
+}
+
+@media (max-width: 620px) {
+  .field--consent {
+    grid-column: span 1;
+  }
 }
 
 /* REVEAL BASE (GSAP will animate) */

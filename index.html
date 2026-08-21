@@ -419,6 +419,22 @@
                 placeholder="@username или name@mail.com"
               />
             </div>
+            <div class="field field--consent">
+              <input
+                type="checkbox"
+                id="cf-consent"
+                name="consent"
+                required
+              />
+              <label for="cf-consent">
+                Я согласен на обработку персональных данных в соответствии с
+                <a href="/consent" target="_blank" rel="noopener">Согласием</a>
+                и
+                <a href="/privacy" target="_blank" rel="noopener"
+                  >Политикой конфиденциальности</a
+                >.
+              </label>
+            </div>
             <div class="contact__honeypot" aria-hidden="true">
               <label for="cf-website">Website (leave empty)</label>
               <input
@@ -445,8 +461,15 @@
     </main>
 
     <footer class="footer">
-      <span>© ABRA · 2026</span>
-      <span>Made with care</span>
+      <div class="footer__meta">
+        <span>© ABRA · 2026</span>
+        <span>Утяшев А. Р.</span>
+      </div>
+      <div class="footer__legal">
+        <a href="/privacy">Политика конфиденциальности</a>
+        <a href="/consent">Согласие на обработку ПДн</a>
+        <a href="/terms">Пользовательское соглашение</a>
+      </div>
     </footer>
 
     <script type="module" src="/src/main.js"></script>

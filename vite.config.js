@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { resolve } from "path";
 
 // DEPLOY_TARGET=gh-pages → base "/abra/" (project pages URL)
 // otherwise (Cloudflare Pages, local dev) → base "/"
@@ -9,5 +10,13 @@ export default defineConfig(() => ({
   build: {
     sourcemap: false,
     minify: "esbuild",
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, "index.html"),
+        privacy: resolve(__dirname, "privacy.html"),
+        consent: resolve(__dirname, "consent.html"),
+        terms: resolve(__dirname, "terms.html"),
+      },
+    },
   },
 }));

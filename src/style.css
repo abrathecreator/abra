@@ -56,9 +56,7 @@ canvas {
   align-items: center;
   justify-content: space-between;
   padding: 20px var(--gutter);
-  background: linear-gradient(180deg, rgba(12, 11, 9, 0.85), rgba(12, 11, 9, 0));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, rgba(12, 11, 9, 0.92), rgba(12, 11, 9, 0));
 }
 
 @media (max-width: 900px) {
@@ -69,8 +67,6 @@ canvas {
       rgba(12, 11, 9, 0.95) 70%,
       rgba(12, 11, 9, 0) 100%
     );
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
   }
 }
 
@@ -166,7 +162,7 @@ canvas {
   width: 62%;
   height: 100%;
   object-fit: cover;
-  object-position: 45% center;
+  object-position: 50% center;
   z-index: 1;
   pointer-events: none;
   user-select: none;

@@ -23,33 +23,9 @@
 
 ## Средний приоритет
 
-### Перенести CSP из `<meta>` в HTTP-заголовок
-
-Сейчас CSP объявлен в `<meta http-equiv="Content-Security-Policy">` в `index.html`. Директивы `frame-ancestors` и `report-uri` в meta-теге игнорируются браузерами. Правильнее вынести весь CSP в `public/_headers` (Cloudflare Pages HTTP-заголовки). Заодно удалить дублирующийся `<meta http-equiv="X-Content-Type-Options">` — он уже есть в `_headers`.
-
-### Убрать мёртвый `<link rel="stylesheet" href="/src/style.css">` из `index.html`
-
-Vite обрабатывает CSS через `import "./style.css"` в `main.js`. HTML-тег `<link>` при multi-page build теперь дублируется в бандл или ссылается на несуществующий путь в prod. Проверить и удалить.
-
-### Заменить Three.js на vanilla Canvas 2D
-
-Bundle 580KB / 164KB gzip почти весь из Three.js. Constellation по факту 2D (камера на Z=22, глубина не используется). Переписать на чистый Canvas 2D — снимет ~150KB gzip.
-
-### Согласовать CTA с продуктом
-
-Кнопки «Разобрать мою систему» / «Начать с диагностики» звучат как быстрая бесплатная сессия, а в услугах «Диагностика системы — 2–3 недели» — платный формат. Добавить тир бесплатного 30-минутного разбора или переформулировать CTA.
-
-### Обернуть `initHero` в try/catch
-
-Если WebGL заблокирован (старый браузер, приватный режим iOS с отключённым WebGL), `initHero(canvas)` бросит exception на топ-уровне модуля → сломается вся дальнейшая JS-инициализация, включая intro-таймлайн GSAP → hero-текст останется на `opacity: 0`.
-
 ### Настроить git identity
 
 Коммиты сейчас идут от `ABRA CADABRA <abracadabra@MacBook-Air-ABRA.local>` — хостнейм с ноутбука в публичной истории. Настроить `git config user.name/user.email` под нормальные значения (например `Артём Утяшев <artemutyashev@gmail.com>`).
-
-### Запинить `three` точной версией
-
-`"three": "^0.161.0"` — caret на 0.x версии по semver может подтянуть 0.161.999 с потенциальным breaking change. Заменить на точную версию `"0.161.0"`.
 
 ---
 

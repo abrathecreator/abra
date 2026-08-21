@@ -151,6 +151,8 @@ canvas {
 
 .hero__stage {
   position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
   max-width: 1600px;
   height: 100%;
@@ -207,6 +209,10 @@ canvas {
     align-items: stretch;
     justify-content: flex-start;
     padding-top: 72px;
+  }
+  .hero__stage {
+    display: block;
+    height: auto;
   }
   .hero__canvas {
     opacity: 0.7;

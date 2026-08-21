@@ -10,23 +10,56 @@ const canvas = document.getElementById("hero-canvas");
 initHero(canvas);
 
 /* HERO INTRO */
-gsap
-  .timeline({ defaults: { ease: "power3.out" } })
-  .from(".nav", { y: -20, opacity: 0, duration: 0.8 }, 0.1)
-  .from(".hero__eyebrow", { y: 20, opacity: 0, duration: 0.7 }, 0.3)
-  .from(
-    ".hero__title .line",
-    { y: 80, opacity: 0, duration: 1, stagger: 0.08 },
-    0.45
-  )
-  .from(".hero__subtitle", { y: 30, opacity: 0, duration: 0.8 }, 0.8)
-  .from(".hero__sub", { y: 20, opacity: 0, duration: 0.7 }, 1.05)
-  .from(
-    ".hero__actions .btn",
-    { y: 20, opacity: 0, duration: 0.6, stagger: 0.08 },
-    1.2
-  )
-  .from(".hero__scroll", { opacity: 0, duration: 0.8 }, 1.5);
+const heroIntroSelectors = [
+  ".nav",
+  ".hero__eyebrow",
+  ".hero__title .line",
+  ".hero__subtitle",
+  ".hero__sub",
+  ".hero__actions .btn",
+  ".hero__scroll",
+];
+
+try {
+  gsap
+    .timeline({ defaults: { ease: "power3.out" } })
+    .from(".nav", { y: -20, opacity: 0, duration: 0.8 }, 0.1)
+    .from(".hero__eyebrow", { y: 20, opacity: 0, duration: 0.7 }, 0.3)
+    .from(
+      ".hero__title .line",
+      { y: 80, opacity: 0, duration: 1, stagger: 0.08 },
+      0.45
+    )
+    .from(".hero__subtitle", { y: 30, opacity: 0, duration: 0.8 }, 0.8)
+    .from(".hero__sub", { y: 20, opacity: 0, duration: 0.7 }, 1.05)
+    .from(
+      ".hero__actions .btn",
+      { y: 20, opacity: 0, duration: 0.6, stagger: 0.08 },
+      1.2
+    )
+    .from(".hero__scroll", { opacity: 0, duration: 0.8 }, 1.5);
+} catch (err) {
+  heroIntroSelectors.forEach((sel) => {
+    document.querySelectorAll(sel).forEach((el) => {
+      el.style.opacity = "1";
+      el.style.transform = "none";
+    });
+  });
+}
+
+/* Safety net: if the intro timeline stalls or errors for any reason
+   (slow asset load, browser quirk), never leave hero text stuck at
+   opacity:0 — force it visible after a short grace period. */
+setTimeout(() => {
+  heroIntroSelectors.forEach((sel) => {
+    document.querySelectorAll(sel).forEach((el) => {
+      if (getComputedStyle(el).opacity === "0") {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+      }
+    });
+  });
+}, 2500);
 
 /* SECTION HEADS */
 gsap.utils.toArray(".section__head").forEach((head) => {
@@ -54,6 +87,7 @@ gsap.from(".funnel > *", {
   duration: 0.5,
   stagger: 0.06,
   ease: "power2.out",
+  onComplete: () => updateFunnelArrows(),
 });
 
 /* Hide arrows that end up as the first item of a wrapped row */
@@ -74,6 +108,9 @@ function updateFunnelArrows() {
 updateFunnelArrows();
 window.addEventListener("resize", updateFunnelArrows);
 window.addEventListener("load", updateFunnelArrows);
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => updateFunnelArrows());
+}
 
 /* CARDS */
 gsap.from(".cards .card", {

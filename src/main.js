@@ -192,6 +192,18 @@ if (contactForm) {
       errorEl.textContent = "";
     }
 
+    // Explicit guard: consent must be checked even if browser validation is bypassed.
+    const consentEl = document.getElementById("cf-consent");
+    if (consentEl && !consentEl.checked) {
+      if (errorEl) {
+        errorEl.textContent =
+          "Отметьте согласие на обработку персональных данных.";
+        errorEl.hidden = false;
+      }
+      consentEl.focus();
+      return;
+    }
+
     const action = contactForm.getAttribute("action") || "";
     if (action.includes("YOUR_FORMSPREE_ID")) {
       if (errorEl) {

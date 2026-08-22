@@ -1163,6 +1163,7 @@ canvas {
   grid-column: span 2;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 18px;
   margin-top: 12px;
   flex-wrap: wrap;

@@ -103,7 +103,7 @@ canvas {
 
 .nav__links a:hover {
   opacity: 1;
-  color: var(--snow);
+  color: var(--accent);
 }
 
 .nav__cta {

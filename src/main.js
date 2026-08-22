@@ -3,10 +3,8 @@ import "./metrica.js";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { initHero } from "./hero.js";
-import { initAbraCta } from "./abra-cta.js";
 
 gsap.registerPlugin(ScrollTrigger);
-initAbraCta();
 
 const canvas = document.getElementById("hero-canvas");
 initHero(canvas);

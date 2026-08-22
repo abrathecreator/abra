@@ -627,10 +627,6 @@ canvas {
   text-align: center;
 }
 
-.tag--dark {
-  color: #7a4820;
-}
-
 .section__title {
   font-family: var(--font-display);
   font-weight: 600;
@@ -967,8 +963,7 @@ canvas {
 
 /* PHILOSOPHY */
 .philosophy {
-  background: var(--snow);
-  color: #1a1815;
+  border-top: 1px solid var(--border);
   max-width: none;
   margin: 0;
   padding: clamp(100px, 14vh, 200px) var(--gutter);
@@ -985,8 +980,8 @@ canvas {
   font-weight: 800;
   font-size: clamp(400px, 60vw, 900px);
   line-height: 1;
-  color: #1a1815;
-  opacity: 0.04;
+  color: var(--snow);
+  opacity: 0.03;
   pointer-events: none;
   user-select: none;
 }
@@ -1005,7 +1000,7 @@ canvas {
   font-size: clamp(32px, 4.6vw, 64px);
   line-height: 1.08;
   letter-spacing: -0.015em;
-  color: #1a1815;
+  color: var(--snow);
   margin: 0 auto 32px;
   max-width: 900px;
 }
@@ -1019,7 +1014,8 @@ canvas {
 .philosophy__text {
   max-width: 640px;
   font-size: clamp(16px, 1.6vw, 19px);
-  color: #3a352e;
+  color: var(--text);
+  opacity: 0.8;
   margin: 0 auto;
 }
 
@@ -1503,14 +1499,6 @@ canvas {
 .section-icon .icon-fill {
   fill: var(--icon-base);
   stroke: none;
-}
-
-/* Philosophy sits on the light --snow panel — flip the palette so
-   the icon reads on a bright background, echoing .tag--dark. */
-.philosophy .section-icon {
-  --icon-base: rgba(26, 24, 21, 0.4);
-  --icon-guide: rgba(26, 24, 21, 0.16);
-  --icon-accent: #7a4820;
 }
 
 /* ---- 01 · INSIGHT — chaos of signals resolves to one point ---- */

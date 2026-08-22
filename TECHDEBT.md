@@ -21,14 +21,6 @@
 
 ---
 
-## Средний приоритет
-
-### Настроить git identity
-
-Коммиты сейчас идут от `ABRA CADABRA <abracadabra@MacBook-Air-ABRA.local>` — хостнейм с ноутбука в публичной истории. Настроить `git config user.name/user.email` под нормальные значения (например `Артём Утяшев <artemutyashev@gmail.com>`).
-
----
-
 ## Низкий приоритет
 
 ### Node.js версия

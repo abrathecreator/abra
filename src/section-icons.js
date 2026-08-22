@@ -4,13 +4,13 @@ import { SECTION_ICONS } from "./icons.js";
    used to time the one-shot viewport reveal (see below). Kept in sync
    with the transition/animation durations in style.css. */
 const REVEAL_DURATIONS = {
-  insight: 760,
-  system: 500,
-  services: 600,
-  method: 820,
-  philosophy: 560,
-  connect: 700,
-  contact: 840,
+  insight: 1520,
+  system: 1000,
+  services: 1200,
+  method: 1640,
+  philosophy: 1120,
+  connect: 1400,
+  contact: 1680,
 };
 
 const reducedMotion = () =>

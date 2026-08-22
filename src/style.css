@@ -1497,13 +1497,13 @@ canvas {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   opacity: 0.6;
-  transition: stroke-dashoffset 380ms var(--icon-ease), opacity 380ms var(--icon-ease);
+  transition: stroke-dashoffset 760ms var(--icon-ease), opacity 760ms var(--icon-ease);
 }
 
 .icon-insight__point {
   transform-origin: 32px 32px;
   transform: scale(0.7);
-  transition: transform 320ms var(--icon-ease), fill 320ms var(--icon-ease), stroke 320ms var(--icon-ease);
+  transition: transform 640ms var(--icon-ease), fill 640ms var(--icon-ease), stroke 640ms var(--icon-ease);
 }
 
 .icon-insight__ring {
@@ -1520,22 +1520,22 @@ canvas {
   opacity: 1;
 }
 .section-icon--insight.is-revealed .icon-insight__line:nth-of-type(2) {
-  transition-delay: 40ms;
-}
-.section-icon--insight.is-revealed .icon-insight__line:nth-of-type(3) {
   transition-delay: 80ms;
 }
+.section-icon--insight.is-revealed .icon-insight__line:nth-of-type(3) {
+  transition-delay: 160ms;
+}
 .section-icon--insight.is-revealed .icon-insight__line:nth-of-type(4) {
-  transition-delay: 120ms;
+  transition-delay: 240ms;
 }
 .section-icon--insight.is-revealed .icon-insight__point {
   transform: scale(1);
   fill: var(--icon-accent);
   stroke: var(--icon-accent);
-  transition-delay: 140ms;
+  transition-delay: 280ms;
 }
 .section-icon--insight.is-revealed .icon-insight__ring {
-  animation: iconInsightPulse 420ms var(--icon-ease) 260ms 1 both;
+  animation: iconInsightPulse 840ms var(--icon-ease) 520ms 1 both;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1544,22 +1544,22 @@ canvas {
     opacity: 1;
   }
   .section-icon--insight:hover .icon-insight__line:nth-of-type(2) {
-    transition-delay: 40ms;
-  }
-  .section-icon--insight:hover .icon-insight__line:nth-of-type(3) {
     transition-delay: 80ms;
   }
+  .section-icon--insight:hover .icon-insight__line:nth-of-type(3) {
+    transition-delay: 160ms;
+  }
   .section-icon--insight:hover .icon-insight__line:nth-of-type(4) {
-    transition-delay: 120ms;
+    transition-delay: 240ms;
   }
   .section-icon--insight:hover .icon-insight__point {
     transform: scale(1);
     fill: var(--icon-accent);
     stroke: var(--icon-accent);
-    transition-delay: 140ms;
+    transition-delay: 280ms;
   }
   .section-icon--insight:hover .icon-insight__ring {
-    animation: iconInsightPulse 420ms var(--icon-ease) 260ms 1 both;
+    animation: iconInsightPulse 840ms var(--icon-ease) 520ms 1 both;
   }
 }
 
@@ -1580,7 +1580,7 @@ canvas {
 /* ---- 02 · SYSTEM — misaligned lines snap into a grid ---- */
 .icon-system__v,
 .icon-system__h {
-  transition: transform 400ms var(--icon-ease);
+  transition: transform 800ms var(--icon-ease);
 }
 .icon-system__v--1 {
   transform: translateX(-4px);
@@ -1604,7 +1604,7 @@ canvas {
   transform-origin: 32px 32px;
   transform: scale(0.6);
   opacity: 0.55;
-  transition: transform 380ms var(--icon-ease), opacity 380ms var(--icon-ease), fill 380ms var(--icon-ease);
+  transition: transform 760ms var(--icon-ease), opacity 760ms var(--icon-ease), fill 760ms var(--icon-ease);
 }
 
 .section-icon--system.is-revealed .icon-system__v,
@@ -1631,16 +1631,16 @@ canvas {
 
 /* ---- 03 · SERVICES — stacked layers separate, top layer lights up ---- */
 .icon-services__layer {
-  transition: transform 400ms var(--icon-ease), fill 400ms var(--icon-ease), stroke 400ms var(--icon-ease);
+  transition: transform 800ms var(--icon-ease), fill 800ms var(--icon-ease), stroke 800ms var(--icon-ease);
 }
 .icon-services__layer--top {
   transition-delay: 0ms;
 }
 .icon-services__layer--mid {
-  transition-delay: 60ms;
+  transition-delay: 120ms;
 }
 .icon-services__layer--bottom {
-  transition-delay: 120ms;
+  transition-delay: 240ms;
 }
 
 .section-icon--services.is-revealed .icon-services__layer--top {
@@ -1665,32 +1665,32 @@ canvas {
 .icon-method__path {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  transition: stroke-dashoffset 170ms var(--icon-ease);
+  transition: stroke-dashoffset 340ms var(--icon-ease);
 }
 .icon-method__path--1 {
-  transition-delay: 40ms;
+  transition-delay: 80ms;
 }
 .icon-method__path--2 {
-  transition-delay: 230ms;
+  transition-delay: 460ms;
 }
 .icon-method__path--3 {
-  transition-delay: 420ms;
+  transition-delay: 840ms;
 }
 .icon-method__node {
   transform-origin: center;
-  transition: fill 200ms var(--icon-ease), stroke 200ms var(--icon-ease);
+  transition: fill 400ms var(--icon-ease), stroke 400ms var(--icon-ease);
 }
 .icon-method__node--a {
   transition-delay: 0ms;
 }
 .icon-method__node--b {
-  transition-delay: 190ms;
-}
-.icon-method__node--c {
   transition-delay: 380ms;
 }
+.icon-method__node--c {
+  transition-delay: 760ms;
+}
 .icon-method__node--d {
-  transition-delay: 570ms;
+  transition-delay: 1140ms;
 }
 
 .section-icon--method.is-revealed .icon-method__path {
@@ -1714,12 +1714,12 @@ canvas {
 /* ---- 05 · PHILOSOPHY — complexity settles into one core ---- */
 .icon-philosophy__outer {
   transform-origin: 32px 32px;
-  transition: transform 500ms var(--icon-ease), opacity 500ms var(--icon-ease);
+  transition: transform 1000ms var(--icon-ease), opacity 1000ms var(--icon-ease);
 }
 .icon-philosophy__core {
   transform-origin: 32px 32px;
   transform: scale(0.7);
-  transition: transform 500ms var(--icon-ease), fill 500ms var(--icon-ease);
+  transition: transform 1000ms var(--icon-ease), fill 1000ms var(--icon-ease);
 }
 
 .section-icon--philosophy.is-revealed .icon-philosophy__outer {
@@ -1744,7 +1744,7 @@ canvas {
 
 /* ---- 06 · CONNECT — two sides move closer, a link appears ---- */
 .icon-connect__block {
-  transition: transform 380ms var(--icon-ease);
+  transition: transform 760ms var(--icon-ease);
 }
 .icon-connect__block--you {
   transform: translateX(0);
@@ -1756,11 +1756,11 @@ canvas {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   opacity: 0;
-  transition: stroke-dashoffset 180ms var(--icon-ease) 220ms, opacity 180ms var(--icon-ease) 220ms;
+  transition: stroke-dashoffset 360ms var(--icon-ease) 440ms, opacity 360ms var(--icon-ease) 440ms;
 }
 .icon-connect__point {
   opacity: 0;
-  transition: opacity 200ms var(--icon-ease) 420ms, fill 200ms var(--icon-ease) 420ms;
+  transition: opacity 400ms var(--icon-ease) 840ms, fill 400ms var(--icon-ease) 840ms;
 }
 
 .section-icon--connect.is-revealed .icon-connect__block--you {
@@ -1797,18 +1797,18 @@ canvas {
 
 /* ---- 07 · CONTACT — brackets open, guides find the target ---- */
 .icon-contact__bracket {
-  transition: transform 360ms var(--icon-ease);
+  transition: transform 720ms var(--icon-ease);
 }
 .icon-contact__guide {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   opacity: 0.6;
-  transition: stroke-dashoffset 320ms var(--icon-ease) 120ms, opacity 320ms var(--icon-ease) 120ms;
+  transition: stroke-dashoffset 640ms var(--icon-ease) 240ms, opacity 640ms var(--icon-ease) 240ms;
 }
 .icon-contact__point {
   transform-origin: 32px 32px;
   transform: scale(0.7);
-  transition: transform 300ms var(--icon-ease) 300ms, fill 300ms var(--icon-ease) 300ms, stroke 300ms var(--icon-ease) 300ms;
+  transition: transform 600ms var(--icon-ease) 600ms, fill 600ms var(--icon-ease) 600ms, stroke 600ms var(--icon-ease) 600ms;
 }
 .icon-contact__ring {
   fill: none;
@@ -1835,7 +1835,7 @@ canvas {
   stroke: var(--icon-accent);
 }
 .section-icon--contact.is-revealed .icon-contact__ring {
-  animation: iconContactRing 480ms var(--icon-ease) 320ms 1 both;
+  animation: iconContactRing 960ms var(--icon-ease) 640ms 1 both;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1855,7 +1855,7 @@ canvas {
     stroke: var(--icon-accent);
   }
   .section-icon--contact:hover .icon-contact__ring {
-    animation: iconContactRing 480ms var(--icon-ease) 320ms 1 both;
+    animation: iconContactRing 960ms var(--icon-ease) 640ms 1 both;
   }
 }
 

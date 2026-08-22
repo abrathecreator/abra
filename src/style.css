@@ -611,7 +611,9 @@ canvas {
 }
 
 .tag {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--font-display);
   font-size: 12px;
   letter-spacing: 0.28em;
@@ -1405,4 +1407,470 @@ canvas {
 .reveal {
   opacity: 0;
   transform: translateY(24px);
+}
+
+/* ============================================================
+   SECTION ICONS
+   Custom geometric motion-icon system — one per page section.
+   STATIC MEANING (default) + MOTION MEANING (hover/focus/reveal).
+   Reuses the site's own tokens: --text for muted line color,
+   --accent for the "meaningful result" of each animation.
+   ============================================================ */
+
+:root {
+  --icon-base: rgba(206, 201, 195, 0.5);
+  --icon-guide: rgba(206, 201, 195, 0.2);
+  --icon-accent: var(--accent);
+  --icon-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.section-icon {
+  --icon-size: 22px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.section-icon svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.section-icon svg line,
+.section-icon svg path,
+.section-icon svg polygon,
+.section-icon svg rect,
+.section-icon svg circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.section-icon .icon-base {
+  fill: none;
+  stroke: var(--icon-base);
+  stroke-width: 1.25px;
+}
+
+.section-icon .icon-guide {
+  fill: none;
+  stroke: var(--icon-guide);
+  stroke-width: 1.1px;
+}
+
+.section-icon .icon-stroke {
+  fill: none;
+  stroke: var(--icon-base);
+  stroke-width: 1.25px;
+}
+
+.section-icon .icon-fill {
+  fill: var(--icon-base);
+  stroke: none;
+}
+
+/* Philosophy sits on the light --snow panel — flip the palette so
+   the icon reads on a bright background, echoing .tag--dark. */
+.philosophy .section-icon {
+  --icon-base: rgba(26, 24, 21, 0.4);
+  --icon-guide: rgba(26, 24, 21, 0.16);
+  --icon-accent: #7a4820;
+}
+
+/* ---- 01 · INSIGHT — chaos of signals resolves to one point ---- */
+.icon-insight__bracket {
+  stroke-width: 1.25px;
+}
+
+.icon-insight__line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.6;
+  transition: stroke-dashoffset 380ms var(--icon-ease), opacity 380ms var(--icon-ease);
+}
+
+.icon-insight__point {
+  transform-origin: 32px 32px;
+  transform: scale(0.7);
+  transition: transform 320ms var(--icon-ease), fill 320ms var(--icon-ease), stroke 320ms var(--icon-ease);
+}
+
+.icon-insight__ring {
+  fill: none;
+  stroke: var(--icon-accent);
+  stroke-width: 1px;
+  opacity: 0;
+  transform-origin: 32px 32px;
+  transform: scale(0.4);
+}
+
+.section-icon--insight.is-revealed .icon-insight__line {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+.section-icon--insight.is-revealed .icon-insight__line:nth-of-type(2) {
+  transition-delay: 40ms;
+}
+.section-icon--insight.is-revealed .icon-insight__line:nth-of-type(3) {
+  transition-delay: 80ms;
+}
+.section-icon--insight.is-revealed .icon-insight__line:nth-of-type(4) {
+  transition-delay: 120ms;
+}
+.section-icon--insight.is-revealed .icon-insight__point {
+  transform: scale(1);
+  fill: var(--icon-accent);
+  stroke: var(--icon-accent);
+  transition-delay: 140ms;
+}
+.section-icon--insight.is-revealed .icon-insight__ring {
+  animation: iconInsightPulse 420ms var(--icon-ease) 260ms 1 both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .section-icon--insight:hover .icon-insight__line {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  .section-icon--insight:hover .icon-insight__line:nth-of-type(2) {
+    transition-delay: 40ms;
+  }
+  .section-icon--insight:hover .icon-insight__line:nth-of-type(3) {
+    transition-delay: 80ms;
+  }
+  .section-icon--insight:hover .icon-insight__line:nth-of-type(4) {
+    transition-delay: 120ms;
+  }
+  .section-icon--insight:hover .icon-insight__point {
+    transform: scale(1);
+    fill: var(--icon-accent);
+    stroke: var(--icon-accent);
+    transition-delay: 140ms;
+  }
+  .section-icon--insight:hover .icon-insight__ring {
+    animation: iconInsightPulse 420ms var(--icon-ease) 260ms 1 both;
+  }
+}
+
+@keyframes iconInsightPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  35% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+/* ---- 02 · SYSTEM — misaligned lines snap into a grid ---- */
+.icon-system__v,
+.icon-system__h {
+  transition: transform 400ms var(--icon-ease);
+}
+.icon-system__v--1 {
+  transform: translateX(-4px);
+}
+.icon-system__v--2 {
+  transform: translateX(3px);
+}
+.icon-system__v--3 {
+  transform: translateX(-2px);
+}
+.icon-system__h--1 {
+  transform: translateY(-3px);
+}
+.icon-system__h--2 {
+  transform: translateY(4px);
+}
+.icon-system__h--3 {
+  transform: translateY(-2px);
+}
+.icon-system__core {
+  transform-origin: 32px 32px;
+  transform: scale(0.6);
+  opacity: 0.55;
+  transition: transform 380ms var(--icon-ease), opacity 380ms var(--icon-ease), fill 380ms var(--icon-ease);
+}
+
+.section-icon--system.is-revealed .icon-system__v,
+.section-icon--system.is-revealed .icon-system__h {
+  transform: translate(0, 0);
+}
+.section-icon--system.is-revealed .icon-system__core {
+  transform: scale(1);
+  opacity: 1;
+  fill: var(--icon-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .section-icon--system:hover .icon-system__v,
+  .section-icon--system:hover .icon-system__h {
+    transform: translate(0, 0);
+  }
+  .section-icon--system:hover .icon-system__core {
+    transform: scale(1);
+    opacity: 1;
+    fill: var(--icon-accent);
+  }
+}
+
+/* ---- 03 · SERVICES — stacked layers separate, top layer lights up ---- */
+.icon-services__layer {
+  transition: transform 400ms var(--icon-ease), fill 400ms var(--icon-ease), stroke 400ms var(--icon-ease);
+}
+.icon-services__layer--top {
+  transition-delay: 0ms;
+}
+.icon-services__layer--mid {
+  transition-delay: 60ms;
+}
+.icon-services__layer--bottom {
+  transition-delay: 120ms;
+}
+
+.section-icon--services.is-revealed .icon-services__layer--top {
+  transform: translateY(-7px);
+  fill: var(--icon-accent);
+}
+.section-icon--services.is-revealed .icon-services__layer--bottom {
+  transform: translateY(7px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .section-icon--services:hover .icon-services__layer--top {
+    transform: translateY(-7px);
+    fill: var(--icon-accent);
+  }
+  .section-icon--services:hover .icon-services__layer--bottom {
+    transform: translateY(7px);
+  }
+}
+
+/* ---- 04 · METHOD — a signal travels the route, node by node ---- */
+.icon-method__path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 170ms var(--icon-ease);
+}
+.icon-method__path--1 {
+  transition-delay: 40ms;
+}
+.icon-method__path--2 {
+  transition-delay: 230ms;
+}
+.icon-method__path--3 {
+  transition-delay: 420ms;
+}
+.icon-method__node {
+  transform-origin: center;
+  transition: fill 200ms var(--icon-ease), stroke 200ms var(--icon-ease);
+}
+.icon-method__node--a {
+  transition-delay: 0ms;
+}
+.icon-method__node--b {
+  transition-delay: 190ms;
+}
+.icon-method__node--c {
+  transition-delay: 380ms;
+}
+.icon-method__node--d {
+  transition-delay: 570ms;
+}
+
+.section-icon--method.is-revealed .icon-method__path {
+  stroke-dashoffset: 0;
+}
+.section-icon--method.is-revealed .icon-method__node {
+  fill: var(--icon-accent);
+  stroke: var(--icon-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .section-icon--method:hover .icon-method__path {
+    stroke-dashoffset: 0;
+  }
+  .section-icon--method:hover .icon-method__node {
+    fill: var(--icon-accent);
+    stroke: var(--icon-accent);
+  }
+}
+
+/* ---- 05 · PHILOSOPHY — complexity settles into one core ---- */
+.icon-philosophy__outer {
+  transform-origin: 32px 32px;
+  transition: transform 500ms var(--icon-ease), opacity 500ms var(--icon-ease);
+}
+.icon-philosophy__core {
+  transform-origin: 32px 32px;
+  transform: scale(0.7);
+  transition: transform 500ms var(--icon-ease), fill 500ms var(--icon-ease);
+}
+
+.section-icon--philosophy.is-revealed .icon-philosophy__outer {
+  transform: rotate(30deg) scale(0.82);
+  opacity: 0.4;
+}
+.section-icon--philosophy.is-revealed .icon-philosophy__core {
+  transform: scale(1.5);
+  fill: var(--icon-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .section-icon--philosophy:hover .icon-philosophy__outer {
+    transform: rotate(30deg) scale(0.82);
+    opacity: 0.4;
+  }
+  .section-icon--philosophy:hover .icon-philosophy__core {
+    transform: scale(1.5);
+    fill: var(--icon-accent);
+  }
+}
+
+/* ---- 06 · CONNECT — two sides move closer, a link appears ---- */
+.icon-connect__block {
+  transition: transform 380ms var(--icon-ease);
+}
+.icon-connect__block--you {
+  transform: translateX(0);
+}
+.icon-connect__block--abra {
+  transform: translateX(0);
+}
+.icon-connect__bridge {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition: stroke-dashoffset 180ms var(--icon-ease) 220ms, opacity 180ms var(--icon-ease) 220ms;
+}
+.icon-connect__point {
+  opacity: 0;
+  transition: opacity 200ms var(--icon-ease) 420ms, fill 200ms var(--icon-ease) 420ms;
+}
+
+.section-icon--connect.is-revealed .icon-connect__block--you {
+  transform: translateX(9px);
+}
+.section-icon--connect.is-revealed .icon-connect__block--abra {
+  transform: translateX(-9px);
+}
+.section-icon--connect.is-revealed .icon-connect__bridge {
+  stroke-dashoffset: 0;
+  opacity: 0.8;
+}
+.section-icon--connect.is-revealed .icon-connect__point {
+  opacity: 1;
+  fill: var(--icon-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .section-icon--connect:hover .icon-connect__block--you {
+    transform: translateX(9px);
+  }
+  .section-icon--connect:hover .icon-connect__block--abra {
+    transform: translateX(-9px);
+  }
+  .section-icon--connect:hover .icon-connect__bridge {
+    stroke-dashoffset: 0;
+    opacity: 0.8;
+  }
+  .section-icon--connect:hover .icon-connect__point {
+    opacity: 1;
+    fill: var(--icon-accent);
+  }
+}
+
+/* ---- 07 · CONTACT — brackets open, guides find the target ---- */
+.icon-contact__bracket {
+  transition: transform 360ms var(--icon-ease);
+}
+.icon-contact__guide {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.6;
+  transition: stroke-dashoffset 320ms var(--icon-ease) 120ms, opacity 320ms var(--icon-ease) 120ms;
+}
+.icon-contact__point {
+  transform-origin: 32px 32px;
+  transform: scale(0.7);
+  transition: transform 300ms var(--icon-ease) 300ms, fill 300ms var(--icon-ease) 300ms, stroke 300ms var(--icon-ease) 300ms;
+}
+.icon-contact__ring {
+  fill: none;
+  stroke: var(--icon-accent);
+  stroke-width: 1px;
+  opacity: 0;
+  transform-origin: 32px 32px;
+  transform: scale(0.5);
+}
+
+.section-icon--contact.is-revealed .icon-contact__bracket--left {
+  transform: translateX(-5px);
+}
+.section-icon--contact.is-revealed .icon-contact__bracket--right {
+  transform: translateX(5px);
+}
+.section-icon--contact.is-revealed .icon-contact__guide {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+.section-icon--contact.is-revealed .icon-contact__point {
+  transform: scale(1);
+  fill: var(--icon-accent);
+  stroke: var(--icon-accent);
+}
+.section-icon--contact.is-revealed .icon-contact__ring {
+  animation: iconContactRing 480ms var(--icon-ease) 320ms 1 both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .section-icon--contact:hover .icon-contact__bracket--left {
+    transform: translateX(-5px);
+  }
+  .section-icon--contact:hover .icon-contact__bracket--right {
+    transform: translateX(5px);
+  }
+  .section-icon--contact:hover .icon-contact__guide {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  .section-icon--contact:hover .icon-contact__point {
+    transform: scale(1);
+    fill: var(--icon-accent);
+    stroke: var(--icon-accent);
+  }
+  .section-icon--contact:hover .icon-contact__ring {
+    animation: iconContactRing 480ms var(--icon-ease) 320ms 1 both;
+  }
+}
+
+@keyframes iconContactRing {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  40% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0.12;
+    transform: scale(1.5);
+  }
+}
+
+@media (max-width: 480px) {
+  .section-icon {
+    --icon-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-icon * {
+    transition-duration: 0ms !important;
+    animation: none !important;
+  }
 }

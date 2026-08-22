@@ -3,11 +3,13 @@ import "./metrica.js";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { initHero } from "./hero.js";
+import { initSectionIcons } from "./section-icons.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const canvas = document.getElementById("hero-canvas");
 initHero(canvas);
+initSectionIcons();
 
 /* HERO INTRO */
 const heroIntroSelectors = [

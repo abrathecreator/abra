@@ -422,11 +422,11 @@ canvas {
 
 /* ABRA CTA — brackets that build into a frame */
 .abra-cta {
-  --cta-h: 56px;
-  --cta-pad-x: 30px;
-  --cta-bracket-span: 32px;
-  --cta-corner-h: 13px;
-  --cta-corner-w: 10px;
+  --cta-h: 66px;
+  --cta-pad-x: 42px;
+  --cta-bracket-span: 38px;
+  --cta-corner-h: 15px;
+  --cta-corner-w: 12px;
   --cta-shift: 4px;
   --cta-stroke: 1px;
 
@@ -498,7 +498,7 @@ canvas {
   position: relative;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--snow);
@@ -571,14 +571,14 @@ canvas {
 
 @media (max-width: 900px) {
   .abra-cta {
-    --cta-h: 52px;
-    --cta-pad-x: 22px;
-    --cta-bracket-span: 28px;
-    --cta-corner-h: 11px;
-    --cta-corner-w: 9px;
+    --cta-h: 60px;
+    --cta-pad-x: 32px;
+    --cta-bracket-span: 32px;
+    --cta-corner-h: 13px;
+    --cta-corner-w: 10px;
   }
   .abra-cta__label {
-    font-size: 12px;
+    font-size: 14px;
   }
 }
 

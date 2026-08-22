@@ -611,15 +611,19 @@ canvas {
 }
 
 .tag {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 16px;
+  width: fit-content;
+  margin: 0 auto 32px;
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 24px;
+  text-align: center;
 }
 
 .tag--dark {
@@ -1425,7 +1429,7 @@ canvas {
 }
 
 .section-icon {
-  --icon-size: 22px;
+  --icon-size: clamp(28px, 5vw, 44px);
   display: inline-flex;
   flex: 0 0 auto;
   width: var(--icon-size);
@@ -1859,12 +1863,6 @@ canvas {
   100% {
     opacity: 0.12;
     transform: scale(1.5);
-  }
-}
-
-@media (max-width: 480px) {
-  .section-icon {
-    --icon-size: 18px;
   }
 }
 

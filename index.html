@@ -442,14 +442,18 @@
                 placeholder="+7 999 123-45-67"
               />
             </div>
-            <div class="field">
-              <label for="cf-messenger">Telegram, Max — куда ещё можно написать</label>
-              <input
-                type="text"
-                id="cf-messenger"
-                name="messenger"
-                placeholder="@username в Telegram или Max"
-              />
+            <div class="field field--messengers">
+              <span class="field__label">Куда ещё можно написать</span>
+              <div class="messenger-options">
+                <label class="messenger-option">
+                  <input type="checkbox" name="messenger" value="Telegram" />
+                  Telegram
+                </label>
+                <label class="messenger-option">
+                  <input type="checkbox" name="messenger" value="Max" />
+                  Max
+                </label>
+              </div>
             </div>
             <div class="field field--consent">
               <input

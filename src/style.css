@@ -1363,7 +1363,7 @@ canvas {
   margin-top: 4px;
 }
 
-.field--consent input[type="checkbox"] {
+.contact__form input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   width: 20px;
@@ -1377,21 +1377,21 @@ canvas {
   position: relative;
 }
 
-.field--consent input[type="checkbox"]:hover {
+.contact__form input[type="checkbox"]:hover {
   border-color: rgba(206, 201, 195, 0.25);
 }
 
-.field--consent input[type="checkbox"]:focus-visible {
+.contact__form input[type="checkbox"]:focus-visible {
   outline: none;
   border-color: var(--accent);
 }
 
-.field--consent input[type="checkbox"]:checked {
+.contact__form input[type="checkbox"]:checked {
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.field--consent input[type="checkbox"]:checked::after {
+.contact__form input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
   left: 7px;
@@ -1401,6 +1401,30 @@ canvas {
   border: solid #1a1108;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+}
+
+.field--messengers .field__label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--snow);
+  font-weight: 500;
+}
+
+.messenger-options {
+  display: flex;
+  gap: 24px;
+  margin-top: 4px;
+}
+
+.messenger-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text);
 }
 
 .field--consent label {

@@ -606,8 +606,9 @@ canvas {
 }
 
 .section__head {
-  margin-bottom: clamp(48px, 8vh, 96px);
+  margin: 0 auto clamp(48px, 8vh, 96px);
   max-width: 900px;
+  text-align: center;
 }
 
 .tag {
@@ -647,7 +648,7 @@ canvas {
 }
 
 .section__note {
-  margin: 24px 0 0;
+  margin: 24px auto 0;
   max-width: 620px;
   font-size: 16px;
   color: var(--text);
@@ -976,6 +977,7 @@ canvas {
   z-index: 2;
   max-width: var(--max-w);
   margin: 0 auto;
+  text-align: center;
 }
 
 .philosophy__title {
@@ -985,7 +987,7 @@ canvas {
   line-height: 1.08;
   letter-spacing: -0.015em;
   color: #1a1815;
-  margin: 0 0 32px;
+  margin: 0 auto 32px;
   max-width: 900px;
 }
 
@@ -999,7 +1001,7 @@ canvas {
   max-width: 640px;
   font-size: clamp(16px, 1.6vw, 19px);
   color: #3a352e;
-  margin: 0;
+  margin: 0 auto;
 }
 
 /* CTA */
@@ -1040,12 +1042,17 @@ canvas {
   margin: 0 auto;
 }
 
+.contact__inner > .section__title {
+  text-align: center;
+}
+
 .contact__lead {
-  margin: 24px 0 48px;
+  margin: 24px auto 48px;
   color: var(--text);
   opacity: 0.8;
   font-size: 17px;
   max-width: 620px;
+  text-align: center;
 }
 
 .contact__form {

@@ -506,20 +506,6 @@ canvas {
   transition: color 260ms ease;
 }
 
-.abra-cta__arrow {
-  position: relative;
-  display: inline-flex;
-  width: 20px;
-  margin-left: 4px;
-  font-family: var(--font-display);
-  font-size: 15px;
-  color: var(--accent);
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 220ms ease, transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  transition-delay: 0ms;
-}
-
 @media (hover: hover) and (pointer: fine) {
   .abra-cta:hover .abra-cta__corner--tl,
   .abra-cta:hover .abra-cta__corner--bl,
@@ -541,13 +527,6 @@ canvas {
     transition-delay: 0ms, 40ms;
   }
 
-  .abra-cta:hover .abra-cta__arrow,
-  .abra-cta:focus-visible .abra-cta__arrow {
-    opacity: 1;
-    transform: translateX(0);
-    transition-delay: 120ms;
-  }
-
   .abra-cta:active .abra-cta__frame {
     transform: scale(0.985);
     transition-duration: 90ms;
@@ -555,11 +534,6 @@ canvas {
 }
 
 @media (hover: none) {
-  .abra-cta__arrow {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
   .abra-cta:active .abra-cta__corner--tl,
   .abra-cta:active .abra-cta__corner--bl {
     transform: translateX(calc(-1 * var(--cta-shift)));
@@ -610,8 +584,7 @@ canvas {
 
 @media (prefers-reduced-motion: reduce) {
   .abra-cta__frame,
-  .abra-cta__corner,
-  .abra-cta__arrow {
+  .abra-cta__corner {
     transition: opacity 160ms ease, color 160ms ease;
   }
   .abra-cta:hover .abra-cta__corner,

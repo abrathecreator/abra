@@ -349,44 +349,75 @@ canvas {
   opacity: 0.6;
 }
 
-/* BUTTONS */
-.btn {
+/* SECONDARY TEXT LINK — pairs with .abra-cta, stays quiet */
+.abra-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 14px 24px;
-  border-radius: 999px;
-  font-size: 15px;
-  font-weight: 500;
-  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease,
-    color 0.2s ease;
-  border: 1px solid transparent;
+  height: 56px;
+  color: inherit;
 }
 
-.btn--primary {
+.abra-link__text {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text);
+  transition: color 260ms ease;
+}
+
+.abra-link__text::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
   background: var(--accent);
-  color: #1a1108;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.btn--primary:hover {
-  transform: translateY(-2px);
-  background: #c88243;
+@media (hover: hover) and (pointer: fine) {
+  .abra-link:hover .abra-link__text,
+  .abra-link:focus-visible .abra-link__text {
+    color: var(--snow);
+  }
+
+  .abra-link:hover .abra-link__text::after,
+  .abra-link:focus-visible .abra-link__text::after {
+    transform: scaleX(1);
+  }
 }
 
-.btn--ghost {
-  background: transparent;
+.abra-link:focus-visible {
+  outline: none;
+}
+
+.abra-link:focus-visible .abra-link__text {
   color: var(--snow);
-  border-color: var(--border);
 }
 
-.btn--ghost:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.abra-link:focus-visible .abra-link__text::after {
+  transform: scaleX(1);
 }
 
-.btn--lg {
-  padding: 20px 36px;
-  font-size: 17px;
+@media (max-width: 900px) {
+  .abra-link {
+    height: 52px;
+  }
+  .abra-link__text {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .abra-link__text::after {
+    transition: none;
+  }
 }
 
 /* ABRA CTA — brackets that build into a frame */

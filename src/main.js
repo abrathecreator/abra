@@ -16,7 +16,7 @@ const heroIntroSelectors = [
   ".hero__title .line",
   ".hero__subtitle",
   ".hero__sub",
-  ".hero__actions .btn",
+  ".hero__actions .abra-link",
   ".hero__actions .abra-cta",
   ".hero__scroll",
 ];
@@ -34,7 +34,7 @@ try {
     .from(".hero__subtitle", { y: 30, opacity: 0, duration: 0.8 }, 0.8)
     .from(".hero__sub", { y: 20, opacity: 0, duration: 0.7 }, 1.05)
     .from(
-      ".hero__actions .btn, .hero__actions .abra-cta",
+      ".hero__actions .abra-link, .hero__actions .abra-cta",
       { y: 20, opacity: 0, duration: 0.6, stagger: 0.08 },
       1.2
     )

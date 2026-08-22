@@ -919,12 +919,13 @@ canvas {
 }
 
 .step {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
   padding: 36px 0;
   border-top: 1px solid var(--border);
-  align-items: baseline;
 }
 
 .step:last-child {
@@ -948,18 +949,11 @@ canvas {
 }
 
 .step__body p {
-  margin: 0;
+  margin: 0 auto;
   max-width: 640px;
   color: var(--text);
   opacity: 0.8;
   font-size: 16px;
-}
-
-@media (max-width: 620px) {
-  .step {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
 }
 
 /* PHILOSOPHY */

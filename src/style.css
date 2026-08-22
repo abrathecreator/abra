@@ -313,6 +313,7 @@ canvas {
 }
 
 .hero__subtitle {
+  display: block;
   font-family: var(--font-display);
   font-weight: 500;
   font-style: italic;

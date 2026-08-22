@@ -1,18 +1,5 @@
 import { SECTION_ICONS } from "./icons.js";
 
-/* How long each icon's full interaction sequence takes to resolve —
-   used to time the one-shot viewport reveal (see below). Kept in sync
-   with the transition/animation durations in style.css. */
-const REVEAL_DURATIONS = {
-  insight: 1520,
-  system: 1000,
-  services: 1200,
-  method: 1640,
-  philosophy: 1120,
-  connect: 1400,
-  contact: 1680,
-};
-
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -37,12 +24,8 @@ export function initSectionIcons(root = document) {
     (entries, obs) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        const el = entry.target;
-        el.classList.add("is-revealed");
-        window.setTimeout(() => {
-          el.classList.remove("is-revealed");
-        }, REVEAL_DURATIONS[el.dataset.icon] || 700);
-        obs.unobserve(el);
+        entry.target.classList.add("is-revealed");
+        obs.unobserve(entry.target);
       });
     },
     { threshold: 0.3 }

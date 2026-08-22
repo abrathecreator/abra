@@ -1105,6 +1105,12 @@ canvas {
 .field textarea::placeholder {
   color: var(--text);
   opacity: 0.35;
+  transition: opacity 0.15s ease;
+}
+
+.field input:focus::placeholder,
+.field textarea:focus::placeholder {
+  opacity: 0;
 }
 
 .field input:hover,

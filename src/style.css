@@ -717,10 +717,28 @@ canvas {
 
 @media (max-width: 560px) {
   .funnel {
-    gap: 10px 8px;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .funnel__group {
+    flex-direction: column;
+    gap: 6px;
   }
   .funnel__arrow {
-    width: 18px;
+    display: inline-block !important;
+    width: 1px;
+    height: 16px;
+  }
+  .funnel__arrow::after {
+    right: auto;
+    top: auto;
+    left: 50%;
+    bottom: 0;
+    border-top: none;
+    border-right: 1px solid rgba(206, 201, 195, 0.5);
+    border-bottom: 1px solid rgba(206, 201, 195, 0.5);
+    transform: translate(-50%, 1px) rotate(45deg);
   }
   .funnel__step {
     padding: 10px 14px;

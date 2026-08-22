@@ -421,14 +421,6 @@
             action="https://formspree.io/f/mjybyyav"
             method="POST"
           >
-            <input
-              type="text"
-              name="_gotcha"
-              tabindex="-1"
-              autocomplete="off"
-              aria-hidden="true"
-              style="position:absolute;left:-10000px;width:1px;height:1px;opacity:0;pointer-events:none"
-            />
             <div class="field field--half">
               <label for="cf-name">Имя</label>
               <input
@@ -445,41 +437,18 @@
                 type="tel"
                 id="cf-phone"
                 name="phone"
+                required
                 autocomplete="tel"
                 placeholder="+7 999 123-45-67"
               />
             </div>
             <div class="field">
-              <label for="cf-problem">Что сейчас не работает</label>
-              <textarea
-                id="cf-problem"
-                name="problem"
-                rows="4"
-                required
-              ></textarea>
-            </div>
-            <div class="field">
-              <label for="cf-tried">Что уже пробовали</label>
-              <textarea id="cf-tried" name="tried" rows="4"></textarea>
-            </div>
-            <div class="field field--half">
-              <label for="cf-site">Ссылка на сайт</label>
-              <input
-                type="url"
-                id="cf-site"
-                name="site"
-                placeholder="https://"
-                autocomplete="url"
-              />
-            </div>
-            <div class="field field--half">
-              <label for="cf-contact">Telegram или email для связи</label>
+              <label for="cf-messenger">Telegram, Max — куда ещё можно написать</label>
               <input
                 type="text"
-                id="cf-contact"
-                name="contact"
-                required
-                placeholder="@username или name@mail.com"
+                id="cf-messenger"
+                name="messenger"
+                placeholder="@username в Telegram или Max"
               />
             </div>
             <div class="field field--consent">

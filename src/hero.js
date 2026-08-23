@@ -25,12 +25,14 @@ export function initHero(canvas) {
   }
 
   const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+  const clamp = (v) => Math.max(-1, Math.min(1, v));
   const onMove = (e) => {
     const rect = canvas.getBoundingClientRect();
-    mouse.targetX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-    mouse.targetY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    mouse.targetX = clamp(((e.clientX - rect.left) / rect.width - 0.5) * 2);
+    mouse.targetY = clamp(((e.clientY - rect.top) / rect.height - 0.5) * 2);
   };
-  window.addEventListener("pointermove", onMove);
+  const hasCursor = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  if (hasCursor) window.addEventListener("pointermove", onMove);
 
   let width = 0;
   let height = 0;
@@ -116,9 +118,15 @@ export function initHero(canvas) {
   resize();
   rafId = requestAnimationFrame(frame);
 
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(resize);
+  }
+  window.addEventListener("load", resize);
+
   return () => {
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("resize", resize);
+    window.removeEventListener("load", resize);
     cancelAnimationFrame(rafId);
   };
 }

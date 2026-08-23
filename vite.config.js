@@ -17,6 +17,7 @@ export default defineConfig(() => ({
         consent: resolve(__dirname, "consent.html"),
         terms: resolve(__dirname, "terms.html"),
         notFound: resolve(__dirname, "404.html"),
+        unitEconomics: resolve(__dirname, "unit-economics.html"),
       },
     },
   },

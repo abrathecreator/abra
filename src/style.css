@@ -1913,3 +1913,236 @@ canvas {
     animation: none !important;
   }
 }
+
+/* ============================================================
+   TOOL — калькулятор юнит-экономики (первая страница слоя "продукт")
+   Функциональные цвета (--tool-ok/warn/bad) вводятся здесь впервые —
+   значения совпадают с abra-tokens.css [TARGET] --abra-ok/warn/bad.
+   ============================================================ */
+
+:root {
+  --tool-ok: #7c9a6e;
+  --tool-warn: #c9a24b;
+  --tool-bad: #b5563f;
+}
+
+.tool {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(100px, 14vh, 160px) var(--gutter) clamp(80px, 12vh, 140px);
+}
+
+.tool__head {
+  max-width: 720px;
+  margin-bottom: 56px;
+}
+
+.tool__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(28px, 3.6vw, 44px);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--snow);
+  margin: 0 0 16px;
+}
+
+.tool__lead {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text);
+  opacity: 0.8;
+  margin: 0;
+}
+
+.tool__layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.tool__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 24px;
+  background: var(--bg-warm);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  position: sticky;
+  top: 32px;
+}
+
+.tool__group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tool__group-title {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.tool__inputs .field label {
+  font-size: 12px;
+}
+
+.tool__inputs .field input {
+  font-variant-numeric: tabular-nums;
+}
+
+.tool__results {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tool__funnel-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.tool__funnel-value {
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--snow);
+}
+
+.tool__funnel-label {
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.tool__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: var(--bg-warm);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.stat-card__label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.stat-card__value {
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  color: var(--snow);
+}
+
+.stat-card--ok .stat-card__value {
+  color: var(--tool-ok);
+}
+
+.stat-card--warn .stat-card__value {
+  color: var(--tool-warn);
+}
+
+.stat-card--bad .stat-card__value {
+  color: var(--tool-bad);
+}
+
+.tool__sensitivity {
+  margin-top: 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tool__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.tool__table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 1400px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tool__table th,
+.tool__table td {
+  padding: 12px 14px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.tool__table th {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.6;
+  text-align: right;
+  background: var(--bg-warm);
+}
+
+.tool__table th:first-child,
+.tool__table td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: var(--bg-warm);
+}
+
+.tool__table-label {
+  color: var(--snow);
+  font-weight: 500;
+}
+
+.tool__table-row--base {
+  background: rgba(184, 115, 51, 0.06);
+}
+
+.tool__table-highlight {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .tool__layout {
+    grid-template-columns: 1fr;
+  }
+  .tool__inputs {
+    position: static;
+  }
+  .tool__stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

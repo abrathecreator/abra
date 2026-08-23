@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, follow" />
+    <title>Калькулятор юнит-экономики — ABRA</title>
+    <meta
+      name="description"
+      content="Живой калькулятор воронки и юнит-экономики с анализом чувствительности к каждому параметру."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main class="tool">
+      <a class="legal__back" href="/">← ABRA</a>
+
+      <div class="tool__head">
+        <span class="tag">[ .Юнит-экономика ]</span>
+        <h1 class="tool__title">Калькулятор воронки</h1>
+        <p class="tool__lead">
+          Меняйте параметры слева — выручка, прибыль и ROI пересчитываются
+          сразу. Таблица снизу показывает, что будет, если каждый параметр
+          вырастет на 10% по отдельности.
+        </p>
+      </div>
+
+      <div class="tool__layout">
+        <form class="tool__inputs" id="ue-form">
+          <div class="tool__group">
+            <span class="tool__group-title">Трафик</span>
+            <div class="field">
+              <label for="ue-impressions">Показы</label>
+              <input type="number" id="ue-impressions" min="0" step="1" value="340000" />
+            </div>
+            <div class="field">
+              <label for="ue-ctr">CTR</label>
+              <input type="number" id="ue-ctr" min="0" max="100" step="0.1" value="3" />
+            </div>
+          </div>
+
+          <div class="tool__group">
+            <span class="tool__group-title">Воронка</span>
+            <div class="field">
+              <label for="ue-cr1">Конверсия в заявку (CR1)</label>
+              <input type="number" id="ue-cr1" min="0" max="100" step="0.1" value="35" />
+            </div>
+            <div class="field">
+              <label for="ue-cr2">Конверсия в квал. лид (CR2)</label>
+              <input type="number" id="ue-cr2" min="0" max="100" step="0.1" value="30" />
+            </div>
+            <div class="field">
+              <label for="ue-cr3">Конверсия в продажу (CR3)</label>
+              <input type="number" id="ue-cr3" min="0" max="100" step="0.1" value="5" />
+            </div>
+          </div>
+
+          <div class="tool__group">
+            <span class="tool__group-title">Монетизация</span>
+            <div class="field">
+              <label for="ue-avprice">Средний чек, ₽</label>
+              <input type="number" id="ue-avprice" min="0" step="100" value="29000" />
+            </div>
+            <div class="field">
+              <label for="ue-retention">Повторные покупки (Retention)</label>
+              <input type="number" id="ue-retention" min="0" step="0.01" value="1.27" />
+            </div>
+          </div>
+
+          <div class="tool__group">
+            <span class="tool__group-title">Затраты</span>
+            <div class="field">
+              <label for="ue-cpu">Стоимость пользователя (CPU), ₽</label>
+              <input type="number" id="ue-cpu" min="0" step="1" value="30" />
+            </div>
+            <div class="field">
+              <label for="ue-margin">Маржа</label>
+              <input type="number" id="ue-margin" min="0" max="100" step="1" value="55" />
+            </div>
+          </div>
+        </form>
+
+        <div class="tool__results">
+          <div class="tool__funnel" id="ue-funnel"></div>
+          <div class="tool__stats" id="ue-stats"></div>
+        </div>
+      </div>
+
+      <div class="tool__sensitivity">
+        <span class="tool__group-title">Чувствительность — что если каждый параметр +10%</span>
+        <div class="tool__table-wrap">
+          <table class="tool__table" id="ue-table"></table>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer__meta">
+        <svg
+          class="footer__mark"
+          viewBox="-6 -6 112 172"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="10"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M 6 155 L 82 75 A 44 44 0 1 0 18 75 L 94 155 Z" />
+        </svg>
+        <span>© ABRA · 2026</span>
+        <span>Утяшев А. Р.</span>
+      </div>
+      <div class="footer__legal">
+        <a href="/privacy">Политика конфиденциальности</a>
+        <a href="/consent">Согласие на обработку ПДн</a>
+        <a href="/terms">Пользовательское соглашение</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/unit-economics.js"></script>
+  </body>
+</html>

@@ -1,3 +1,17 @@
+/* Syne's own digit glyphs render badly at bold weights (uneven strokes,
+   odd proportions on figures like 8). Patch just the digits 0-9 to fall
+   through to Inter instead, for every weight Syne is used at anywhere on
+   the site — so this never needs fixing element-by-element again. */
+@font-face {
+  font-family: "Syne";
+  font-weight: 500 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2")
+    format("woff2");
+  unicode-range: U+30-39;
+}
+
 :root {
   --bg: #0C0B09;
   --bg-warm: #131210;

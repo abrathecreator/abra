@@ -350,16 +350,19 @@ function showTip(btn) {
   tip.style.top = `${top}px`;
 }
 
-document.addEventListener("click", (e) => {
+/* pointerdown, не click: срабатывает раньше и надёжнее закрывает попап
+   при любом следующем взаимодействии, включая клики внутри <label>,
+   где click иногда съедается нативной пересылкой фокуса на input. */
+document.addEventListener("pointerdown", (e) => {
   const btn = e.target.closest(".info-btn");
   if (btn) {
-    e.preventDefault();
     const already = tip.dataset.openFor === btn.dataset.infoKey && !tip.hidden;
     hideTip();
     if (!already) showTip(btn);
+    e.preventDefault();
     return;
   }
-  if (!tip.hidden && !e.target.closest(".info-tip")) hideTip();
+  if (!tip.hidden) hideTip();
 });
 
 document.addEventListener("keydown", (e) => {

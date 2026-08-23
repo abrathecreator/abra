@@ -2176,6 +2176,10 @@ canvas {
   border-radius: 10px;
 }
 
+.info-tip[hidden] {
+  display: none;
+}
+
 .info-tip__term {
   font-family: var(--font-display);
   font-weight: 600;

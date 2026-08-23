@@ -1014,6 +1014,16 @@ canvas {
   text-align: center;
 }
 
+.philosophy__photo {
+  width: 116px;
+  height: 116px;
+  border-radius: 10px;
+  object-fit: cover;
+  margin: 0 auto 32px;
+  display: block;
+  border: 1px solid var(--border);
+}
+
 .philosophy__title {
   font-family: var(--font-display);
   font-weight: 600;

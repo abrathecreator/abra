@@ -19,6 +19,7 @@ export default defineConfig(() => ({
         notFound: resolve(__dirname, "404.html"),
         unitEconomics: resolve(__dirname, "unit-economics.html"),
         caseTemplate: resolve(__dirname, "case-template.html"),
+        caseZhbi: resolve(__dirname, "case-zhbi.html"),
       },
     },
   },

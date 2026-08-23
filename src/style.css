@@ -415,6 +415,25 @@ canvas {
   }
 }
 
+/* ACCENT VARIANT — for a .abra-link standing on its own, with no
+   primary .abra-cta nearby to defer to. Needs to read as clickable
+   without hovering/tapping first. */
+.abra-link--accent .abra-link__text {
+  color: var(--accent);
+}
+
+.abra-link--accent .abra-link__text::after {
+  transform: scaleX(1);
+  opacity: 0.55;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .abra-link--accent:hover .abra-link__text::after,
+  .abra-link--accent:focus-visible .abra-link__text::after {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .abra-link__text::after {
     transition: none;

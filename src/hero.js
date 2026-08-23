@@ -118,15 +118,13 @@ export function initHero(canvas) {
   resize();
   rafId = requestAnimationFrame(frame);
 
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(resize);
-  }
-  window.addEventListener("load", resize);
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
 
   return () => {
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("resize", resize);
-    window.removeEventListener("load", resize);
+    ro.disconnect();
     cancelAnimationFrame(rafId);
   };
 }

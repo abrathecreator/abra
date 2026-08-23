@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, follow" />
+    <title>Шаблон кейса — ABRA</title>
+    <meta
+      name="description"
+      content="Шаблон страницы кейса: разрыв, метрики, эффект. Пример на иллюстративных данных."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" src="/src/legal.js"></script>
+  </head>
+  <body>
+    <main class="case">
+      <a class="legal__back" href="/">← ABRA</a>
+      <span class="case__kicker">[ .Кейс ]</span>
+
+      <div class="case__hero">
+        <span class="case__meta">Кейс · B2B услуги · 7 месяцев</span>
+        <h1 class="case__title">
+          Собрали воронку из четырёх разрозненных блоков — и нашли
+          38% <em>потерянной</em> маржи
+        </h1>
+        <div class="case__stats">
+          <div class="case__stat">
+            <span class="case__stat-value">×2,4</span>
+            <span class="case__stat-label">Конверсия</span>
+          </div>
+          <div class="case__stat">
+            <span class="case__stat-value">−38%</span>
+            <span class="case__stat-label">CPQL</span>
+          </div>
+          <div class="case__stat">
+            <span class="case__stat-value">+61%</span>
+            <span class="case__stat-label">Выручка/мес</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case__body">
+        <aside class="case__sidebar">
+          <div class="case__fact">
+            <span class="case__fact-label">Клиент</span>
+            <span class="case__fact-value">Сервисная компания, 90 чел.</span>
+          </div>
+          <div class="case__fact">
+            <span class="case__fact-label">Формат</span>
+            <span class="case__fact-value"
+              >Диагностика → Архитектура → Внедрение</span
+            >
+          </div>
+          <div class="case__fact">
+            <span class="case__fact-label">Слои</span>
+            <div class="case__layers">
+              <span class="case__layer">Sales</span>
+              <span class="case__layer">Data</span>
+              <span class="case__layer">System</span>
+            </div>
+          </div>
+        </aside>
+
+        <div class="case__content">
+          <section class="case__section">
+            <span class="case__section-label">Разрыв</span>
+            <p class="case__text">
+              Реклама отчитывалась за заявки, продажи — за звонки, финансы —
+              за выручку. Ни один отчёт не соединял показ с маржой, поэтому
+              решения принимались по самой громкой цифре месяца.
+            </p>
+            <div class="case__compare">
+              <div class="case__compare-item">
+                <span class="case__compare-label">До</span>
+                <p>
+                  6 отчётов, 3 источника правды, планёрка на 2 часа без
+                  решений.
+                </p>
+              </div>
+              <div class="case__compare-item case__compare-item--after">
+                <span class="case__compare-label">После</span>
+                <p>
+                  Одно дерево метрик, недельный ритм, решение фиксируется на
+                  планёрке за 40 минут.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <table class="case__table">
+            <thead>
+              <tr>
+                <th>Метрика</th>
+                <th>Было</th>
+                <th>Стало</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Цена квал. лида</td>
+                <td>14 200 ₽</td>
+                <td class="case__table-highlight">8 800 ₽</td>
+              </tr>
+              <tr>
+                <td>Конверсия в сделку</td>
+                <td>7%</td>
+                <td class="case__table-highlight">17%</td>
+              </tr>
+              <tr>
+                <td>Цикл сделки</td>
+                <td>26 дн</td>
+                <td class="case__table-highlight">11 дн</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <blockquote class="case__quote">
+            <p>
+              Мы не добавили ни одного канала. Просто перестали терять на
+              стыках.
+            </p>
+            <cite>Собственник, отзыв после 7 месяцев</cite>
+          </blockquote>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer__meta">
+        <svg
+          class="footer__mark"
+          viewBox="-6 -6 112 172"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="10"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M 6 155 L 82 75 A 44 44 0 1 0 18 75 L 94 155 Z" />
+        </svg>
+        <span>© ABRA · 2026</span>
+        <span>Утяшев А. Р.</span>
+      </div>
+      <div class="footer__legal">
+        <a href="/privacy">Политика конфиденциальности</a>
+        <a href="/consent">Согласие на обработку ПДн</a>
+        <a href="/terms">Пользовательское соглашение</a>
+      </div>
+    </footer>
+    <noscript>
+      <div>
+        <img
+          src="https://mc.yandex.ru/watch/111833820"
+          style="position: absolute; left: -9999px"
+          alt=""
+        />
+      </div>
+    </noscript>
+  </body>
+</html>

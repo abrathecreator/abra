@@ -750,6 +750,11 @@ canvas {
   font-size: 16px;
 }
 
+.insight__cta {
+  margin: 24px auto 0;
+  text-align: center;
+}
+
 /* SYSTEM / CARDS */
 .system {
   border-top: 1px solid var(--border);

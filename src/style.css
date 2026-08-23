@@ -2369,6 +2369,7 @@ canvas {
   color: var(--snow);
   max-width: 820px;
   margin: 0 0 40px;
+  overflow-wrap: break-word;
 }
 
 .case__title em {

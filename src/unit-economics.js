@@ -92,22 +92,15 @@ function renderFunnel(r) {
     ["Покупатели", RUB2.format(r.buyers)],
     ["Orders", RUB2.format(r.orders)],
   ];
-  document.getElementById("ue-funnel").innerHTML = `
-    <div class="funnel">
-      ${steps
-        .map(
-          ([label, value], idx) => `
-        <div class="funnel__group">
-          ${idx > 0 ? '<span class="funnel__arrow" aria-hidden="true"></span>' : ""}
-          <div class="funnel__step tool__funnel-step">
-            <span class="tool__funnel-value">${value}</span>
-            <span class="tool__funnel-label">${label}</span>
-          </div>
-        </div>`
-        )
-        .join("")}
-    </div>
-  `;
+  document.getElementById("ue-funnel").innerHTML = steps
+    .map(
+      ([label, value]) => `
+    <div class="stat-card">
+      <span class="stat-card__label">${label}</span>
+      <span class="stat-card__value">${value}</span>
+    </div>`
+    )
+    .join("");
 }
 
 function renderStats(r) {

@@ -2003,26 +2003,10 @@ canvas {
   gap: 24px;
 }
 
-.tool__funnel-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 14px 16px;
-}
-
-.tool__funnel-value {
-  font-family: var(--font-body);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--snow);
-}
-
-.tool__funnel-label {
-  font-size: 11px;
-  color: var(--text);
-  opacity: 0.7;
+.tool__funnel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
 .tool__stats {
@@ -2142,6 +2126,7 @@ canvas {
   .tool__inputs {
     position: static;
   }
+  .tool__funnel,
   .tool__stats {
     grid-template-columns: repeat(2, 1fr);
   }

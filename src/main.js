@@ -304,6 +304,9 @@ if (contactForm) {
         contactForm.hidden = true;
         if (successEl) {
           successEl.hidden = false;
+          // Фокус на блок успеха — иначе скринридер не сообщит об отправке,
+          // а фокус останется на кнопке внутри уже скрытой формы.
+          successEl.focus();
           successEl.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       } else {

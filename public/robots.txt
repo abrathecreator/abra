@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://abra-9bm.pages.dev/sitemap.xml
+Sitemap: https://a-bra.ru/sitemap.xml

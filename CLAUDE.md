@@ -6,7 +6,7 @@
 
 Одностраничный лендинг-визитка "ABRA" — персональный бренд-сайт для позиционирования "архитектор систем роста" (маркетинг + продажи + аналитика + продукт как единая система). Целевое действие — заявка на бесплатный 30-минутный видеозвонок через форму или mailto.
 
-- Прод: `https://abra-9bm.pages.dev/` (Cloudflare Pages)
+- Прод: `https://a-bra.ru/` (Cloudflare Pages)
 - Репозиторий: `https://github.com/abrathecreator/abra`
 - Владелец контента: Утяшев А. Р.
 - Язык интерфейса: русский (`<html lang="ru">`)
@@ -127,9 +127,9 @@ CSP выставляется **через реальный HTTP-заголово
 
 ## Деплой
 
-- **Основной таргет**: Cloudflare Pages, автодеплой на push в `main` (`https://abra-9bm.pages.dev/`)
+- **Основной таргет**: Cloudflare Pages, автодеплой на push в `main` (`https://a-bra.ru/`)
 - **Резервный таргет**: GitHub Pages, переключается через `DEPLOY_TARGET=gh-pages` env var в `vite.config.js` (меняет `base` с `/` на `/abra/`) — держится явно как fallback по решению owner'а, не удалять
-- После каждого push в `main` проверяй, что прод реально обновился: `curl -s https://abra-9bm.pages.dev/ | grep -o 'assets/main-[^"]*\.js'` и сравни хэш с локальным `npm run build`
+- После каждого push в `main` проверяй, что прод реально обновился: `curl -s https://a-bra.ru/ | grep -o 'assets/main-[^"]*\.js'` и сравни хэш с локальным `npm run build`
 - `npm run dev` / `npm run build` / `npm run preview` — стандартные Vite-команды, ничего кастомного
 
 ## Известные проблемы (полный список — `TECHDEBT.md`)

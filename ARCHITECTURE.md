@@ -6,7 +6,7 @@
 
 Одностраничный (по факту — многостраничный: главная + 3 юридические страницы) сайт-визитка "ABRA". Цель страницы — довести посетителя до одного действия: заявка на бесплатный 30-минутный видеозвонок, через форму обратной связи или mailto-ссылку.
 
-Прод: **https://abra-9bm.pages.dev/**
+Прод: **https://a-bra.ru/**
 Репозиторий: **https://github.com/abrathecreator/abra**
 
 ## 2. Быстрый старт
@@ -237,12 +237,12 @@ Content-Security-Policy: default-src 'self'; script-src 'self' https://mc.yandex
 
 ## 13. Деплой
 
-- **Основной**: Cloudflare Pages, автодеплой при push в `main`, прод — `https://abra-9bm.pages.dev/`
+- **Основной**: Cloudflare Pages, автодеплой при push в `main`, прод — `https://a-bra.ru/`
 - **Резервный (fallback)**: GitHub Pages. Переключается через переменную окружения `DEPLOY_TARGET=gh-pages`, которая меняет `base` в `vite.config.js` с `/` на `/abra/` (нужно для корректных путей на project pages URL вида `username.github.io/abra/`). Держится осознанно как запасной вариант.
 - После каждого push в `main` стоит проверять, что Cloudflare реально выкатил новую версию, а не полагаться на факт пуша:
   ```bash
   npm run build
-  curl -s https://abra-9bm.pages.dev/ | grep -o 'assets/main-[^"]*\.js'
+  curl -s https://a-bra.ru/ | grep -o 'assets/main-[^"]*\.js'
   # сравнить хэш с тем, что лежит в dist/assets после локальной сборки
   ```
 

@@ -32,7 +32,12 @@ export function initHero(canvas) {
     mouse.targetY = clamp(((e.clientY - rect.top) / rect.height - 0.5) * 2);
   };
   const hasCursor = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  if (hasCursor) window.addEventListener("pointermove", onMove);
+  // При prefers-reduced-motion созвездие рисуется один раз и замирает:
+  // ни дрейфа узлов, ни параллакса от курсора.
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+  if (hasCursor && !reducedMotion) window.addEventListener("pointermove", onMove);
 
   let width = 0;
   let height = 0;
@@ -44,6 +49,9 @@ export function initHero(canvas) {
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // Цикл кадров при reduced-motion остановлен, поэтому перерисовываем
+    // статичный кадр вручную — иначе после ресайза холст останется пустым.
+    if (reducedMotion && width > 0) requestAnimationFrame(frame);
   };
   window.addEventListener("resize", resize);
 
@@ -112,7 +120,7 @@ export function initHero(canvas) {
       ctx.fill();
     }
 
-    rafId = requestAnimationFrame(frame);
+    if (!reducedMotion) rafId = requestAnimationFrame(frame);
   }
 
   resize();

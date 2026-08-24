@@ -7,6 +7,17 @@ import { initSectionIcons } from "./section-icons.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
+/* Если человек попросил ОС уменьшить анимацию — не строим ни одного
+   таймлайна и ни одного ScrollTrigger. Раньше они создавались всегда, и
+   каждый gsap.from() выставлял своему элементу opacity:0 ещё до скролла:
+   контент ниже первого экрана был физически скрыт, а не просто статичен.
+   Не заводя твинов, мы оставляем всё в исходном состоянии из CSS —
+   видимым. Логика, не связанная с движением (стрелки воронки, отправка
+   формы), обязана работать в обеих ветках. */
+const reducedMotion = window.matchMedia(
+  "(prefers-reduced-motion: reduce)"
+).matches;
+
 const canvas = document.getElementById("hero-canvas");
 initHero(canvas);
 initSectionIcons();
@@ -23,77 +34,9 @@ const heroIntroSelectors = [
   ".hero__scroll",
 ];
 
-try {
-  gsap
-    .timeline({ defaults: { ease: "power3.out" } })
-    .from(".nav", { y: -20, opacity: 0, duration: 0.8 }, 0.1)
-    .from(".hero__eyebrow", { y: 20, opacity: 0, duration: 0.7 }, 0.3)
-    .from(
-      ".hero__title .line",
-      { y: 80, opacity: 0, duration: 1, stagger: 0.08 },
-      0.45
-    )
-    .from(".hero__subtitle", { y: 30, opacity: 0, duration: 0.8 }, 0.8)
-    .from(".hero__sub", { y: 20, opacity: 0, duration: 0.7 }, 1.05)
-    .from(
-      ".hero__actions .abra-link, .hero__actions .abra-cta",
-      { y: 20, opacity: 0, duration: 0.6, stagger: 0.08 },
-      1.2
-    )
-    .from(".hero__scroll", { opacity: 0, duration: 0.8 }, 1.5);
-} catch (err) {
-  heroIntroSelectors.forEach((sel) => {
-    document.querySelectorAll(sel).forEach((el) => {
-      el.style.opacity = "1";
-      el.style.transform = "none";
-    });
-  });
-}
-
-/* Safety net: if the intro timeline stalls or errors for any reason
-   (slow asset load, browser quirk), never leave hero text stuck at
-   opacity:0 — force it visible after a short grace period. */
-setTimeout(() => {
-  heroIntroSelectors.forEach((sel) => {
-    document.querySelectorAll(sel).forEach((el) => {
-      if (getComputedStyle(el).opacity === "0") {
-        el.style.opacity = "1";
-        el.style.transform = "none";
-      }
-    });
-  });
-}, 2500);
-
-/* SECTION HEADS */
-gsap.utils.toArray(".section__head").forEach((head) => {
-  gsap.from(head.children, {
-    scrollTrigger: {
-      trigger: head,
-      start: "top 82%",
-    },
-    y: 40,
-    opacity: 0,
-    duration: 0.9,
-    stagger: 0.1,
-    ease: "power3.out",
-  });
-});
-
-/* FUNNEL */
-gsap.from(".funnel > *", {
-  scrollTrigger: {
-    trigger: ".funnel",
-    start: "top 85%",
-  },
-  y: 12,
-  opacity: 0,
-  duration: 0.5,
-  stagger: 0.06,
-  ease: "power2.out",
-  onComplete: () => updateFunnelArrows(),
-});
-
-/* Hide arrows that end up as the first item of a wrapped row */
+/* Hide arrows that end up as the first item of a wrapped row.
+   Живёт выше развилки по reducedMotion: к движению отношения не имеет,
+   нужна в обеих ветках. */
 function updateFunnelArrows() {
   const groups = document.querySelectorAll(".funnel .funnel__group");
   let prevTop = null;
@@ -115,109 +58,201 @@ if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(() => updateFunnelArrows());
 }
 
-/* CARDS */
-gsap.from(".cards .card", {
-  scrollTrigger: {
-    trigger: ".cards",
-    start: "top 80%",
-  },
-  y: 20,
-  opacity: 0,
-  duration: 0.7,
-  ease: "power3.out",
-});
+if (reducedMotion) {
+  /* Твины не создаются вовсе, поэтому никто не выставляет opacity:0 —
+     всё уже видно в состоянии из CSS. Подчищаем только инлайновые стили
+     на случай, если что-то успело их оставить: .philosophy__mark
+     сознательно не трогаем, у него собственная непрозрачность 0.03. */
+  gsap.set(
+    [
+      ...heroIntroSelectors,
+      ".section__head > *",
+      ".funnel > *",
+      ".cards .card",
+      ".services__grid .service",
+      ".step",
+      ".philosophy__title",
+      ".philosophy__text",
+      ".cta__inner > *",
+      ".contact__inner > *",
+    ].join(","),
+    { clearProps: "all" }
+  );
+} else {
+  try {
+    gsap
+      .timeline({ defaults: { ease: "power3.out" } })
+      .from(".nav", { y: -20, opacity: 0, duration: 0.8 }, 0.1)
+      .from(".hero__eyebrow", { y: 20, opacity: 0, duration: 0.7 }, 0.3)
+      .from(
+        ".hero__title .line",
+        { y: 80, opacity: 0, duration: 1, stagger: 0.08 },
+        0.45
+      )
+      .from(".hero__subtitle", { y: 30, opacity: 0, duration: 0.8 }, 0.8)
+      .from(".hero__sub", { y: 20, opacity: 0, duration: 0.7 }, 1.05)
+      .from(
+        ".hero__actions .abra-link, .hero__actions .abra-cta",
+        { y: 20, opacity: 0, duration: 0.6, stagger: 0.08 },
+        1.2
+      )
+      .from(".hero__scroll", { opacity: 0, duration: 0.8 }, 1.5);
+  } catch (err) {
+    heroIntroSelectors.forEach((sel) => {
+      document.querySelectorAll(sel).forEach((el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+      });
+    });
+  }
 
-/* SERVICES */
-gsap.from(".services__grid .service", {
-  scrollTrigger: {
-    trigger: ".services__grid",
-    start: "top 80%",
-  },
-  y: 20,
-  opacity: 0,
-  duration: 0.8,
-  ease: "power3.out",
-});
+  /* Safety net: if the intro timeline stalls or errors for any reason
+     (slow asset load, browser quirk), never leave hero text stuck at
+     opacity:0 — force it visible after a short grace period. */
+  setTimeout(() => {
+    heroIntroSelectors.forEach((sel) => {
+      document.querySelectorAll(sel).forEach((el) => {
+        if (getComputedStyle(el).opacity === "0") {
+          el.style.opacity = "1";
+          el.style.transform = "none";
+        }
+      });
+    });
+  }, 2500);
 
-/* METHOD STEPS */
-gsap.utils.toArray(".step").forEach((step) => {
-  gsap.from(step, {
+  /* SECTION HEADS */
+  gsap.utils.toArray(".section__head").forEach((head) => {
+    gsap.from(head.children, {
+      scrollTrigger: {
+        trigger: head,
+        start: "top 82%",
+      },
+      y: 40,
+      opacity: 0,
+      duration: 0.9,
+      stagger: 0.1,
+      ease: "power3.out",
+    });
+  });
+
+  /* FUNNEL */
+  gsap.from(".funnel > *", {
     scrollTrigger: {
-      trigger: step,
+      trigger: ".funnel",
       start: "top 85%",
     },
-    x: -30,
+    y: 12,
+    opacity: 0,
+    duration: 0.5,
+    stagger: 0.06,
+    ease: "power2.out",
+    onComplete: () => updateFunnelArrows(),
+  });
+
+  /* CARDS */
+  gsap.from(".cards .card", {
+    scrollTrigger: {
+      trigger: ".cards",
+      start: "top 80%",
+    },
+    y: 20,
+    opacity: 0,
+    duration: 0.7,
+    ease: "power3.out",
+  });
+
+  /* SERVICES */
+  gsap.from(".services__grid .service", {
+    scrollTrigger: {
+      trigger: ".services__grid",
+      start: "top 80%",
+    },
+    y: 20,
     opacity: 0,
     duration: 0.8,
     ease: "power3.out",
   });
-});
 
-/* PHILOSOPHY */
-gsap.from(".philosophy__title", {
-  scrollTrigger: {
-    trigger: ".philosophy",
-    start: "top 70%",
-  },
-  y: 40,
-  opacity: 0,
-  duration: 1,
-  ease: "power3.out",
-});
+  /* METHOD STEPS */
+  gsap.utils.toArray(".step").forEach((step) => {
+    gsap.from(step, {
+      scrollTrigger: {
+        trigger: step,
+        start: "top 85%",
+      },
+      x: -30,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power3.out",
+    });
+  });
 
-gsap.from(".philosophy__text", {
-  scrollTrigger: {
-    trigger: ".philosophy",
-    start: "top 65%",
-  },
-  y: 30,
-  opacity: 0,
-  duration: 1,
-  delay: 0.15,
-  ease: "power3.out",
-});
-
-gsap.fromTo(
-  ".philosophy__mark",
-  { scale: 0.9, opacity: 0 },
-  {
+  /* PHILOSOPHY */
+  gsap.from(".philosophy__title", {
     scrollTrigger: {
       trigger: ".philosophy",
-      start: "top 80%",
-      end: "bottom top",
-      scrub: 1,
+      start: "top 70%",
     },
-    scale: 1.1,
-    opacity: 0.05,
-    ease: "none",
-  }
-);
+    y: 40,
+    opacity: 0,
+    duration: 1,
+    ease: "power3.out",
+  });
 
-/* CTA */
-gsap.from(".cta__inner > *", {
-  scrollTrigger: {
-    trigger: ".cta",
-    start: "top 80%",
-  },
-  y: 30,
-  opacity: 0,
-  duration: 0.8,
-  stagger: 0.1,
-  ease: "power3.out",
-});
+  gsap.from(".philosophy__text", {
+    scrollTrigger: {
+      trigger: ".philosophy",
+      start: "top 65%",
+    },
+    y: 30,
+    opacity: 0,
+    duration: 1,
+    delay: 0.15,
+    ease: "power3.out",
+  });
 
-/* CONTACT REVEAL */
-gsap.from(".contact__inner > *", {
-  scrollTrigger: {
-    trigger: ".contact",
-    start: "top 80%",
-  },
-  y: 24,
-  opacity: 0,
-  duration: 0.7,
-  stagger: 0.08,
-  ease: "power3.out",
-});
+  gsap.fromTo(
+    ".philosophy__mark",
+    { scale: 0.9, opacity: 0 },
+    {
+      scrollTrigger: {
+        trigger: ".philosophy",
+        start: "top 80%",
+        end: "bottom top",
+        scrub: 1,
+      },
+      scale: 1.1,
+      opacity: 0.05,
+      ease: "none",
+    }
+  );
+
+  /* CTA */
+  gsap.from(".cta__inner > *", {
+    scrollTrigger: {
+      trigger: ".cta",
+      start: "top 80%",
+    },
+    y: 30,
+    opacity: 0,
+    duration: 0.8,
+    stagger: 0.1,
+    ease: "power3.out",
+  });
+
+  /* CONTACT REVEAL */
+  gsap.from(".contact__inner > *", {
+    scrollTrigger: {
+      trigger: ".contact",
+      start: "top 80%",
+    },
+    y: 24,
+    opacity: 0,
+    duration: 0.7,
+    stagger: 0.08,
+    ease: "power3.out",
+  });
+}
 
 /* CONTACT FORM SUBMIT (Formspree AJAX) */
 const contactForm = document.getElementById("contact-form");
@@ -306,5 +341,8 @@ if (contactForm) {
   });
 }
 
-/* Refresh on load in case fonts change layout */
-window.addEventListener("load", () => ScrollTrigger.refresh());
+/* Refresh on load in case fonts change layout.
+   При reducedMotion ни одного ScrollTrigger не создано — обновлять нечего. */
+if (!reducedMotion) {
+  window.addEventListener("load", () => ScrollTrigger.refresh());
+}

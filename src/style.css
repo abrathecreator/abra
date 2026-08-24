@@ -1153,6 +1153,13 @@ canvas {
   gap: 22px 20px;
 }
 
+/* После успешной отправки main.js ставит форме атрибут hidden. Без этого
+   правила он не срабатывает: display:grid выше перебивает браузерное
+   [hidden]{display:none}, и форма остаётся на экране рядом с "спасибо". */
+.contact__form[hidden] {
+  display: none;
+}
+
 .field {
   display: flex;
   flex-direction: column;

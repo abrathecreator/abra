@@ -133,6 +133,7 @@ CSP выставляется **через реальный HTTP-заголово
 
 - **Основной таргет**: Cloudflare Pages, автодеплой на push в `main` (`https://a-bra.ru/`)
 - **Резервный таргет**: GitHub Pages, переключается через `DEPLOY_TARGET=gh-pages` env var в `vite.config.js` (меняет `base` с `/` на `/abra/`) — держится явно как fallback по решению owner'а, не удалять
+- **Внутренние ссылки на страницы пишутся через `%BASE_URL%`**, а не абсолютным путём: `href="%BASE_URL%privacy"`, `href="%BASE_URL%"` для корня. Vite подставляет туда текущий `base` — `/` для Cloudflare, `/abra/` для GitHub Pages. Абсолютный `href="/privacy"` Vite не переписывает, и на резервном таргете такая ссылка уходит в корень домена, то есть в никуда. Пути к картинкам и иконкам Vite переписывает сам, их трогать не нужно
 - После каждого push в `main` проверяй, что прод реально обновился: `curl -s https://a-bra.ru/ | grep -o 'assets/main-[^"]*\.js'` и сравни хэш с локальным `npm run build`
 - `npm run dev` / `npm run build` / `npm run preview` — стандартные Vite-команды, ничего кастомного
 

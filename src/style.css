@@ -1085,6 +1085,50 @@ canvas {
   margin: 0 auto;
 }
 
+/* PAGE CTA — концовка подстраниц (калькулятор, кейс). Раньше обе
+   заканчивались тупиком: ни кнопки, ни формы, единственный выход —
+   ссылка «← ABRA». Ведёт на форму главной. */
+.page-cta {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: clamp(56px, 9vw, 96px) var(--gutter) clamp(40px, 6vw, 72px);
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.page-cta__kicker {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.page-cta__title {
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(26px, 3.6vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--snow);
+}
+
+.page-cta__text {
+  margin: 0 0 36px;
+  color: var(--text);
+  opacity: 0.8;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.page-cta .abra-cta {
+  margin: 0 auto;
+}
+
 /* CTA */
 .cta {
   border-top: 1px solid var(--border);

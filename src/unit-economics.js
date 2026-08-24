@@ -134,7 +134,7 @@ const GLOSSARY = {
 function infoBtn(key) {
   const g = GLOSSARY[key];
   if (!g) return "";
-  return `<button type="button" class="info-btn" data-info-key="${key}" aria-label="Что такое «${g.term}» и как считается">?</button>`;
+  return `<button type="button" class="info-btn" data-info-key="${key}" aria-label="Что такое «${g.term}» и как считается" aria-expanded="false" aria-describedby="info-tip">?</button>`;
 }
 
 function calcFunnel(i) {
@@ -328,6 +328,9 @@ const tipFormula = document.getElementById("info-tip-formula");
 function hideTip() {
   tip.hidden = true;
   delete tip.dataset.openFor;
+  document
+    .querySelectorAll('.info-btn[aria-expanded="true"]')
+    .forEach((b) => b.setAttribute("aria-expanded", "false"));
 }
 
 function showTip(btn) {
@@ -339,6 +342,7 @@ function showTip(btn) {
   tipFormula.textContent = g.formula;
   tip.hidden = false;
   tip.dataset.openFor = key;
+  btn.setAttribute("aria-expanded", "true");
 
   const rect = btn.getBoundingClientRect();
   const tipRect = tip.getBoundingClientRect();
@@ -350,23 +354,33 @@ function showTip(btn) {
   tip.style.top = `${top}px`;
 }
 
-/* pointerdown, не click: срабатывает раньше и надёжнее закрывает попап
-   при любом следующем взаимодействии, включая клики внутри <label>,
-   где click иногда съедается нативной пересылкой фокуса на input. */
+/* Закрытие — на pointerdown, не на click: срабатывает раньше и надёжнее
+   при любом следующем взаимодействии, включая клики внутри <label>, где
+   click иногда съедается нативной пересылкой фокуса на input.
+   Открытие сюда вешать нельзя: активация кнопки с клавиатуры (Enter или
+   пробел) порождает click, но не pointerdown, и подсказка не открывалась. */
 document.addEventListener("pointerdown", (e) => {
-  const btn = e.target.closest(".info-btn");
-  if (btn) {
-    const already = tip.dataset.openFor === btn.dataset.infoKey && !tip.hidden;
-    hideTip();
-    if (!already) showTip(btn);
-    e.preventDefault();
-    return;
-  }
+  if (e.target.closest(".info-btn")) return;
   if (!tip.hidden) hideTip();
 });
 
+/* Открытие и переключение — на click: работает и мышью, и с клавиатуры.
+   preventDefault здесь не нужен, он мешал кнопке получить фокус. */
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".info-btn");
+  if (!btn) return;
+  const already = tip.dataset.openFor === btn.dataset.infoKey && !tip.hidden;
+  hideTip();
+  if (!already) showTip(btn);
+});
+
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") hideTip();
+  if (e.key !== "Escape" || tip.hidden) return;
+  const openBtn = document.querySelector(
+    `.info-btn[data-info-key="${tip.dataset.openFor}"]`
+  );
+  hideTip();
+  if (openBtn) openBtn.focus();
 });
 
 function update() {

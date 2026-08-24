@@ -273,18 +273,30 @@ if (contactForm) {
         }
       } else {
         const data = await res.json().catch(() => ({}));
-        const msg =
-          (data.errors && data.errors.map((x) => x.message).join(", ")) ||
-          "Не удалось отправить. Попробуйте ещё раз или напишите на email.";
+        // Formspree отвечает двумя разными формами. errors[] — это разбор
+        // по полям, его человеку показать полезно. error (строка) — отказ
+        // самого сервиса ("включена reCAPTCHA", "лимит плана"), для
+        // посетителя он бессмысленный: пишем в консоль, на экран — общее.
+        const fieldErrors =
+          Array.isArray(data.errors) &&
+          data.errors.map((x) => x.message).filter(Boolean).join(", ");
+        console.error(
+          "Formspree отклонил отправку:",
+          res.status,
+          data.error || fieldErrors || "(тело ответа не разобралось)",
+        );
         if (errorEl) {
-          errorEl.textContent = msg;
+          errorEl.textContent =
+            fieldErrors ||
+            "Не удалось отправить. Попробуйте ещё раз или напишите на почту.";
           errorEl.hidden = false;
         }
       }
     } catch (err) {
+      console.error("Отправка формы не дошла до Formspree:", err);
       if (errorEl) {
         errorEl.textContent =
-          "Сеть недоступна. Попробуйте ещё раз или напишите на email.";
+          "Сеть недоступна. Попробуйте ещё раз или напишите на почту.";
         errorEl.hidden = false;
       }
     } finally {

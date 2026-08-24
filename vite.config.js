@@ -18,7 +18,8 @@ export default defineConfig(() => ({
         terms: resolve(__dirname, "terms.html"),
         notFound: resolve(__dirname, "404.html"),
         unitEconomics: resolve(__dirname, "unit-economics.html"),
-        caseTemplate: resolve(__dirname, "case-template.html"),
+        // case-template.html сюда НЕ добавлять: это заготовка с
+        // иллюстративными цифрами и отзывом, в прод она не идёт.
         caseZhbi: resolve(__dirname, "case-zhbi.html"),
       },
     },

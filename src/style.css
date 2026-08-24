@@ -1129,6 +1129,65 @@ canvas {
   margin: 0 auto;
 }
 
+/* CASE TEASER — доказательство результата после раздела «Метод».
+   Собран на существующих компонентах: .section__head, .tag, .abra-link.
+   Цифры берутся только из case-zhbi.html, ничего не досочиняется. */
+.case-teaser {
+  border-top: 1px solid var(--border);
+}
+
+.case-teaser__inner {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.case-teaser__lead {
+  margin: 0 0 36px;
+  color: var(--text);
+  opacity: 0.8;
+  font-size: 17px;
+}
+
+.case-teaser__stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px 48px;
+  margin-bottom: 36px;
+}
+
+.case-teaser__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.case-teaser__value {
+  /* Числа на сайте везде набраны Inter, а не Syne — так же, как
+     .case__stat-value и .step__num. tabular-nums выравнивает разряды. */
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(28px, 4vw, 40px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.case-teaser__label {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+@media (max-width: 560px) {
+  .case-teaser__stats {
+    gap: 22px 32px;
+  }
+}
+
 /* CTA */
 .cta {
   border-top: 1px solid var(--border);

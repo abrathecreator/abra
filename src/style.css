@@ -889,6 +889,10 @@ canvas {
   flex-direction: column;
   gap: 18px;
   transition: border-color 0.3s ease, transform 0.3s ease;
+  /* Грид-трек 1fr по умолчанию имеет min-width:auto и не может стать уже
+     min-content содержимого. Без этого длинный заголовок вместе с
+     .service__price растягивали документ до 369px при экране 320. */
+  min-width: 0;
 }
 
 .service:hover {
@@ -898,6 +902,10 @@ canvas {
 
 .service__top {
   display: flex;
+  /* На узких экранах заголовок и цена не помещаются в одну строку:
+     .service__price стоит с white-space:nowrap, и вместе они задавали
+     минимальную ширину карточки 349px. Даём цене уехать на строку ниже. */
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
   gap: 16px;

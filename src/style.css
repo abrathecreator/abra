@@ -74,7 +74,15 @@ canvas {
   align-items: center;
   justify-content: space-between;
   padding: 20px var(--gutter);
-  background: linear-gradient(180deg, rgba(12, 11, 9, 0.92), rgba(12, 11, 9, 0));
+  /* Сплошной фон до линии текста меню, затухание — только ниже неё.
+     Полупрозрачный градиент по всей высоте давал ~0.46 непрозрачности
+     на отметке пунктов меню, и текст страницы читался сквозь них. */
+  background: linear-gradient(
+    180deg,
+    var(--bg) 0%,
+    rgba(12, 11, 9, 0.95) 62%,
+    rgba(12, 11, 9, 0) 100%
+  );
 }
 
 @media (max-width: 900px) {

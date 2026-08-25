@@ -156,7 +156,12 @@ canvas {
 /* HERO */
 .hero {
   position: relative;
+  /* svh — гарантированно видимая высота: 100vh в мобильных браузерах
+     не учитывает адресную строку, и первый экран всегда выше видимой
+     области, из-за чего кнопка уезжает под сгиб. Строка с vh остаётся
+     фолбэком для браузеров без поддержки svh. */
   height: 100vh;
+  height: 100svh;
   min-height: 640px;
   display: flex;
   align-items: center;
@@ -246,6 +251,7 @@ canvas {
   .hero {
     height: auto;
     min-height: 100vh;
+    min-height: 100svh;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
@@ -259,9 +265,10 @@ canvas {
     margin: 0;
   }
   .hero__canvas {
-    opacity: 0.7;
-    z-index: 3;
-    mix-blend-mode: screen;
+    /* Раньше здесь были z-index:3 и mix-blend-mode:screen — канвас
+       вставал поверх портрета и текста, и белая сетка проходила через
+       глаза, оправу и подзаголовок. Ведёт себя как на десктопе: фон. */
+    opacity: 0.45;
   }
   .hero__portrait {
     position: relative;
@@ -317,6 +324,9 @@ canvas {
 }
 
 .hero__eyebrow {
+  /* На 1024 и 390 строка переносилась, оставляя висячий хвост
+     «DATA | PRODUCT». balance распределяет по строкам ровно. */
+  text-wrap: balance;
   font-size: 13px;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -645,6 +655,23 @@ canvas {
 }
 
 /* SECTIONS */
+
+/* Шапка фиксированная и занимает 84px. Без отступа для прокрутки верх
+   секции уезжает под неё при переходе по якорю — сейчас это случайно
+   спасают щедрые внутренние отступы секций, но любое их уменьшение
+   сломает переходы по меню. Плавную прокрутку включаем только тем,
+   кто не просил уменьшить анимацию. */
+section[id],
+[id="top"] {
+  scroll-margin-top: 100px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 .section {
   position: relative;
   padding: clamp(80px, 12vh, 160px) var(--gutter);
@@ -808,19 +835,25 @@ canvas {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /* Пять жёстких колонок в контейнере 1240px давали текстовую колонку
+     ~180px — 18–22 знака в строке при читаемой норме 45–75. auto-fit
+     подбирает число колонок сам, отдельные брейкпоинты не нужны.
+     Порог 300px выбран замером: на 240px получалось 24 знака в строке
+     и одинокая пятая карточка во втором ряду, на 300px — 35 знаков и
+     раскладка 3+2 без сирот.
+     min(300px, 100%) обязателен: голый minmax(300px, ...) на экране
+     уже 300px форсирует трек шире контейнера и возвращает
+     горизонтальное переполнение. */
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: 20px;
 }
 
-@media (max-width: 1100px) {
-  .cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 560px) {
-  .cards {
-    grid-template-columns: 1fr;
+/* В двухколоночном диапазоне пятая карточка оставалась одна в третьем
+   ряду. Растягиваем её на всю ширину — ряд перестаёт выглядеть
+   оборванным. Вне этого диапазона раскладка 3+2 или один столбец. */
+@media (min-width: 620px) and (max-width: 900px) {
+  .cards .card:last-child {
+    grid-column: 1 / -1;
   }
 }
 
@@ -1015,6 +1048,7 @@ canvas {
   color: var(--text);
   opacity: 0.8;
   font-size: 16px;
+  text-align: left;
 }
 
 /* PHILOSOPHY */
@@ -1055,9 +1089,12 @@ canvas {
   height: 116px;
   border-radius: 10px;
   object-fit: cover;
-  margin: 0 auto 32px;
+  /* Стоит после метки раздела, как и во всех остальных секциях. */
+  margin: 24px auto 32px;
   display: block;
-  border: 1px solid var(--border);
+  /* Светлый квадрат на тёмном фоне выбивался: рамка в --border была
+     неразличима (1,11:1). Берём тот же токен, что у полей формы. */
+  border: 1px solid var(--border-control);
 }
 
 .philosophy__title {
@@ -1083,6 +1120,10 @@ canvas {
   color: var(--text);
   opacity: 0.8;
   margin: 0 auto;
+  /* Абзац на 4–7 строк, выровненный по центру, заставляет глаз каждый
+     раз искать начало строки. Сам блок остаётся по центру страницы —
+     центрируется margin'ом, а не текстом. Заголовки не трогаем. */
+  text-align: left;
 }
 
 /* PAGE CTA — концовка подстраниц (калькулятор, кейс). Раньше обе
@@ -1214,6 +1255,7 @@ canvas {
   color: var(--text);
   opacity: 0.8;
   font-size: 17px;
+  text-align: left;
 }
 
 /* Прямой канал под кнопкой. Сознательно тихая строка, а не вторая
@@ -1289,6 +1331,21 @@ canvas {
   letter-spacing: 0.06em;
   color: var(--snow);
   font-weight: 500;
+}
+
+/* Обязательность поля раньше выяснялась только через отказ формы.
+   Звёздочка aria-hidden — скринридеру про required уже сообщает сам
+   атрибут, дублировать символом не нужно. */
+.field__req {
+  margin-left: 3px;
+  color: var(--accent);
+}
+
+.field__optional {
+  color: var(--text);
+  opacity: 0.6;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .field input,
@@ -1483,6 +1540,14 @@ canvas {
   align-items: center;
   gap: 8px 20px;
   opacity: 0.65;
+}
+
+/* Ссылки футера были высотой 17–21px. Внешний вид не меняется —
+   растёт только зона нажатия за счёт вертикальных отступов. */
+.footer__legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 
 .footer__mark {
@@ -1682,12 +1747,24 @@ canvas {
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  /* Замер на 390px с эмуляцией тача: строка была 36px высотой при норме
+     44 (Apple HIG). Растим только область попадания, не сам чекбокс. */
+  min-height: 44px;
+  padding: 4px 0;
   font-family: var(--font-body);
   font-size: 15px;
   color: var(--text);
 }
 
 .field--consent label {
+  /* Строка согласия была 17–21px высотой — попасть пальцем тяжело.
+     Растим зону нажатия отступами. display:flex здесь использовать
+     нельзя: флекс-элементы не переносятся между собой, и фраза со
+     ссылками внутри переставала складываться в строки — на 320px
+     это растягивало всю форму до 363px и возвращало горизонтальное
+     переполнение, которое чинили в задаче 07. */
+  min-height: 44px;
+  padding: 6px 0;
   font-family: var(--font-body);
   font-weight: 400;
   font-size: 13px;
@@ -2057,14 +2134,18 @@ canvas {
 }
 
 .section-icon--connect.is-revealed .icon-connect__block--you {
-  transform: translateX(9px);
+  /* Было 9px: блоки сходились почти вплотную и читались как два серых
+     прямоугольника, а мостик между ними терялся. Смещение уменьшено,
+     непрозрачность мостика поднята. Тайминги НЕ трогаем — они уже
+     удвоены по просьбе владельца. */
+  transform: translateX(5px);
 }
 .section-icon--connect.is-revealed .icon-connect__block--abra {
-  transform: translateX(-9px);
+  transform: translateX(-5px);
 }
 .section-icon--connect.is-revealed .icon-connect__bridge {
   stroke-dashoffset: 0;
-  opacity: 0.8;
+  opacity: 1;
 }
 .section-icon--connect.is-revealed .icon-connect__point {
   opacity: 1;
@@ -2073,14 +2154,14 @@ canvas {
 
 @media (hover: hover) and (pointer: fine) {
   .section-icon--connect:hover .icon-connect__block--you {
-    transform: translateX(9px);
+    transform: translateX(5px);
   }
   .section-icon--connect:hover .icon-connect__block--abra {
-    transform: translateX(-9px);
+    transform: translateX(-5px);
   }
   .section-icon--connect:hover .icon-connect__bridge {
     stroke-dashoffset: 0;
-    opacity: 0.8;
+    opacity: 1;
   }
   .section-icon--connect:hover .icon-connect__point {
     opacity: 1;
@@ -2411,6 +2492,16 @@ canvas {
   line-height: 1;
   cursor: pointer;
   transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  /* Нужен для ::after ниже */
+  position: relative;
+}
+
+/* Кнопка «?» — 15×15px, менять её размер нельзя: она стоит внутри
+   подписи к полю. Расширяем невидимую зону нажатия до 44×44. */
+.info-btn::after {
+  content: "";
+  position: absolute;
+  inset: -15px;
 }
 
 .info-btn:hover,

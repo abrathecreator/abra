@@ -446,6 +446,10 @@
       <section class="section philosophy" id="philosophy">
         <div class="philosophy__mark" aria-hidden="true">A</div>
         <div class="philosophy__content">
+          <span class="tag">
+            <span class="section-icon" data-icon="philosophy" aria-hidden="true"></span>
+            [ .Философия ]
+          </span>
           <img
             class="philosophy__photo"
             src="/philosophy-portrait.webp"
@@ -454,10 +458,6 @@
             width="640"
             height="640"
           />
-          <span class="tag">
-            <span class="section-icon" data-icon="philosophy" aria-hidden="true"></span>
-            [ .Философия ]
-          </span>
           <h2 class="philosophy__title">
             Созидание — это <em>функция</em>.
           </h2>
@@ -531,7 +531,7 @@
             method="POST"
           >
             <div class="field field--half">
-              <label for="cf-name">Имя</label>
+              <label for="cf-name">Имя<span class="field__req" aria-hidden="true">*</span></label>
               <input
                 type="text"
                 id="cf-name"
@@ -541,7 +541,7 @@
               />
             </div>
             <div class="field field--half">
-              <label for="cf-phone">Номер телефона</label>
+              <label for="cf-phone">Номер телефона<span class="field__req" aria-hidden="true">*</span></label>
               <input
                 type="tel"
                 id="cf-phone"
@@ -552,7 +552,7 @@
               />
             </div>
             <div class="field field--messengers">
-              <span class="field__label">Куда ещё можно написать</span>
+              <span class="field__label">Куда ещё можно написать<span class="field__optional"> — по желанию</span></span>
               <div class="messenger-options">
                 <label class="messenger-option">
                   <input type="checkbox" name="messenger" value="Telegram" />

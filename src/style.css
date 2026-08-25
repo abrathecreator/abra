@@ -2379,7 +2379,10 @@ section[id],
   font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  font-size: 26px;
+  /* Фиксированные 26px не давали длинным суммам ужаться, и сетка
+     сжимала карточку, отрывая «₽» на отдельную строку. */
+  font-size: clamp(20px, 4vw, 26px);
+  white-space: nowrap;
   letter-spacing: -0.01em;
   color: var(--snow);
 }
@@ -2403,10 +2406,57 @@ section[id],
   gap: 20px;
 }
 
+/* Таблица минимум 1400px внутри контейнера с overflow-x:auto, но ничто
+   не показывало, что справа ещё 12 колонок: ни тени, ни градиента, ни
+   подписи. На десктопе без горизонтального колеса это просто не
+   находилось.
+
+   Градиент нельзя вешать фоном самого контейнера: у строк таблицы свой
+   фон, он закрашивает подложку. Поэтому обёртка-рамка с накладкой
+   через ::after поверх содержимого и pointer-events:none, чтобы
+   накладка не перехватывала прокрутку. */
+.tool__table-frame {
+  position: relative;
+}
+
+.tool__table-frame::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 56px;
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(
+    to left,
+    var(--bg) 0%,
+    rgba(12, 11, 9, 0.75) 45%,
+    rgba(12, 11, 9, 0) 100%
+  );
+  pointer-events: none;
+}
+
 .tool__table-wrap {
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 10px;
+}
+
+.tool__table-wrap:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.tool__scroll-hint {
+  display: inline-block;
+  margin-left: 10px;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+  opacity: 0.6;
 }
 
 .tool__table {

@@ -41,7 +41,7 @@
               <input type="number" id="ue-impressions" min="0" step="1" value="340000" />
             </div>
             <div class="field">
-              <label for="ue-ctr" data-info="ctr">CTR</label>
+              <label for="ue-ctr" data-info="ctr">CTR, %</label>
               <input type="number" id="ue-ctr" min="0" max="100" step="0.1" value="3" />
             </div>
           </div>
@@ -49,15 +49,15 @@
           <div class="tool__group">
             <span class="tool__group-title">Воронка</span>
             <div class="field">
-              <label for="ue-cr1" data-info="cr1">Конверсия в заявку (CR1)</label>
+              <label for="ue-cr1" data-info="cr1">Конверсия в заявку (CR1), %</label>
               <input type="number" id="ue-cr1" min="0" max="100" step="0.1" value="35" />
             </div>
             <div class="field">
-              <label for="ue-cr2" data-info="cr2">Конверсия в квал. лид (CR2)</label>
+              <label for="ue-cr2" data-info="cr2">Конверсия в квал. лид (CR2), %</label>
               <input type="number" id="ue-cr2" min="0" max="100" step="0.1" value="30" />
             </div>
             <div class="field">
-              <label for="ue-cr3" data-info="cr3">Конверсия в продажу (CR3)</label>
+              <label for="ue-cr3" data-info="cr3">Конверсия в продажу (CR3), %</label>
               <input type="number" id="ue-cr3" min="0" max="100" step="0.1" value="5" />
             </div>
           </div>
@@ -81,7 +81,7 @@
               <input type="number" id="ue-cpu" min="0" step="1" value="30" />
             </div>
             <div class="field">
-              <label for="ue-margin" data-info="margin">Маржа</label>
+              <label for="ue-margin" data-info="margin">Маржа, %</label>
               <input type="number" id="ue-margin" min="0" max="100" step="1" value="55" />
             </div>
           </div>
@@ -94,9 +94,19 @@
       </div>
 
       <div class="tool__sensitivity">
-        <span class="tool__group-title">Чувствительность — что если каждый параметр +10%</span>
-        <div class="tool__table-wrap">
-          <table class="tool__table" id="ue-table"></table>
+        <span class="tool__group-title">
+          Чувствительность — что если каждый параметр +10%
+          <span class="tool__scroll-hint">→ таблица прокручивается вбок</span>
+        </span>
+        <div class="tool__table-frame">
+          <div
+            class="tool__table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Таблица чувствительности, прокручивается по горизонтали"
+          >
+            <table class="tool__table" id="ue-table"></table>
+          </div>
         </div>
       </div>
       <section class="page-cta">

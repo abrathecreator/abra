@@ -126,7 +126,7 @@ const GLOSSARY = {
   },
   roi: {
     term: "ROI",
-    def: "Во сколько раз валовая прибыль превышает затраты на привлечение.",
+    def: "Во сколько раз валовая прибыль превышает затраты на привлечение. Показан кратностью: 3,5 × значит, что на каждый вложенный рубль пришлось 3,5 рубля валовой прибыли. Это не то же самое, что «+350 % к вложенному».",
     formula: "ROI = Валовая прибыль / Расходы на привлечение",
   },
 };
@@ -228,14 +228,14 @@ function renderFunnel(r) {
 
 function renderStats(r) {
   const cards = [
-    ["revenue", "Выручка", RUB.format(r.revenue) + " ₽"],
-    ["profit", "Прибыль", RUB.format(r.profit) + " ₽", r.profit >= 0 ? "ok" : "bad"],
-    ["roi", "ROI", PCT.format(r.roi), r.roi >= 1 ? "ok" : "warn"],
-    ["arppu", "ARPPU", RUB2.format(r.arppu) + " ₽"],
-    ["arpu", "ARPU", RUB2.format(r.arpu) + " ₽"],
-    ["cpo", "CPO", RUB2.format(r.cpo) + " ₽"],
-    ["acquisitionCosts", "Расходы на привлечение", RUB.format(r.acquisitionCosts) + " ₽"],
-    ["grossProfit", "Валовая прибыль", RUB.format(r.grossProfit) + " ₽"],
+    ["revenue", "Выручка", RUB.format(r.revenue) + "\u00a0₽"],
+    ["profit", "Прибыль", RUB.format(r.profit) + "\u00a0₽", r.profit >= 0 ? "ok" : "bad"],
+    ["roi", "ROI", RUB2.format(r.roi) + "\u00a0×", r.roi >= 1 ? "ok" : "warn"],
+    ["arppu", "ARPPU", RUB2.format(r.arppu) + "\u00a0₽"],
+    ["arpu", "ARPU", RUB2.format(r.arpu) + "\u00a0₽"],
+    ["cpo", "CPO", RUB2.format(r.cpo) + "\u00a0₽"],
+    ["acquisitionCosts", "Расходы на привлечение", RUB.format(r.acquisitionCosts) + "\u00a0₽"],
+    ["grossProfit", "Валовая прибыль", RUB.format(r.grossProfit) + "\u00a0₽"],
   ];
   document.getElementById("ue-stats").innerHTML = cards
     .map(

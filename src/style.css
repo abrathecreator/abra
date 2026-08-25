@@ -1,14 +1,26 @@
-/* Syne's own digit glyphs render badly at bold weights (uneven strokes,
-   odd proportions on figures like 8). Patch digits 0-9 to fall through to
-   Inter instead, for every weight Syne is used at anywhere on the site —
-   so this never needs fixing element-by-element again.
-   Also covers the symbols that show up glued to numbers in stat/price
-   displays (+ , − % × ₽) — patching only 0-9 left those still on Syne,
-   which looked even more broken: two different numeral styles stitched
-   together in the same figure (e.g. "2 507" in Inter next to "₽" in Syne). */
+/* Цифры Syne на жирных начертаниях выглядят плохо: неровные штрихи,
+   странные пропорции у 8, «старостильные» 5 и 0 разной высоты, знак ₽
+   съезжает с базовой линии. Поэтому цифры и всё, что стоит вплотную к
+   ним (+ , − % × ₽), берутся из Inter.
+
+   ВАЖНО, как это сделано и почему не иначе. Раньше здесь стоял
+   @font-face с font-family:"Syne" и диапазоном font-weight:500 800,
+   который должен был перекрыть цифры внутри самого семейства Syne.
+   Он не работал НИ РАЗУ: Google Fonts объявляет Syne точными весами
+   (500/600/700/800), и при запросе, например, веса 600 точное
+   совпадение выигрывает у диапазона — наш файл просто не выбирался,
+   браузер его даже не скачивал (document.fonts показывал status
+   "unloaded"). Заголовки с цифрами всё это время рисовались
+   родными глифами Syne.
+
+   Рабочий способ — отдельное имя семейства ПЕРВЫМ в стеке. Список
+   font-family перебирается по порядку, а unicode-range ограничивает
+   AbraNumerals только цифрами и знаками рядом с ними, поэтому буквы
+   спокойно проваливаются дальше, в Syne. Не сводить обратно в одно
+   семейство и не менять порядок в --font-display. */
 @font-face {
-  font-family: "Syne";
-  font-weight: 500 800;
+  font-family: "AbraNumerals";
+  font-weight: 400 900;
   font-style: normal;
   font-display: swap;
   src: url("https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYAZ9hiJ-Ek-_EeA.woff2")
@@ -25,7 +37,7 @@
   --border: rgba(206, 201, 195, 0.07); /* 1,11:1 — декоративные линии и разделители, НЕ ТРОГАТЬ */
   --border-control: rgba(206, 201, 195, 0.45); /* 3,25:1 — границы полей, чекбоксов, кнопки в шапке (WCAG требует 3:1) */
 
-  --font-display: "Syne", "Inter", system-ui, sans-serif;
+  --font-display: "AbraNumerals", "Syne", "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
 
   --max-w: 1240px;

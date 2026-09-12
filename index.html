@@ -527,7 +527,7 @@
           <form
             class="contact__form"
             id="contact-form"
-            action="https://formspree.io/f/mjybyyav"
+            action="/contact.php"
             method="POST"
           >
             <div class="field field--half">
@@ -555,11 +555,11 @@
               <span class="field__label">Куда ещё можно написать<span class="field__optional"> — по желанию</span></span>
               <div class="messenger-options">
                 <label class="messenger-option">
-                  <input type="checkbox" name="messenger" value="Telegram" />
+                  <input type="checkbox" name="messenger[]" value="Telegram" />
                   Telegram
                 </label>
                 <label class="messenger-option">
-                  <input type="checkbox" name="messenger" value="Max" />
+                  <input type="checkbox" name="messenger[]" value="Max" />
                   Max
                 </label>
               </div>

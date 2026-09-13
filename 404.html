@@ -20,6 +20,14 @@
     <script type="module" src="/src/legal.js"></script>
   </head>
   <body>
+    <div class="cookie-banner" id="cookie-banner" hidden>
+      <p class="cookie-banner__text">
+        Сайт использует cookie-файлы для корректной работы и веб-аналитики.
+        Подробнее — в
+        <a href="%BASE_URL%privacy">Политике конфиденциальности</a>.
+      </p>
+      <button class="cookie-banner__accept" type="button">Хорошо</button>
+    </div>
     <main class="legal">
       <a class="legal__back" href="%BASE_URL%">← ABRA</a>
 
@@ -28,9 +36,29 @@
         Такой страницы не существует — возможно, ссылка устарела или в адресе
         опечатка.
       </p>
-      <p>
-        <a href="%BASE_URL%">Вернуться на главную</a>
-      </p>
+
+      <div class="legal__actions">
+        <a
+          class="abra-cta"
+          href="%BASE_URL%"
+          aria-label="Вернуться на главную страницу ABRA"
+        >
+          <span class="abra-cta__frame" aria-hidden="true">
+            <span class="abra-cta__corner abra-cta__corner--tl"></span>
+            <span class="abra-cta__corner abra-cta__corner--tr"></span>
+            <span class="abra-cta__corner abra-cta__corner--bl"></span>
+            <span class="abra-cta__corner abra-cta__corner--br"></span>
+          </span>
+          <span class="abra-cta__label">На главную</span>
+        </a>
+        <a
+          class="abra-link"
+          href="mailto:info@a-bra.ru"
+          aria-label="Написать напрямую на info@a-bra.ru"
+        >
+          <span class="abra-link__text">Написать напрямую</span>
+        </a>
+      </div>
     </main>
 
     <footer class="footer">

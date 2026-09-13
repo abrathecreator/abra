@@ -1,5 +1,6 @@
 import "./style.css";
 import "./metrica.js";
+import "./cookie-consent.js";
 
 /* Живая воронка юнит-экономики — переизложение формул из
    "[ UTF _ Unit экономика ].xlsx" (Лист1) на JS.

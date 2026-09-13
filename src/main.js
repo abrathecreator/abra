@@ -1,5 +1,6 @@
 import "./style.css";
 import "./metrica.js";
+import "./cookie-consent.js";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { initHero } from "./hero.js";

@@ -1639,6 +1639,95 @@ section[id],
   border-bottom-color: var(--accent);
 }
 
+/* COOKIE BANNER */
+.cookie-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  padding: 18px var(--gutter);
+  background: var(--bg-warm);
+  border-top: 1px solid var(--border);
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 320ms ease;
+}
+
+.cookie-banner[hidden] {
+  display: none;
+}
+
+.cookie-banner.is-dismissed {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cookie-banner__text {
+  margin: 0;
+  max-width: 640px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.cookie-banner__text a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(184, 115, 51, 0.35);
+  transition: border-color 0.2s ease;
+}
+
+.cookie-banner__text a:hover {
+  border-bottom-color: var(--accent);
+}
+
+.cookie-banner__accept {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 22px;
+  background: transparent;
+  border: 1px solid var(--border-control);
+  border-radius: 999px;
+  color: var(--snow);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.cookie-banner__accept:hover,
+.cookie-banner__accept:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(184, 115, 51, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cookie-banner {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .cookie-banner {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .cookie-banner__accept {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 /* LEGAL PAGES */
 .legal {
   max-width: 780px;
@@ -1738,6 +1827,19 @@ section[id],
 
 .legal a:hover {
   border-bottom-color: var(--accent);
+}
+
+.legal__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 32px 0 0;
+}
+
+.legal .abra-cta,
+.legal .abra-link {
+  border-bottom: 0;
 }
 
 .legal hr {

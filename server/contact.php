@@ -52,7 +52,23 @@ if ($errors) {
     exit;
 }
 
+// Порядковый номер заявки — общий счётчик в отдельном файле, инкремент под
+// flock, чтобы две одновременные заявки не получили один и тот же номер.
+$leadNumber = null;
+$counterHandle = @fopen('/var/log/abra-contact/counter.txt', 'c+');
+if ($counterHandle !== false) {
+    if (flock($counterHandle, LOCK_EX)) {
+        $leadNumber = (int) trim((string) fread($counterHandle, 20)) + 1;
+        ftruncate($counterHandle, 0);
+        rewind($counterHandle);
+        fwrite($counterHandle, (string) $leadNumber);
+        flock($counterHandle, LOCK_UN);
+    }
+    fclose($counterHandle);
+}
+
 $entry = [
+    'number' => $leadNumber,
     'time' => date('c'),
     'name' => $name,
     'phone' => $phone,
@@ -94,7 +110,8 @@ $detailsText = "Имя: {$name}\n"
 // SMTP ещё не настроен (relay через smarthost добавляется отдельно), ни одна
 // заявка не теряется — её видно в логе.
 $mailTo = 'artemutyashev@gmail.com';
-$subject = '=?UTF-8?B?' . base64_encode('Новая заявка с a-bra.ru') . '?=';
+$titleText = $leadNumber ? "Новая заявка №{$leadNumber} с a-bra.ru" : 'Новая заявка с a-bra.ru';
+$subject = '=?UTF-8?B?' . base64_encode($titleText) . '?=';
 $body = $detailsText;
 $headers = "From: a-bra.ru <noreply@a-bra.ru>\r\nContent-Type: text/plain; charset=UTF-8";
 
@@ -113,7 +130,7 @@ $telegramRelayBase = 'https://abra-telegram-relay.artemutyashev.workers.dev';
 $telegramToken = getenv('TELEGRAM_BOT_TOKEN');
 $telegramChatId = getenv('TELEGRAM_CHAT_ID');
 if ($telegramToken && $telegramChatId) {
-    $telegramText = "Новая заявка с a-bra.ru\n" . rtrim($detailsText);
+    $telegramText = "{$titleText}\n" . rtrim($detailsText);
     $telegramContext = stream_context_create([
         'http' => [
             'method' => 'POST',

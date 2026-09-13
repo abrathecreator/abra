@@ -94,6 +94,90 @@ if (navContactToggle && navContactMenu) {
   });
 }
 
+/* CONTACT MODAL — кнопки hero и секции contact открывают форму поверх
+   страницы вместо скролла к ней (см. #contact-modal в разметке). Тот же
+   принцип, что у nav-contact-menu (Escape, клик снаружи, возврат фокуса),
+   плюс то, чего там не требовалось: фокус на первое поле при открытии,
+   фокус-ловушка внутри диалога и блокировка скролла фона — это полноценная
+   форма, а не мини-меню из двух ссылок. Не связано с движением, работает
+   в обеих ветках reducedMotion. */
+const contactModal = document.getElementById("contact-modal");
+if (contactModal) {
+  const modalDialog = contactModal.querySelector(".modal__dialog");
+  const modalContactForm = document.getElementById("contact-form");
+  const modalSuccessEl = document.getElementById("contact-success");
+  let modalOpener = null;
+  let modalCloseTimer = null;
+
+  const getFocusable = () =>
+    Array.from(
+      modalDialog.querySelectorAll(
+        "a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]"
+      )
+    ).filter((el) => el.tabIndex >= 0 && el.offsetParent !== null);
+
+  const openModal = (opener) => {
+    modalOpener = opener || null;
+    clearTimeout(modalCloseTimer);
+    contactModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => contactModal.classList.add("is-open"));
+    (document.getElementById("cf-name") || modalDialog).focus();
+  };
+
+  const closeModal = () => {
+    contactModal.classList.remove("is-open");
+    document.body.style.overflow = "";
+
+    // Форму уже отправляли в этом открытии — при повторном открытии нужно
+    // показать чистую форму, а не застрявший экран благодарности.
+    if (modalContactForm && modalSuccessEl && !modalSuccessEl.hidden) {
+      modalContactForm.reset();
+      modalContactForm.hidden = false;
+      modalSuccessEl.hidden = true;
+    }
+
+    const finish = () => {
+      contactModal.hidden = true;
+      if (modalOpener) modalOpener.focus();
+    };
+    if (reducedMotion) {
+      finish();
+    } else {
+      modalCloseTimer = setTimeout(finish, 220);
+    }
+  };
+
+  document.querySelectorAll("[data-modal-open]").forEach((btn) => {
+    btn.addEventListener("click", () => openModal(btn));
+  });
+
+  contactModal.querySelectorAll("[data-modal-close]").forEach((el) => {
+    el.addEventListener("click", () => closeModal());
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (contactModal.hidden) return;
+    if (e.key === "Escape") {
+      closeModal();
+      return;
+    }
+    if (e.key === "Tab") {
+      const focusable = getFocusable();
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  });
+}
+
 if (reducedMotion) {
   /* Твины не создаются вовсе, поэтому никто не выставляет opacity:0 —
      всё уже видно в состоянии из CSS. Подчищаем только инлайновые стили

@@ -67,13 +67,49 @@ if ($counterHandle !== false) {
     fclose($counterHandle);
 }
 
+$ip = $_SERVER['REMOTE_ADDR'] ?? '';
+
+// Геолокация по IP — best effort, отдельный бесплатный сервис без ключа
+// (ipwho.is), напрямую по HTTPS: в отличие от Telegram, для него никакой
+// сетевой блокировки у хостера VPS нет. Но у этого VPS в принципе битый
+// исходящий IPv6 (не только до Telegram) — на любой хост с AAAA-записью
+// file_get_contents виснет на IPv6-попытке на несколько секунд и не
+// успевает попробовать IPv4 в рамках вменяемого таймаута (curl не страдает
+// от этого, потому что параллелит v4/v6, а stream-обёртка PHP — нет).
+// Поэтому резолвим хост вручную через gethostbyname() (только A-записи,
+// IPv6 не видит в принципе) и стучимся сразу на IPv4-адрес, а исходное имя
+// оставляем в Host-заголовке и SNI, чтобы TLS-сертификат сошёлся.
+$geo = '';
+if ($ip !== '') {
+    $geoHost = 'ipwho.is';
+    $geoIp = gethostbyname($geoHost);
+    $geoContext = stream_context_create([
+        'http' => [
+            'timeout' => 3,
+            'ignore_errors' => true,
+            'header' => "Host: {$geoHost}\r\n",
+        ],
+        'ssl' => ['peer_name' => $geoHost, 'SNI_enabled' => true],
+    ]);
+    $geoResponse = @file_get_contents("https://{$geoIp}/" . urlencode($ip), false, $geoContext);
+    $geoData = $geoResponse ? json_decode($geoResponse, true) : null;
+    if (is_array($geoData) && !empty($geoData['success'])) {
+        $geoParts = array_filter([$geoData['city'] ?? '', $geoData['country'] ?? '']);
+        $geo = implode(', ', $geoParts);
+        if (!empty($geoData['connection']['isp'])) {
+            $geo .= ' (' . $geoData['connection']['isp'] . ')';
+        }
+    }
+}
+
 $entry = [
     'number' => $leadNumber,
     'time' => date('c'),
     'name' => $name,
     'phone' => $phone,
     'messenger' => $messengers,
-    'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+    'ip' => $ip,
+    'geo' => $geo,
     'ym_client_id' => $ymClientId,
     'time_on_site_seconds' => $timeOnSite,
     'utm' => $utm,
@@ -101,6 +137,7 @@ $detailsText = "Имя: {$name}\n"
     . "Телефон: {$phone}\n"
     . ($messengers ? 'Мессенджер: ' . implode(', ', $messengers) . "\n" : '')
     . "IP: {$entry['ip']}\n"
+    . ($geo ? "Гео: {$geo}\n" : '')
     . ($ymClientId ? "Яндекс.Метрика ClientID: {$ymClientId}\n" : '')
     . ($timeOnSite !== null ? "Время на сайте: {$timeOnSite} сек\n" : '')
     . $utmLine

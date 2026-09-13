@@ -60,6 +60,39 @@ if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(() => updateFunnelArrows());
 }
 
+/* NAV CONTACT MENU — «Написать» в шапке раскрывает телефон и почту вместо
+   прямого перехода к форме. Escape закрывает и возвращает фокус на кнопку,
+   клик снаружи тоже закрывает — тот же паттерн, что у подсказок «?» в
+   калькуляторе юнит-экономики. Не связано с движением, нужно в обеих
+   ветках reducedMotion. */
+const navContactToggle = document.querySelector(".nav__contact .nav__cta");
+const navContactMenu = document.getElementById("nav-contact-menu");
+if (navContactToggle && navContactMenu) {
+  const closeNavContactMenu = () => {
+    navContactMenu.hidden = true;
+    navContactToggle.setAttribute("aria-expanded", "false");
+  };
+  navContactToggle.addEventListener("click", () => {
+    if (navContactMenu.hidden) {
+      navContactMenu.hidden = false;
+      navContactToggle.setAttribute("aria-expanded", "true");
+    } else {
+      closeNavContactMenu();
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (!navContactMenu.hidden && !e.target.closest(".nav__contact")) {
+      closeNavContactMenu();
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !navContactMenu.hidden) {
+      closeNavContactMenu();
+      navContactToggle.focus();
+    }
+  });
+}
+
 if (reducedMotion) {
   /* Твины не создаются вовсе, поэтому никто не выставляет opacity:0 —
      всё уже видно в состоянии из CSS. Подчищаем только инлайновые стили

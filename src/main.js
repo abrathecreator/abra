@@ -227,6 +227,30 @@ if (reducedMotion) {
     }
   );
 
+  /* Фоновые буквы A-B-R-A на секциях 01–04. Двигаем ТОЛЬКО y —
+     это композитный transform без пересчёта layout, дешевле, чем
+     scale+opacity у .philosophy__mark. Непрозрачность не трогаем
+     вовсе: она задана в CSS, поэтому в ветке reduced-motion, где
+     твинов нет, буквы просто стоят на месте видимыми.
+     translateY(-50%) из CSS gsap разбирает в yPercent, так что
+     центровка не ломается — y складывается с ней. */
+  document.querySelectorAll(".section__mark").forEach((mark) => {
+    gsap.fromTo(
+      mark,
+      { y: 40 },
+      {
+        scrollTrigger: {
+          trigger: mark.closest(".section"),
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1,
+        },
+        y: -40,
+        ease: "none",
+      }
+    );
+  });
+
   /* CTA */
   gsap.from(".cta__inner > *", {
     scrollTrigger: {
@@ -255,6 +279,37 @@ if (reducedMotion) {
 }
 
 /* CONTACT FORM SUBMIT (Formspree AJAX) */
+function getYandexClientId(timeoutMs = 1500) {
+  return new Promise((resolve) => {
+    if (typeof window.ym !== "function") {
+      resolve(null);
+      return;
+    }
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        resolve(null);
+      }
+    }, timeoutMs);
+    try {
+      window.ym(111833820, "getClientID", (clientId) => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(clientId || null);
+        }
+      });
+    } catch {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve(null);
+      }
+    }
+  });
+}
+
 const contactForm = document.getElementById("contact-form");
 if (contactForm) {
   const successEl = document.getElementById("contact-success");
@@ -294,9 +349,13 @@ if (contactForm) {
     contactForm.classList.add("is-submitting");
     if (submitBtn) submitBtn.dataset.state = "loading";
     try {
+      const formData = new FormData(contactForm);
+      const ymClientId = await getYandexClientId();
+      if (ymClientId) formData.append("ym_client_id", ymClientId);
+
       const res = await fetch(action, {
         method: "POST",
-        body: new FormData(contactForm),
+        body: formData,
         headers: { Accept: "application/json" },
       });
 

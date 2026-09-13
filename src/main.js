@@ -7,6 +7,8 @@ import { initSectionIcons } from "./section-icons.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const pageLoadedAt = Date.now();
+
 /* Если человек попросил ОС уменьшить анимацию — не строим ни одного
    таймлайна и ни одного ScrollTrigger. Раньше они создавались всегда, и
    каждый gsap.from() выставлял своему элементу opacity:0 ещё до скролла:
@@ -310,6 +312,17 @@ function getYandexClientId(timeoutMs = 1500) {
   });
 }
 
+function getUtmParams() {
+  const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+  const params = new URLSearchParams(location.search);
+  const utm = {};
+  for (const key of keys) {
+    const value = params.get(key);
+    if (value) utm[key] = value;
+  }
+  return utm;
+}
+
 const contactForm = document.getElementById("contact-form");
 if (contactForm) {
   const successEl = document.getElementById("contact-success");
@@ -352,6 +365,13 @@ if (contactForm) {
       const formData = new FormData(contactForm);
       const ymClientId = await getYandexClientId();
       if (ymClientId) formData.append("ym_client_id", ymClientId);
+      formData.append(
+        "time_on_site_seconds",
+        String(Math.round((Date.now() - pageLoadedAt) / 1000)),
+      );
+      for (const [key, value] of Object.entries(getUtmParams())) {
+        formData.append(key, value);
+      }
 
       const res = await fetch(action, {
         method: "POST",

@@ -25,6 +25,15 @@ if (!is_array($messengers)) {
 }
 $messengers = array_values(array_filter(array_map('strval', $messengers)));
 $ymClientId = trim((string) ($_POST['ym_client_id'] ?? ''));
+$timeOnSiteRaw = $_POST['time_on_site_seconds'] ?? null;
+$timeOnSite = is_numeric($timeOnSiteRaw) ? (int) $timeOnSiteRaw : null;
+$utm = [];
+foreach (['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as $utmKey) {
+    $utmValue = trim((string) ($_POST[$utmKey] ?? ''));
+    if ($utmValue !== '') {
+        $utm[$utmKey] = $utmValue;
+    }
+}
 
 $errors = [];
 if ($name === '') {
@@ -50,6 +59,8 @@ $entry = [
     'messenger' => $messengers,
     'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
     'ym_client_id' => $ymClientId,
+    'time_on_site_seconds' => $timeOnSite,
+    'utm' => $utm,
 ];
 
 $logFile = '/var/log/abra-contact/submissions.log';
@@ -60,17 +71,31 @@ if (@file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX) === false) {
     exit;
 }
 
+// Общий текст деталей — используется и в письме, и в Telegram, чтобы при
+// добавлении нового поля не забывать одно из двух мест.
+$utmLine = '';
+if ($utm) {
+    $utmParts = [];
+    foreach ($utm as $utmKey => $utmValue) {
+        $utmParts[] = "{$utmKey}={$utmValue}";
+    }
+    $utmLine = 'UTM: ' . implode(', ', $utmParts) . "\n";
+}
+$detailsText = "Имя: {$name}\n"
+    . "Телефон: {$phone}\n"
+    . ($messengers ? 'Мессенджер: ' . implode(', ', $messengers) . "\n" : '')
+    . "IP: {$entry['ip']}\n"
+    . ($ymClientId ? "Яндекс.Метрика ClientID: {$ymClientId}\n" : '')
+    . ($timeOnSite !== null ? "Время на сайте: {$timeOnSite} сек\n" : '')
+    . $utmLine
+    . "Время: {$entry['time']}\n";
+
 // Письмо — best effort. Заявка уже сохранена в лог выше, поэтому даже если
 // SMTP ещё не настроен (relay через smarthost добавляется отдельно), ни одна
 // заявка не теряется — её видно в логе.
 $mailTo = 'artemutyashev@gmail.com';
 $subject = '=?UTF-8?B?' . base64_encode('Новая заявка с a-bra.ru') . '?=';
-$body = "Имя: {$name}\n"
-    . "Телефон: {$phone}\n"
-    . ($messengers ? 'Мессенджер: ' . implode(', ', $messengers) . "\n" : '')
-    . "IP: {$entry['ip']}\n"
-    . ($ymClientId ? "Яндекс.Метрика ClientID: {$ymClientId}\n" : '')
-    . "Время: {$entry['time']}\n";
+$body = $detailsText;
 $headers = "From: a-bra.ru <noreply@a-bra.ru>\r\nContent-Type: text/plain; charset=UTF-8";
 
 @mail($mailTo, $subject, $body, $headers);
@@ -88,13 +113,7 @@ $telegramRelayBase = 'https://abra-telegram-relay.artemutyashev.workers.dev';
 $telegramToken = getenv('TELEGRAM_BOT_TOKEN');
 $telegramChatId = getenv('TELEGRAM_CHAT_ID');
 if ($telegramToken && $telegramChatId) {
-    $telegramText = "Новая заявка с a-bra.ru\n"
-        . "Имя: {$name}\n"
-        . "Телефон: {$phone}\n"
-        . ($messengers ? 'Мессенджер: ' . implode(', ', $messengers) . "\n" : '')
-        . "IP: {$entry['ip']}\n"
-        . ($ymClientId ? "Яндекс.Метрика ClientID: {$ymClientId}\n" : '')
-        . "Время: {$entry['time']}";
+    $telegramText = "Новая заявка с a-bra.ru\n" . rtrim($detailsText);
     $telegramContext = stream_context_create([
         'http' => [
             'method' => 'POST',

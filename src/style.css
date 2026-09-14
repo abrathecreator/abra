@@ -147,6 +147,12 @@ canvas {
    Ставить только на буквенно-цифровые аббревиатуры, не на числа. */
 .alnum {
   font-family: var(--font-body);
+  /* Компенсация: у Syne (--font-display, откуда переключает токен)
+     межбуквенное расстояние и боковые свесы шире, чем у Inter — без
+     этого на стыке гарнитур получается «остров» с дырами по краям.
+     В body-тексте, где вокруг и так Inter, сдвиг на глаз незаметен. */
+  letter-spacing: 0.01em;
+  margin: 0 -0.04em;
 }
 
 /* NAV */
@@ -280,6 +286,7 @@ canvas {
    исчезали целиком. Три полосы превращаются в крест через transform,
    без смены SVG/иконки. */
 .nav__menu-toggle {
+  position: relative;
   display: none;
   flex-direction: column;
   justify-content: center;
@@ -291,6 +298,15 @@ canvas {
   background: none;
   border: none;
   cursor: pointer;
+}
+
+/* Рисунок остаётся 32×32 (менять его не просили), а зона попадания
+   расширена псевдоэлементом до нормы тач-таргета 44px — тот же приём,
+   что у .modal__close. */
+.nav__menu-toggle::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
 }
 
 .nav__menu-toggle-bar {
@@ -346,6 +362,23 @@ canvas {
     border-top: 1px solid var(--border);
     font-size: 16px;
   }
+}
+
+/* Браузерное focus-visible кольцо на этих элементах — синее (auto
+   1px rgb(0,95,204)), единственный посторонний цвет на сайте. У
+   фирменных компонентов (.abra-cta, .abra-link, .nav__contact-link,
+   .cookie-banner__accept, .modal__close, .info-btn, .content-card —
+   у последнего уже есть :focus-visible выше, но без outline) состояние
+   фокуса нарисовано отдельно; эти — нет, красим общим правилом. */
+.nav__logo:focus-visible,
+.nav__links a:focus-visible,
+.nav__cta:focus-visible,
+.nav__menu-toggle:focus-visible,
+.footer__legal a:focus-visible,
+.case__toc-link:focus-visible,
+.content-card:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 4px;
 }
 
 /* HERO */
@@ -1961,7 +1994,9 @@ section[id],
   z-index: 1;
   width: 100%;
   max-width: 640px;
+  /* svh — фолбэк остаётся vh, объяснение см. у .hero (style.css:364) */
   max-height: calc(100vh - 48px);
+  max-height: calc(100svh - 48px);
   overflow-y: auto;
   background: var(--bg-warm);
   border: 1px solid var(--border-control);
@@ -2005,6 +2040,14 @@ section[id],
   transition: border-color 0.2s ease, color 0.2s ease;
 }
 
+/* Кружок остаётся 36px (менять рисунок не просили), зона попадания
+   расширена до нормы тач-таргета 44px — тот же приём, что у гамбургера. */
+.modal__close::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+
 .modal__close:hover,
 .modal__close:focus-visible {
   outline: none;
@@ -2026,6 +2069,7 @@ section[id],
 
   .modal__dialog {
     max-height: calc(100vh - 24px);
+    max-height: calc(100svh - 24px);
     padding: clamp(24px, 8vw, 32px) 20px;
   }
 }

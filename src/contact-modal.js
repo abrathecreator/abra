@@ -74,7 +74,11 @@ export function initContactModal() {
     contactModal.hidden = false;
     document.body.style.overflow = "hidden";
     requestAnimationFrame(() => contactModal.classList.add("is-open"));
-    (document.getElementById("cf-name") || modalDialog).focus();
+    /* Фокус на сам диалог (tabindex="-1"), не сразу в поле «Имя» — иначе
+       на телефоне мгновенно выезжает клавиатура, а скринридер не
+       успевает прочитать заголовок aria-labelledby. Первый Tab всё
+       равно приведёт в поле имени. */
+    modalDialog.focus();
   };
 
   const closeModal = () => {

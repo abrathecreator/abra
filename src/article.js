@@ -47,17 +47,47 @@ const tocLinks = new Map(
 
 if (tocLinks.size) {
   const sections = document.querySelectorAll(".case__section[id]");
+  /* Наблюдатель сообщает только те секции, чьё пересечение поменялось за
+     этот кадр, а не все текущие — поэтому храним собственное множество
+     пересекающих и на каждый колбэк пересчитываем активную секцию по
+     нему целиком, а не по entries. Активна верхняя из пересекающих
+     (ближайшая к верху полосы засчёта), а не последняя сработавшая —
+     иначе при обратном скролле подсвечивался экран, который уже почти
+     ушёл вверх. Пустое множество (ушли выше первой секции) — подсветка
+     снимается совсем. */
+  const intersecting = new Set();
+
+  const updateActiveLink = () => {
+    let activeLink = null;
+    if (intersecting.size) {
+      const topSection = Array.from(intersecting).sort(
+        (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
+      )[0];
+      activeLink = tocLinks.get(topSection.id) || null;
+    }
+    tocLinks.forEach((link) => {
+      const isActive = link === activeLink;
+      link.classList.toggle("is-active", isActive);
+      if (isActive) {
+        link.setAttribute("aria-current", "true");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  };
+
   const tocObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const link = tocLinks.get(entry.target.id);
-        if (!link) return;
-        tocLinks.forEach((l) => l.classList.remove("is-active"));
-        link.classList.add("is-active");
+        if (entry.isIntersecting) {
+          intersecting.add(entry.target);
+        } else {
+          intersecting.delete(entry.target);
+        }
       });
+      updateActiveLink();
     },
-    { rootMargin: "-40% 0px -55% 0px" }
+    { rootMargin: "-25% 0px -60% 0px" }
   );
   sections.forEach((section) => tocObserver.observe(section));
 }

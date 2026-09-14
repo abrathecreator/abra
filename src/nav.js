@@ -28,6 +28,7 @@ export function initNav() {
     if (!navLinks || !navLinks.classList.contains("is-open")) return;
     navLinks.classList.remove("is-open");
     menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Открыть меню");
   };
 
   if (navContactToggle && navContactMenu) {
@@ -60,6 +61,10 @@ export function initNav() {
         closeNavContactMenu();
       }
       menuToggle.setAttribute("aria-expanded", String(isOpen));
+      menuToggle.setAttribute(
+        "aria-label",
+        isOpen ? "Закрыть меню" : "Открыть меню"
+      );
     });
     navLinks.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", closeMobileMenu);

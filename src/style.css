@@ -3056,6 +3056,9 @@ section[id],
 /* Заголовки и списки внутри длинных статей (не кейсов с одним нарративом) —
    те же значения, что у .legal h2/h3/ul/ol, просто в скоупе .case__content. */
 .case__content h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-family: var(--font-display);
   font-weight: 600;
   font-size: clamp(20px, 2vw, 26px);
@@ -3064,6 +3067,15 @@ section[id],
   color: var(--snow);
   max-width: 640px;
   margin: 0 0 16px;
+}
+
+/* Акцентные глифы у заголовков блоков — не система иконок разделов
+   (.section-icon), просто лёгкая визуальная зацепка на длинной статье. */
+.case__section-icon {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  color: var(--accent);
 }
 
 .case__content h3 {

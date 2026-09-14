@@ -8,13 +8,32 @@
 export function initNav() {
   const navContactToggle = document.querySelector(".nav__contact .nav__cta");
   const navContactMenu = document.getElementById("nav-contact-menu");
+  /* MOBILE MENU (≤720px) — гамбургер раскрывает .nav__links как панель
+     под шапкой вместо горизонтального ряда (см. style.css). Тот же
+     паттерн Escape/клик-снаружи/возврат фокуса, что у меню «Написать»
+     выше, плюс закрытие по клику на саму ссылку — иначе на главной
+     клик по якорю (#insight и т.п.) не увёл бы фокус пользователя от
+     раскрытой панели. */
+  const menuToggle = document.querySelector(".nav__menu-toggle");
+  const navLinks = document.querySelector(".nav__links");
+
+  /* Обе панели закрывают друг друга при открытии — иначе на узких
+     экранах они занимают одну и ту же полосу и накладываются. */
+  const closeNavContactMenu = () => {
+    if (!navContactMenu || navContactMenu.hidden) return;
+    navContactMenu.hidden = true;
+    navContactToggle.setAttribute("aria-expanded", "false");
+  };
+  const closeMobileMenu = () => {
+    if (!navLinks || !navLinks.classList.contains("is-open")) return;
+    navLinks.classList.remove("is-open");
+    menuToggle.setAttribute("aria-expanded", "false");
+  };
+
   if (navContactToggle && navContactMenu) {
-    const closeNavContactMenu = () => {
-      navContactMenu.hidden = true;
-      navContactToggle.setAttribute("aria-expanded", "false");
-    };
     navContactToggle.addEventListener("click", () => {
       if (navContactMenu.hidden) {
+        closeMobileMenu();
         navContactMenu.hidden = false;
         navContactToggle.setAttribute("aria-expanded", "true");
       } else {
@@ -34,21 +53,12 @@ export function initNav() {
     });
   }
 
-  /* MOBILE MENU (≤720px) — гамбургер раскрывает .nav__links как панель
-     под шапкой вместо горизонтального ряда (см. style.css). Тот же
-     паттерн Escape/клик-снаружи/возврат фокуса, что у меню «Написать»
-     выше, плюс закрытие по клику на саму ссылку — иначе на главной
-     клик по якорю (#insight и т.п.) не увёл бы фокус пользователя от
-     раскрытой панели. */
-  const menuToggle = document.querySelector(".nav__menu-toggle");
-  const navLinks = document.querySelector(".nav__links");
   if (menuToggle && navLinks) {
-    const closeMobileMenu = () => {
-      navLinks.classList.remove("is-open");
-      menuToggle.setAttribute("aria-expanded", "false");
-    };
     menuToggle.addEventListener("click", () => {
       const isOpen = navLinks.classList.toggle("is-open");
+      if (isOpen) {
+        closeNavContactMenu();
+      }
       menuToggle.setAttribute("aria-expanded", String(isOpen));
     });
     navLinks.querySelectorAll("a").forEach((link) => {

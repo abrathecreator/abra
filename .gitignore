@@ -3,3 +3,8 @@ dist
 .DS_Store
 *.log
 .vite
+
+# Local planning docs — open security/infra TODOs, not for a public repo
+FIX-PLAN.md
+FIX-PLAN-2.md
+SECURITY-HARDENING-PLAN.md

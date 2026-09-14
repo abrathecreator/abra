@@ -143,16 +143,75 @@ $detailsText = "Имя: {$name}\n"
     . $utmLine
     . "Время: {$entry['time']}\n";
 
-// Письмо — best effort. Заявка уже сохранена в лог выше, поэтому даже если
-// SMTP ещё не настроен (relay через smarthost добавляется отдельно), ни одна
-// заявка не теряется — её видно в логе.
-$mailTo = 'artemutyashev@gmail.com';
+// Письмо — best effort, через SMTP-релей доменного ящика info@a-bra.ru
+// (Ru-Center/nic.ru, добавлено 13.09.2026). Раньше здесь стоял голый mail(),
+// но на сервере вообще нет почтового демона (ни postfix, ни sendmail) — письмо
+// не уходило никогда, это и обнаружилось при разборе. curl-расширения тоже
+// нет, поэтому говорим по SMTP сами через TLS-сокет. Отправитель и получатель
+// — один и тот же ящик: письмо просто падает в его собственный inbox, читать
+// можно через вебмейл nic.ru или почтовый клиент.
+function sendMailViaSmtp(
+    string $host,
+    int $port,
+    string $user,
+    string $pass,
+    string $from,
+    string $to,
+    string $subject,
+    string $body
+): bool {
+    $socket = @stream_socket_client("ssl://{$host}:{$port}", $errno, $errstr, 5);
+    if (!$socket) {
+        return false;
+    }
+    @stream_set_timeout($socket, 5);
+
+    $read = static fn () => (string) @fgets($socket, 1024);
+    $send = static function (string $cmd) use ($socket) {
+        @fwrite($socket, $cmd . "\r\n");
+    };
+
+    $read();
+    $send('EHLO a-bra.ru');
+    do {
+        $line = $read();
+    } while ($line !== '' && strlen($line) > 3 && $line[3] === '-');
+
+    $send('AUTH LOGIN');
+    $read();
+    $send(base64_encode($user));
+    $read();
+    $send(base64_encode($pass));
+    if (strpos($read(), '235') !== 0) {
+        fclose($socket);
+        return false;
+    }
+
+    $send("MAIL FROM:<{$from}>");
+    $read();
+    $send("RCPT TO:<{$to}>");
+    $read();
+    $send('DATA');
+    $read();
+
+    $mimeHeaders = "From: {$from}\r\nTo: {$to}\r\nSubject: {$subject}\r\nContent-Type: text/plain; charset=UTF-8";
+    $escapedBody = preg_replace('/^\./m', '..', $body);
+    $send($mimeHeaders . "\r\n\r\n" . str_replace("\n", "\r\n", $escapedBody) . "\r\n.");
+    $sent = strpos($read(), '250') === 0;
+
+    $send('QUIT');
+    fclose($socket);
+
+    return $sent;
+}
+
 $titleText = $leadNumber ? "Новая заявка №{$leadNumber} с a-bra.ru" : 'Новая заявка с a-bra.ru';
 $subject = '=?UTF-8?B?' . base64_encode($titleText) . '?=';
-$body = $detailsText;
-$headers = "From: a-bra.ru <noreply@a-bra.ru>\r\nContent-Type: text/plain; charset=UTF-8";
-
-@mail($mailTo, $subject, $body, $headers);
+$smtpUser = getenv('SMTP_USER');
+$smtpPass = getenv('SMTP_PASS');
+if ($smtpUser && $smtpPass) {
+    @sendMailViaSmtp('mail.nic.ru', 465, $smtpUser, $smtpPass, $smtpUser, $smtpUser, $subject, $detailsText);
+}
 
 // Telegram — тоже best effort, тоже после лога. Токен и chat_id живут в
 // переменных окружения php-fpm на сервере, не в репозитории. Через

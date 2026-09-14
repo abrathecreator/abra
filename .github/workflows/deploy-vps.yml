@@ -22,11 +22,20 @@ jobs:
       - run: npm run build
 
       - name: Configure SSH
+        # Раньше здесь был ssh-keyscan — он принимал любой ключ, который в
+        # момент прогона отвечал по IP, то есть окно MITM на всё время
+        # деплоя. Теперь known_hosts заполняется из секрета SSH_HOST_KEY,
+        # закреплённого один раз при настройке. Если ключ VPS реально
+        # сменится (переустановка OS, ребилд из бэкапа), деплой упадёт с
+        # "Host key verification failed" — это правильно, надо перезакрепить
+        # секрет вручную.
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H 157.228.191.32 >> ~/.ssh/known_hosts
+          echo "${{ secrets.SSH_HOST_KEY }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
       - name: Sync dist/ to server
         run: |

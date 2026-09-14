@@ -42,6 +42,7 @@
 
   --max-w: 1240px;
   --gutter: clamp(20px, 4vw, 56px);
+  --nav-h: 84px;
 }
 
 * {
@@ -63,6 +64,66 @@ body {
 
 body {
   overflow-x: hidden;
+}
+
+/* Прижимает футер к низу экрана на страницах короче вьюпорта
+   (/404, /cases, /articles с одной карточкой) — на длинных страницах
+   ничего не меняет, футер там уже в конце контента. svh, не vh — как
+   у .hero, чтобы адресная строка мобильного браузера не давала лишний
+   зазор. */
+body {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+main,
+.legal,
+.tool,
+.case {
+  flex: 1 0 auto;
+  /* width:100% и min-width:0 вместе — без них два независимых бага.
+     Без min-width:0: тот же баг, что чинили в .stat-card (Ю1) — у
+     flex-детей автоматический min-width тоже auto (= min-content), и
+     контент калькулятора раздвигает body шире экрана вместо того
+     чтобы сжаться. Без width:100%: margin:0 auto на кросс-оси
+     flex-контейнера отключает растягивание (auto-margins побеждают
+     stretch по спеке) и ширина считается по max-content контента —
+     тот же результат, переполнение, просто по другой причине. */
+  width: 100%;
+  min-width: 0;
+}
+
+.footer {
+  flex-shrink: 0;
+}
+
+/* Скрыта за пределами экрана, возвращается по фокусу — обход шапки
+   для клавиатуры и скринридеров (WCAG 2.4.1). display:none лишил бы
+   ссылку фокуса, поэтому прячем сдвигом. */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  padding: 12px 20px;
+  background: var(--bg-warm);
+  color: var(--snow);
+  font-family: var(--font-display);
+  font-size: 14px;
+  border: 1px solid var(--border-control);
+  border-radius: 0 0 8px 0;
+  transform: translateY(-100%);
+  transition: transform 150ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.skip-link:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
 }
 
 a {
@@ -796,8 +857,8 @@ canvas {
    сломает переходы по меню. Плавную прокрутку включаем только тем,
    кто не просил уменьшить анимацию. */
 section[id],
-[id="top"] {
-  scroll-margin-top: 100px;
+[id="main"] {
+  scroll-margin-top: calc(var(--nav-h) + 16px);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1185,6 +1246,60 @@ section[id],
   text-align: left;
 }
 
+/* SECTION MARKS — фоновые буквы A-B-R-A на секциях 01–04.
+   Задача — не «прочитать слово», а разбить монотонность тёмного поля
+   под длинными текстовыми блоками. Регистр сознательно ниже, чем у
+   .philosophy__mark: та по центру, во всю ширину и ярче — она финал,
+   эти четыре только ведут к ней. Клип по краю колонки (max-width
+   1240px у .section) — намеренный кроп, буква уходит за поле. */
+.insight,
+.system,
+.services,
+.method {
+  overflow: hidden;
+  /* isolate создаёт на секции контекст наложения, поэтому z-index:-1 у
+     буквы решается ВНУТРИ секции: она уходит под текст секции, но
+     остаётся над фоном страницы. Без этого буква проваливалась под
+     background у body (он задан и на html, и на body) и была не видна
+     вообще ни при какой непрозрачности. */
+  isolation: isolate;
+}
+
+.section__mark {
+  position: absolute;
+  /* Привязка НЕ к центру секции, а к зоне заголовка. Секции разной
+     высоты, и центр у .system/.services приходится ровно на сетку
+     карточек — карточки непрозрачные (--bg-warm), буква уходила под
+     них, наружу торчал случайный обрезок. От верха секции расстояние
+     предсказуемое, поэтому буква всегда живёт за заголовком. */
+  top: clamp(220px, 26vh, 360px);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(200px, 28vw, 420px);
+  line-height: 1;
+  color: var(--snow);
+  opacity: var(--section-mark-opacity, 0.02);
+  pointer-events: none;
+  user-select: none;
+  /* z-index:-1 при position:relative у .section кладёт букву над фоном
+     страницы, но под весь текст — без правки z-index у содержимого. */
+  z-index: -1;
+}
+
+/* Чередование сторон: слева — справа — слева — справа. Так это читается
+   ритмом, а не одинаковым штампом на каждой секции. */
+.insight .section__mark,
+.services .section__mark {
+  left: -0.12em;
+  transform: translateY(-50%);
+}
+
+.system .section__mark,
+.method .section__mark {
+  right: -0.12em;
+  transform: translateY(-50%);
+}
+
 /* PHILOSOPHY */
 .philosophy {
   border-top: 1px solid var(--border);
@@ -1433,6 +1548,17 @@ section[id],
   font-size: 17px;
   max-width: 620px;
   text-align: center;
+}
+
+/* .abra-cta — inline-flex, поэтому в отличие от .tag (margin:auto на
+   блочном flex-контейнере) сама себя не центрирует; секция .contact не
+   центрирует текст целиком (иначе .contact__channel ниже потерял бы
+   левое выравнивание), так что кнопку центрируем отдельно, не трогая
+   общий .abra-cta. */
+.contact__inner > .abra-cta {
+  display: flex;
+  width: fit-content;
+  margin: 0 auto;
 }
 
 .contact__form {
@@ -1722,8 +1848,10 @@ section[id],
   border-top: 1px solid var(--border);
   transform: translateY(0);
   opacity: 1;
+  visibility: visible;
   transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 320ms ease;
+    opacity 320ms ease,
+    visibility 0s linear 0s;
 }
 
 .cookie-banner[hidden] {
@@ -1733,7 +1861,11 @@ section[id],
 .cookie-banner.is-dismissed {
   transform: translateY(100%);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 320ms ease,
+    visibility 0s linear 320ms;
 }
 
 .cookie-banner__text {
@@ -2731,7 +2863,8 @@ section[id],
   border: 1px solid var(--border);
   border-radius: 10px;
   position: sticky;
-  top: 32px;
+  top: calc(var(--nav-h) + 16px);
+  min-width: 0;
 }
 
 .tool__group {
@@ -2761,18 +2894,21 @@ section[id],
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-width: 0;
 }
 
 .tool__funnel {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
+  min-width: 0;
 }
 
 .tool__stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  min-width: 0;
 }
 
 .stat-card {
@@ -2783,6 +2919,7 @@ section[id],
   background: var(--bg-warm);
   border: 1px solid var(--border);
   border-radius: 10px;
+  min-width: 0;
 }
 
 .stat-card__label {
@@ -2820,7 +2957,12 @@ section[id],
 }
 
 .tool__sensitivity {
-  margin-top: 56px;
+  /* Раньше таблица шла отдельным блоком под всей сеткой (.tool__layout),
+     56px отбивали её от инпутов снизу. Теперь она внутри .tool__results,
+     где gap:24px уже разводит соседей — оставляем небольшую добавку,
+     чтобы таблица читалась отдельной группой от карточек, а не наравне
+     с ними. */
+  margin-top: 8px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -3131,7 +3273,7 @@ section[id],
   flex-direction: column;
   gap: 28px;
   position: sticky;
-  top: 32px;
+  top: calc(var(--nav-h) + 16px);
 }
 
 .case__fact {

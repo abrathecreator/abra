@@ -19,6 +19,7 @@
     />
   </head>
   <body>
+    <a class="skip-link" href="#main">К содержимому</a>
     <div class="cookie-banner" id="cookie-banner" hidden>
       <p class="cookie-banner__text">
         Сайт использует cookie-файлы для корректной работы и веб-аналитики.
@@ -79,7 +80,7 @@
         </div>
       </div>
     </header>
-    <main class="tool">
+    <main class="tool" id="main" tabindex="-1">
       <div class="tool__head">
         <span class="tag">[ .Юнит-экономика ]</span>
         <h1 class="tool__title">Калькулятор воронки</h1>
@@ -148,22 +149,22 @@
         <div class="tool__results">
           <div class="tool__funnel" id="ue-funnel"></div>
           <div class="tool__stats" id="ue-stats"></div>
-        </div>
-      </div>
 
-      <div class="tool__sensitivity">
-        <span class="tool__group-title">
-          Чувствительность — что если каждый параметр +10%
-          <span class="tool__scroll-hint">→ таблица прокручивается вбок</span>
-        </span>
-        <div class="tool__table-frame">
-          <div
-            class="tool__table-wrap"
-            tabindex="0"
-            role="region"
-            aria-label="Таблица чувствительности, прокручивается по горизонтали"
-          >
-            <table class="tool__table" id="ue-table"></table>
+          <div class="tool__sensitivity">
+            <span class="tool__group-title">
+              Чувствительность — что если каждый параметр +10%
+              <span class="tool__scroll-hint">→ таблица прокручивается вбок</span>
+            </span>
+            <div class="tool__table-frame">
+              <div
+                class="tool__table-wrap"
+                tabindex="0"
+                role="region"
+                aria-label="Таблица чувствительности, прокручивается по горизонтали"
+              >
+                <table class="tool__table" id="ue-table"></table>
+              </div>
+            </div>
           </div>
         </div>
       </div>

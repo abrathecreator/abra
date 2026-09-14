@@ -92,6 +92,7 @@
     </script>
   </head>
   <body>
+    <a class="skip-link" href="#main">К содержимому</a>
     <div class="cookie-banner" id="cookie-banner" hidden>
       <p class="cookie-banner__text">
         Сайт использует cookie-файлы для корректной работы и веб-аналитики.
@@ -231,7 +232,7 @@
       </div>
     </div>
     <header class="nav">
-      <a class="nav__logo" href="#top">
+      <a class="nav__logo" href="#main">
         <svg
           class="nav__mark"
           viewBox="-6 -6 112 172"
@@ -285,7 +286,7 @@
       </div>
     </header>
 
-    <main id="top">
+    <main id="main" tabindex="-1">
       <section class="hero" id="hero">
         <canvas id="hero-canvas" class="hero__canvas"></canvas>
         <div class="hero__stage">
@@ -335,6 +336,7 @@
       </section>
 
       <section class="section insight" id="insight">
+        <div class="section__mark" aria-hidden="true">A</div>
         <div class="section__head">
           <span class="tag">
             <span class="section-icon" data-icon="insight" aria-hidden="true"></span>
@@ -383,6 +385,7 @@
       </section>
 
       <section class="section system" id="system">
+        <div class="section__mark" aria-hidden="true">B</div>
         <div class="section__head">
           <span class="tag">
             <span class="section-icon" data-icon="system" aria-hidden="true"></span>
@@ -437,6 +440,7 @@
       </section>
 
       <section class="section services" id="services">
+        <div class="section__mark" aria-hidden="true">R</div>
         <div class="section__head">
           <span class="tag">
             <span class="section-icon" data-icon="services" aria-hidden="true"></span>
@@ -518,6 +522,7 @@
       </section>
 
       <section class="section method" id="method">
+        <div class="section__mark" aria-hidden="true">A</div>
         <div class="section__head">
           <span class="tag">
             <span class="section-icon" data-icon="method" aria-hidden="true"></span>

@@ -47,3 +47,54 @@
 }
 
 /* Тени, blur и свечения не используются ни в одном слое. */
+
+/* ============ [SHEETS — Google Таблицы, непрозрачные производные] ============
+   Sheets не понимает alpha: в палитру можно ввести только сплошной HEX.
+   Поэтому каждое rgba() выше сведено к непрозрачному значению по формуле
+   фон + (цвет − фон) × alpha. Новых цветов тут нет — только композиты.
+   Расшифровка ролей, шрифты, числовые форматы и правила вёрстки листа —
+   в sheets/TOKENS.md, применение скриптом — в sheets/abra-theme.gs. */
+:root{
+  /* тёмный вариант — «сайт», для внутренних листов и дашбордов */
+  --abra-sh-bg:#0C0B09;             /* = --abra-bg */
+  --abra-sh-band:#131210;           /* = --abra-card, чётные строки */
+  --abra-sh-text:#CEC9C3;           /* 11,9:1 */
+  --abra-sh-text-strong:#EDEBE6;    /* = --abra-text, 16,4:1 */
+  --abra-sh-text-muted:#84817C;     /* текст @62% на --abra-bg, 5,05:1 */
+  --abra-sh-accent:#B87333;         /* = --abra-accent, 5,19:1 — можно текстом */
+  --abra-sh-line:#1A1816;           /* --abra-line (7%) на --abra-bg */
+  --abra-sh-line-strong:#63615D;    /* border-control (45%) на --abra-bg, 3,3:1 */
+  --abra-sh-fill-accent:#2B1E11;    /* медь @18% */
+  --abra-sh-fill-ok:#20251B;        /* --abra-ok @18% */
+  --abra-sh-fill-warn:#2E2615;      /* --abra-warn @18% */
+  --abra-sh-fill-bad:#2A1813;       /* --abra-bad @18% */
+  --abra-sh-fill-info:#1E2124;      /* --abra-info @18% */
+
+  /* светлый вариант — печать и клиентские PDF */
+  --abra-sh-lt-bg:#EFEAE2;          /* = --abra-sheet */
+  --abra-sh-lt-band:#E9E4DC;        /* ink @3% на бумаге */
+  --abra-sh-lt-text:#1A1512;        /* = --abra-sheet-ink */
+  --abra-sh-lt-text-muted:#6B6661;  /* ink @62%, 4,74:1 */
+  --abra-sh-lt-accent:#8A5637;      /* = --abra-accent-dim; #B87333 на бумаге
+                                       даёт 3,17:1 и текстом не годится */
+  --abra-sh-lt-line:#DAD5CD;        /* ink @10% */
+  --abra-sh-lt-line-strong:#848078; /* ink @50%, 3,3:1 */
+  --abra-sh-lt-fill-accent:#E5D5C2; /* медь @18% на бумаге */
+  --abra-sh-lt-fill-ok:#DADCCD;
+  --abra-sh-lt-fill-warn:#E8DDC7;
+  --abra-sh-lt-fill-bad:#E5CFC5;
+  --abra-sh-lt-fill-info:#D8D8D6;
+
+  /* серии диаграмм: медь = главная, остальное — нейтральная шкала.
+     --abra-sh-series-3 — тинт --abra-accent к --abra-text на 45%. */
+  --abra-sh-series-1:#B87333;
+  --abra-sh-series-2:#C9C3BB;
+  --abra-sh-series-3:#8A5637;
+  --abra-sh-series-4:#8C857D;
+  --abra-sh-series-5:#D0A984;
+  --abra-sh-series-6:#5E574F;
+}
+
+/* Функциональные заливки (ok/warn/bad/info) — ТОЛЬКО фон ячейки.
+   Как цвет шрифта --abra-bad даёт 4,07:1 на тёмном и 4,01:1 на светлом:
+   обе ниже нормы AA. Текст в таблице всегда --abra-sh-text. */

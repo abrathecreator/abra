@@ -8,29 +8,65 @@
 export function initNav() {
   const navContactToggle = document.querySelector(".nav__contact .nav__cta");
   const navContactMenu = document.getElementById("nav-contact-menu");
-  if (!navContactToggle || !navContactMenu) return;
+  if (navContactToggle && navContactMenu) {
+    const closeNavContactMenu = () => {
+      navContactMenu.hidden = true;
+      navContactToggle.setAttribute("aria-expanded", "false");
+    };
+    navContactToggle.addEventListener("click", () => {
+      if (navContactMenu.hidden) {
+        navContactMenu.hidden = false;
+        navContactToggle.setAttribute("aria-expanded", "true");
+      } else {
+        closeNavContactMenu();
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (!navContactMenu.hidden && !e.target.closest(".nav__contact")) {
+        closeNavContactMenu();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !navContactMenu.hidden) {
+        closeNavContactMenu();
+        navContactToggle.focus();
+      }
+    });
+  }
 
-  const closeNavContactMenu = () => {
-    navContactMenu.hidden = true;
-    navContactToggle.setAttribute("aria-expanded", "false");
-  };
-  navContactToggle.addEventListener("click", () => {
-    if (navContactMenu.hidden) {
-      navContactMenu.hidden = false;
-      navContactToggle.setAttribute("aria-expanded", "true");
-    } else {
-      closeNavContactMenu();
-    }
-  });
-  document.addEventListener("click", (e) => {
-    if (!navContactMenu.hidden && !e.target.closest(".nav__contact")) {
-      closeNavContactMenu();
-    }
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !navContactMenu.hidden) {
-      closeNavContactMenu();
-      navContactToggle.focus();
-    }
-  });
+  /* MOBILE MENU (≤720px) — гамбургер раскрывает .nav__links как панель
+     под шапкой вместо горизонтального ряда (см. style.css). Тот же
+     паттерн Escape/клик-снаружи/возврат фокуса, что у меню «Написать»
+     выше, плюс закрытие по клику на саму ссылку — иначе на главной
+     клик по якорю (#insight и т.п.) не увёл бы фокус пользователя от
+     раскрытой панели. */
+  const menuToggle = document.querySelector(".nav__menu-toggle");
+  const navLinks = document.querySelector(".nav__links");
+  if (menuToggle && navLinks) {
+    const closeMobileMenu = () => {
+      navLinks.classList.remove("is-open");
+      menuToggle.setAttribute("aria-expanded", "false");
+    };
+    menuToggle.addEventListener("click", () => {
+      const isOpen = navLinks.classList.toggle("is-open");
+      menuToggle.setAttribute("aria-expanded", String(isOpen));
+    });
+    navLinks.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", closeMobileMenu);
+    });
+    document.addEventListener("click", (e) => {
+      if (
+        navLinks.classList.contains("is-open") &&
+        !e.target.closest(".nav")
+      ) {
+        closeMobileMenu();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && navLinks.classList.contains("is-open")) {
+        closeMobileMenu();
+        menuToggle.focus();
+      }
+    });
+  }
 }

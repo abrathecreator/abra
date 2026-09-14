@@ -246,7 +246,18 @@
         </svg>
         <span>ABRA</span>
       </a>
-      <nav class="nav__links">
+      <button
+        class="nav__menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-links"
+        aria-label="Открыть меню"
+      >
+        <span class="nav__menu-toggle-bar"></span>
+        <span class="nav__menu-toggle-bar"></span>
+        <span class="nav__menu-toggle-bar"></span>
+      </button>
+      <nav class="nav__links" id="nav-links">
         <a href="#insight">Инсайт</a>
         <a href="#system">Система</a>
         <a href="#services">Услуги</a>

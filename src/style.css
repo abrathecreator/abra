@@ -215,9 +215,75 @@ canvas {
   outline: none;
 }
 
+/* Гамбургер — виден только ≤720px, там же, где .nav__links раньше просто
+   исчезали целиком. Три полосы превращаются в крест через transform,
+   без смены SVG/иконки. */
+.nav__menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.nav__menu-toggle-bar {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--snow);
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.nav__menu-toggle[aria-expanded="true"] .nav__menu-toggle-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav__menu-toggle[aria-expanded="true"] .nav__menu-toggle-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.nav__menu-toggle[aria-expanded="true"] .nav__menu-toggle-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
 @media (max-width: 720px) {
+  .nav__menu-toggle {
+    display: flex;
+  }
+
+  /* .nav__links — та же разметка, что даёт ссылки на десктопе (якоря на
+     главной, Главная/Кейсы/Статьи везде ещё), здесь становится
+     выпадающей панелью под шапкой вместо горизонтального ряда. .nav
+     фиксирован (position:fixed), поэтому уже является containing
+     block для position:absolute — left/right:0 растягивают панель на
+     всю ширину экрана без доп. обёртки. */
   .nav__links {
     display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    padding: 4px var(--gutter) 12px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav__links.is-open {
+    display: flex;
+  }
+
+  .nav__links a {
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    font-size: 16px;
   }
 }
 

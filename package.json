@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vite build --logLevel error && node --test --test-concurrency=1 tests/"
   },
   "dependencies": {
     "gsap": "^3.12.5"

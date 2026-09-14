@@ -21,6 +21,8 @@ export default defineConfig(() => ({
         // case-template.html сюда НЕ добавлять: это заготовка с
         // иллюстративными цифрами и отзывом, в прод она не идёт.
         caseZhbi: resolve(__dirname, "case-zhbi.html"),
+        // Без ссылок с сайта — доступна только по прямой ссылке.
+        growthSystem: resolve(__dirname, "growth-system.html"),
       },
     },
   },

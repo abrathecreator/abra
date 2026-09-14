@@ -41,6 +41,8 @@ index.html              Главная страница — вся размет�
 privacy.html             Политика конфиденциальности
 terms.html                Пользовательское соглашение
 consent.html               Согласие на обработку ПДн
+growth-system.html          Экспертная статья-методология (не кейс, без привязки
+                              к клиенту/нише), пока без ссылок с сайта — см. CLAUDE.md
 src/
   main.js                Entry point index.html: GSAP-таймлайны, воронка, submit формы
   hero.js                 initHero(canvas) — Canvas 2D созвездие с параллаксом от курсора

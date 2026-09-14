@@ -4,10 +4,12 @@ import "./cookie-consent.js";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { initContactModal } from "./contact-modal.js";
+import { initNav } from "./nav.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
 initContactModal();
+initNav();
 
 /* Тот же принцип, что в main.js: при prefers-reduced-motion не создаём ни
    одного твина, чтобы ни один блок не получил opacity:0 из JS — контент

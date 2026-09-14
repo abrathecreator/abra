@@ -29,9 +29,48 @@
       </p>
       <button class="cookie-banner__accept" type="button">Хорошо</button>
     </div>
+    <header class="nav">
+      <a class="nav__logo" href="%BASE_URL%">
+        <svg
+          class="nav__mark"
+          viewBox="-6 -6 112 172"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="10"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M 6 155 L 82 75 A 44 44 0 1 0 18 75 L 94 155 Z" />
+        </svg>
+        <span>ABRA</span>
+      </a>
+      <nav class="nav__links">
+        <a href="%BASE_URL%">Главная</a>
+        <a href="%BASE_URL%cases">Кейсы</a>
+        <a href="%BASE_URL%articles">Статьи</a>
+      </nav>
+      <div class="nav__contact">
+        <button
+          class="nav__cta"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="nav-contact-menu"
+        >
+          Написать
+        </button>
+        <div class="nav__contact-menu" id="nav-contact-menu" hidden>
+          <a class="nav__contact-link" href="tel:+79110256443"
+            >+7 911 025-64-43</a
+          >
+          <a class="nav__contact-link" href="mailto:info@a-bra.ru"
+            >info@a-bra.ru</a
+          >
+        </div>
+      </div>
+    </header>
     <main class="legal">
-      <a class="legal__back" href="%BASE_URL%">← ABRA</a>
-
       <h1 class="legal__title">Согласие на обработку персональных данных</h1>
       <p class="legal__meta">
         <span>Редакция 1.0</span><span>Опубликовано 21.08.2026</span>

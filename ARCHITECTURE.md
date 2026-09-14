@@ -42,15 +42,20 @@ privacy.html             Политика конфиденциальности
 terms.html                Пользовательское соглашение
 consent.html               Согласие на обработку ПДн
 growth-system.html          Экспертная статья-методология (не кейс, без привязки
-                              к клиенту/нише), пока без ссылок с сайта — см. CLAUDE.md
+                              к клиенту/нише), связана с сайта через /articles
+cases.html                  Страница-список кейсов (.content-card)
+articles.html                Страница-список статей (.content-card)
 src/
   main.js                Entry point index.html: GSAP-таймлайны, воронка, submit формы
   hero.js                 initHero(canvas) — Canvas 2D созвездие с параллаксом от курсора
   icons.js                 SVG-разметка 7 иконок разделов (чистые данные)
   section-icons.js          Монтирование иконок + IntersectionObserver reveal-логика
   metrica.js                Яндекс.Метрика (отдельный модуль ради CSP)
-  legal.js                  Entry point для privacy/terms/consent.html
-  style.css                 Все стили сайта, один файл, ~1900 строк
+  nav.js                     initNav() — меню «Написать» в шапке, общий для всех entry
+  contact-modal.js            initContactModal() — модалка формы заявки
+  article.js                   Entry point для growth-system.html
+  legal.js                  Entry point для privacy/terms/consent/404/cases/articles.html
+  style.css                 Все стили сайта, один файл, ~3000 строк
 public/
   _headers                 HTTP-заголовки для Cloudflare Pages (CSP и т.д.)
   robots.txt, favicon.svg, apple-touch-icon.png, og.png, mark.svg, portrait.webp

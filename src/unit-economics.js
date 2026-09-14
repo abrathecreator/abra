@@ -1,8 +1,10 @@
 import "./style.css";
 import "./metrica.js";
 import "./cookie-consent.js";
+import { initContactModal } from "./contact-modal.js";
 import { initNav } from "./nav.js";
 
+initContactModal();
 initNav();
 
 /* Живая воронка юнит-экономики — переизложение формул из

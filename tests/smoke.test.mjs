@@ -14,8 +14,11 @@ before(async () => {
 });
 
 after(async () => {
-  page.close();
-  await browser.close();
+  /* если before() упал на середине (например launch() бросил ошибку),
+     page/browser могут быть не определены — не маскируем исходную
+     ошибку падением на .close() у undefined */
+  page?.close();
+  await browser?.close();
 });
 
 for (const { path } of PAGES) {

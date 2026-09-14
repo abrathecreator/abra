@@ -17,8 +17,14 @@ const KEY_CODES = { Tab: 9, Enter: 13, Escape: 27 };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function waitFor(url) {
+/* errorHolder — общий объект между процессом и опросом waitFor: если
+   spawn упал (например ENOENT — бинарник не найден), 'error' пишет сюда
+   и waitFor прерывается сразу, не дожидаясь полного таймаута. Слушатель
+   постоянный (.on, не .once), поэтому и ошибка после старта (процесс
+   упал позже) не улетает как необработанное событие 'error'. */
+async function waitFor(url, errorHolder) {
   for (let i = 0; i < 80; i++) {
+    if (errorHolder.error) throw errorHolder.error;
     try {
       const res = await fetch(url);
       if (res.ok) return;
@@ -27,15 +33,45 @@ async function waitFor(url) {
     }
     await sleep(250);
   }
+  if (errorHolder.error) throw errorHolder.error;
   throw new Error(`Не дождался ответа: ${url}`);
 }
 
+/* Опрос произвольного условия с таймаутом — используется в goto() для
+   ожидания готовности страницы вместо угадывания фиксированной паузой. */
+async function waitForCondition(check, timeoutMs, message) {
+  const start = Date.now();
+  for (;;) {
+    if (await check()) return;
+    if (Date.now() - start >= timeoutMs) throw new Error(message);
+    await sleep(100);
+  }
+}
+
+async function withTimeout(promise, timeoutMs, message) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function launch() {
+  const errorHolder = {};
+
   const preview = spawn(
     "npx",
     ["vite", "preview", "--port", String(PREVIEW_PORT), "--strictPort"],
     { cwd: ROOT, stdio: "ignore" }
   );
+  preview.on("error", (err) => {
+    errorHolder.error ??= new Error(`vite preview не запустился: npx (${err.code})`);
+  });
+
   const profile = mkdtempSync(join(tmpdir(), "abra-test-"));
   const chrome = spawn(
     CHROME,
@@ -49,17 +85,30 @@ export async function launch() {
     ],
     { stdio: "ignore" }
   );
-  await waitFor(`http://localhost:${PREVIEW_PORT}/`);
-  await waitFor(`http://127.0.0.1:${DEBUG_PORT}/json/version`);
+  chrome.on("error", (err) => {
+    errorHolder.error ??= new Error(`Chrome не запустился: ${CHROME} (${err.code})`);
+  });
+
+  const killAll = async () => {
+    chrome.kill();
+    preview.kill();
+    await sleep(200);
+    rmSync(profile, { recursive: true, force: true });
+  };
+
+  try {
+    await waitFor(`http://localhost:${PREVIEW_PORT}/`, errorHolder);
+    await waitFor(`http://127.0.0.1:${DEBUG_PORT}/json/version`, errorHolder);
+  } catch (err) {
+    /* что бы ни пошло не так на старте (таймаут, занятый порт, ENOENT) —
+       не оставлять висящие процессы, пробрасываем исходную ошибку дальше */
+    await killAll();
+    throw err;
+  }
 
   return {
     newPage: () => openPage(),
-    async close() {
-      chrome.kill();
-      preview.kill();
-      await sleep(200);
-      rmSync(profile, { recursive: true, force: true });
-    },
+    close: killAll,
   };
 }
 
@@ -108,6 +157,17 @@ async function openPage() {
       });
       await send("Emulation.setScriptExecutionDisabled", { value: !js });
       await send("Page.navigate", { url: `http://localhost:${PREVIEW_PORT}${path}` });
+      await waitForCondition(
+        () => page.eval("document.readyState === 'complete'"),
+        10000,
+        `Таймаут ожидания document.readyState === "complete": ${path}`
+      );
+      await withTimeout(
+        page.eval("document.fonts.ready.then(() => true)"),
+        10000,
+        `Таймаут ожидания document.fonts.ready: ${path}`
+      );
+      /* GSAP-таймлайнам входа всё ещё нужна пауза после готовности документа */
       await sleep(1200);
     },
     async eval(expression) {

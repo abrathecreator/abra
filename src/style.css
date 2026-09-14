@@ -228,23 +228,6 @@ canvas {
   position: relative;
 }
 
-.nav__cta {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 10px 18px;
-  background: transparent;
-  border: 1px solid var(--border-control);
-  border-radius: 999px;
-  color: var(--snow);
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.nav__cta:hover {
-  border-color: var(--accent);
-  background: rgba(184, 115, 51, 0.08);
-}
-
 /* Раскрывающийся список способов связи — «Написать» больше не ведёт на
    форму напрямую, а открывает телефон и почту. Тот же визуальный язык,
    что у .info-tip в калькуляторе (--bg-warm, --border, radius 10px). */
@@ -372,7 +355,6 @@ canvas {
    фокуса нарисовано отдельно; эти — нет, красим общим правилом. */
 .nav__logo:focus-visible,
 .nav__links a:focus-visible,
-.nav__cta:focus-visible,
 .nav__menu-toggle:focus-visible,
 .footer__legal a:focus-visible,
 .case__toc-link:focus-visible,
@@ -852,6 +834,37 @@ canvas {
 .abra-cta[data-state="loading"] {
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* Уровень 2 системы кнопок — компактные скобки для второстепенных
+   действий («Написать» в шапке, «Хорошо» в cookie-баннере). Уголки
+   только расходятся, рамку не строят — главную кнопку не перебивают.
+   Два класса в селекторах намеренно: иначе размеры перебьёт .abra-cta
+   внутри @media (max-width: 900px), а ширину — правила hover/active. */
+.abra-cta.abra-cta--compact {
+  --cta-h: 44px;
+  --cta-pad-x: 18px;
+  --cta-bracket-span: 26px;
+  --cta-corner-h: 9px;
+  --cta-corner-w: 8px;
+  --cta-shift: 3px;
+}
+
+.abra-cta.abra-cta--compact .abra-cta__label {
+  font-size: 12px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .abra-cta.abra-cta--compact:hover .abra-cta__corner,
+  .abra-cta.abra-cta--compact:focus-visible .abra-cta__corner {
+    width: var(--cta-corner-w);
+  }
+}
+
+@media (hover: none) {
+  .abra-cta.abra-cta--compact:active .abra-cta__corner {
+    width: var(--cta-corner-w);
+  }
 }
 
 @media (max-width: 900px) {
@@ -1922,23 +1935,6 @@ section[id],
 
 .cookie-banner__accept {
   flex: 0 0 auto;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 14px;
-  padding: 10px 22px;
-  background: transparent;
-  border: 1px solid var(--border-control);
-  border-radius: 999px;
-  color: var(--snow);
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.cookie-banner__accept:hover,
-.cookie-banner__accept:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-  background: rgba(184, 115, 51, 0.08);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1951,11 +1947,6 @@ section[id],
   .cookie-banner {
     justify-content: flex-start;
     text-align: left;
-  }
-
-  .cookie-banner__accept {
-    width: 100%;
-    text-align: center;
   }
 }
 

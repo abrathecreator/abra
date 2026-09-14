@@ -99,7 +99,15 @@
         Подробнее — в
         <a href="%BASE_URL%privacy">Политике конфиденциальности</a>.
       </p>
-      <button class="cookie-banner__accept" type="button">Хорошо</button>
+      <button class="abra-cta abra-cta--compact cookie-banner__accept" type="button">
+        <span class="abra-cta__frame" aria-hidden="true">
+          <span class="abra-cta__corner abra-cta__corner--tl"></span>
+          <span class="abra-cta__corner abra-cta__corner--tr"></span>
+          <span class="abra-cta__corner abra-cta__corner--bl"></span>
+          <span class="abra-cta__corner abra-cta__corner--br"></span>
+        </span>
+        <span class="abra-cta__label">Хорошо</span>
+      </button>
     </div>
     <div class="modal" id="contact-modal" hidden>
       <div class="modal__backdrop" data-modal-close></div>
@@ -267,13 +275,19 @@
       </nav>
       <div class="nav__contact">
         <button
-          class="nav__cta"
+          class="abra-cta abra-cta--compact nav__cta"
           type="button"
           aria-haspopup="true"
           aria-expanded="false"
           aria-controls="nav-contact-menu"
         >
-          Написать
+          <span class="abra-cta__frame" aria-hidden="true">
+            <span class="abra-cta__corner abra-cta__corner--tl"></span>
+            <span class="abra-cta__corner abra-cta__corner--tr"></span>
+            <span class="abra-cta__corner abra-cta__corner--bl"></span>
+            <span class="abra-cta__corner abra-cta__corner--br"></span>
+          </span>
+          <span class="abra-cta__label">Написать</span>
         </button>
         <div class="nav__contact-menu" id="nav-contact-menu" hidden>
           <a class="nav__contact-link" href="tel:+79110256443"

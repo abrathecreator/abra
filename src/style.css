@@ -3027,6 +3027,47 @@ section[id],
   opacity: 0.85;
 }
 
+/* CASE TOC — навигатор по блокам длинной статьи в сайдбаре (не у кейса с
+   одним нарративом, там переходить некуда). На ≤900px сайдбар перестаёт
+   быть sticky (см. .case__sidebar media query) — список остаётся кликабельным,
+   просто не висит перед глазами во время чтения. */
+.case__toc {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.case__toc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.case__toc-link {
+  display: block;
+  padding: 6px 0 6px 12px;
+  border-left: 2px solid transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  opacity: 0.7;
+  transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.case__toc-link:hover {
+  opacity: 1;
+}
+
+.case__toc-link.is-active {
+  border-left-color: var(--accent);
+  color: var(--accent);
+  opacity: 1;
+}
+
 .case__content {
   display: flex;
   flex-direction: column;

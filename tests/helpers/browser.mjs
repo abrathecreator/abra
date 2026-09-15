@@ -169,6 +169,12 @@ async function openPage() {
 
   await send("Page.enable");
   await send("Runtime.enable");
+  /* Без этого document.hasFocus() === false у headless-таба (у него нет
+     реального OS-фокуса), и Chrome тогда не рассылает focus/focusin/blur
+     при программном .focus() — activeElement меняется, а события нет.
+     Нужно тестам, которые проверяют фокус-зависимое поведение (Task 6:
+     нижняя панель прячется, пока фокус в текстовом поле). */
+  await send("Emulation.setFocusEmulationEnabled", { enabled: true });
 
   const page = {
     async goto(path, { width = 1440, height = 900, reducedMotion = false, js = true } = {}) {

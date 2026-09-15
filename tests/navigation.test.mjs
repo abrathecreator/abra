@@ -110,3 +110,125 @@ describe("шапка — три ссылки и текущий раздел", ()
     }
   });
 });
+
+const TAB_LINKS = [
+  ["%BASE_URL%", "Главная"],
+  ["%BASE_URL%cases", "Кейсы"],
+  ["%BASE_URL%articles", "Статьи"],
+];
+
+const tabbarBlock = (html) => {
+  const m = html.match(/    <nav class="tabbar" aria-label="Разделы сайта">[\s\S]*?\n    <\/nav>/);
+  return m ? m[0] : null;
+};
+
+describe("нижняя панель — разметка", () => {
+  const reference = tabbarBlock(read("index.html"))?.replace(/ aria-current="[^"]*"/g, "");
+
+  for (const { file, section, current } of PAGES) {
+    test(`${file}: вкладки, «Написать», без гамбургера`, () => {
+      const html = read(file);
+      assert.ok(!html.includes("nav__menu-toggle"), "гамбургера нет");
+      assert.ok(!html.includes('id="nav-links"'), "id от гамбургера убран");
+      const block = tabbarBlock(html);
+      assert.ok(block, "есть .tabbar сразу после шапки");
+      assert.ok(html.indexOf("</header>") < html.indexOf('<nav class="tabbar"'));
+
+      const tabs = [...block.matchAll(
+        /<a class="tabbar__tab" href="([^"]+)"(?: aria-current="([^"]+)")?>[\s\S]*?<span class="tabbar__label">([^<]+)<\/span>/g
+      )];
+      assert.deepEqual(tabs.map((m) => [m[1], m[3]]), TAB_LINKS);
+      tabs.forEach((m, i) => {
+        const expected = section && SECTION_INDEX[section] === i ? current : undefined;
+        assert.equal(m[2], expected, `aria-current у вкладки «${m[3]}»`);
+      });
+      assert.match(block, /<a class="abra-cta tabbar__cta" href="%BASE_URL%#contact"/);
+      assert.equal(block.replace(/ aria-current="[^"]*"/g, ""), reference, "панель совпадает с главной");
+    });
+  }
+
+  test("гамбургер удалён из CSS и JS", () => {
+    assert.ok(!read("src/style.css").includes("nav__menu-toggle"));
+    assert.ok(!read("src/nav.js").includes("menu-toggle"));
+  });
+});
+
+describe("нижняя панель — поведение", () => {
+  const ctx = withBrowser();
+
+  const state = `(() => {
+    const bar = document.querySelector(".tabbar");
+    const cs = getComputedStyle(bar);
+    const rect = bar.getBoundingClientRect();
+    const cur = bar.querySelector("[aria-current]");
+    return {
+      display: cs.display,
+      visibility: cs.visibility,
+      hidden: bar.classList.contains("is-hidden"),
+      suppressed: bar.classList.contains("is-suppressed"),
+      bottom: Math.round(rect.bottom),
+      current: cur ? cur.textContent.trim() : null,
+      line: cur ? getComputedStyle(cur.querySelector(".tabbar__label"), "::after").transform : null,
+      top: getComputedStyle(document.querySelector(".nav__links")).display,
+      contact: getComputedStyle(document.querySelector(".nav__contact")).display,
+      footer: getComputedStyle(document.querySelector(".footer")).paddingBottom,
+    };
+  })()`;
+
+  test("на 390px: панель внизу, в шапке только логотип, текущая вкладка подчёркнута", async () => {
+    await ctx.page.goto("/cases.html", { width: 390, height: 844 });
+    const s = await ctx.page.eval(state);
+    assert.equal(s.display, "grid");
+    assert.equal(s.bottom, 836);
+    assert.equal(s.top, "none");
+    assert.equal(s.contact, "none");
+    assert.equal(s.current, "Кейсы");
+    assert.equal(s.line, "matrix(1, 0, 0, 1, 0, 0)");
+    assert.equal(s.footer, "114px");
+  });
+
+  test("на 1440px панели нет", async () => {
+    await ctx.page.goto("/cases.html", { width: 1440 });
+    assert.equal((await ctx.page.eval(state)).display, "none");
+  });
+
+  test("прячется при прокрутке вниз, возвращается вверх и у конца страницы", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await ctx.page.eval(`window.scrollTo({ top: 700, behavior: "instant" })`);
+    await ctx.page.wait(400);
+    assert.equal((await ctx.page.eval(state)).hidden, true, "вниз — спряталась");
+    await ctx.page.eval(`window.scrollTo({ top: 400, behavior: "instant" })`);
+    await ctx.page.wait(400);
+    assert.equal((await ctx.page.eval(state)).hidden, false, "вверх — вернулась");
+    await ctx.page.eval(`window.scrollTo({ top: 900, behavior: "instant" })`);
+    await ctx.page.wait(300);
+    await ctx.page.eval(`window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" })`);
+    await ctx.page.wait(400);
+    assert.equal((await ctx.page.eval(state)).hidden, false, "у конца страницы — видна");
+  });
+
+  test("при уменьшении движения не прячется", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844, reducedMotion: true });
+    await ctx.page.eval(`window.scrollTo({ top: 700, behavior: "instant" })`);
+    await ctx.page.wait(400);
+    assert.equal((await ctx.page.eval(state)).hidden, false);
+  });
+
+  test("скрыта, пока фокус в текстовом поле", async () => {
+    await ctx.page.goto("/unit-economics.html", { width: 390, height: 844 });
+    await ctx.page.eval(`document.getElementById("ue-impressions").focus()`);
+    let s = await ctx.page.eval(state);
+    assert.equal(s.suppressed, true);
+    assert.equal(s.visibility, "hidden");
+    await ctx.page.eval(`document.activeElement.blur()`);
+    s = await ctx.page.eval(state);
+    assert.equal(s.suppressed, false);
+    assert.equal(s.visibility, "visible");
+  });
+
+  test("без JS «Написать» ведёт на форму главной", async () => {
+    await ctx.page.goto("/cases.html", { width: 390, height: 844, js: false });
+    const href = await ctx.page.eval(`document.querySelector(".tabbar__cta").getAttribute("href")`);
+    assert.equal(href, "/#contact");
+  });
+});

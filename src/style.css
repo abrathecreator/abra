@@ -308,88 +308,6 @@ canvas {
   outline: none;
 }
 
-/* Гамбургер — виден только ≤720px, там же, где .nav__links раньше просто
-   исчезали целиком. Три полосы превращаются в крест через transform,
-   без смены SVG/иконки. */
-.nav__menu-toggle {
-  position: relative;
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-/* Рисунок остаётся 32×32 (менять его не просили), а зона попадания
-   расширена псевдоэлементом до нормы тач-таргета 44px — тот же приём,
-   что у .modal__close. */
-.nav__menu-toggle::after {
-  content: "";
-  position: absolute;
-  inset: -6px;
-}
-
-.nav__menu-toggle-bar {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--snow);
-  transition: transform 0.25s ease, opacity 0.2s ease;
-}
-
-.nav__menu-toggle[aria-expanded="true"] .nav__menu-toggle-bar:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.nav__menu-toggle[aria-expanded="true"] .nav__menu-toggle-bar:nth-child(2) {
-  opacity: 0;
-}
-
-.nav__menu-toggle[aria-expanded="true"] .nav__menu-toggle-bar:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-@media (max-width: 720px) {
-  .nav__menu-toggle {
-    display: flex;
-  }
-
-  /* .nav__links — та же разметка, что даёт ссылки на десктопе (якоря на
-     главной, Главная/Кейсы/Статьи везде ещё), здесь становится
-     выпадающей панелью под шапкой вместо горизонтального ряда. .nav
-     фиксирован (position:fixed), поэтому уже является containing
-     block для position:absolute — left/right:0 растягивают панель на
-     всю ширину экрана без доп. обёртки. */
-  .nav__links {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    gap: 0;
-    padding: 4px var(--gutter) 12px;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .nav__links.is-open {
-    display: flex;
-  }
-
-  .nav__links a {
-    padding: 14px 0;
-    border-top: 1px solid var(--border);
-    font-size: 16px;
-  }
-}
-
 /* Браузерное focus-visible кольцо на этих элементах — синее (auto
    1px rgb(0,95,204)), единственный посторонний цвет на сайте. У
    фирменных компонентов (.abra-cta, .abra-link, .nav__contact-link,
@@ -398,12 +316,150 @@ canvas {
    фокуса нарисовано отдельно; эти — нет, красим общим правилом. */
 .nav__logo:focus-visible,
 .nav__links a:focus-visible,
-.nav__menu-toggle:focus-visible,
 .footer__legal a:focus-visible,
 .case__toc-link:focus-visible,
 .content-card:focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: 4px;
+}
+
+/* TABBAR — нижняя панель навигации на ≤720px. Шапка сверху сжимается
+   до логотипа, ссылки и «Написать» живут внизу, в зоне большого
+   пальца. «Написать» — .abra-cta уровня 1 с размерами под ячейку.
+   Слой 35: выше шапки (20) и меню «Написать» (30), ниже cookie (40),
+   шторки (45), подсказки калькулятора (50), модалки (60). */
+.tabbar {
+  display: none;
+}
+
+.tabbar.is-suppressed {
+  visibility: hidden;
+}
+
+@media (max-width: 720px) {
+  .nav__links,
+  .nav__contact {
+    display: none;
+  }
+
+  .tabbar {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    z-index: 35;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr);
+    gap: 2px;
+    height: 66px;
+    padding: 6px;
+    border: 1px solid var(--border-surface);
+    border-radius: 22px;
+    background: rgba(19, 18, 16, 0.86);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    backdrop-filter: blur(18px) saturate(1.2);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+    transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .tabbar.is-hidden {
+    transform: translateY(calc(100% + 16px + env(safe-area-inset-bottom)));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tabbar__tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 0;
+    border-radius: 12px;
+    color: var(--text);
+  }
+
+  .tabbar__tab:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .tabbar__icon {
+    width: 22px;
+    height: 22px;
+    opacity: 0.72;
+    transition: opacity 260ms ease;
+  }
+
+  .tabbar__icon--mark {
+    width: 14px;
+  }
+
+  /* Текущая вкладка — уровень 3: подчёркивание растёт слева. */
+  .tabbar__label {
+    position: relative;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    opacity: 0.72;
+    transition: opacity 260ms ease;
+  }
+
+  .tabbar__label::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .tabbar__tab[aria-current] {
+    color: var(--accent);
+  }
+
+  .tabbar__tab[aria-current] .tabbar__icon,
+  .tabbar__tab[aria-current] .tabbar__label {
+    opacity: 1;
+  }
+
+  .tabbar__tab[aria-current] .tabbar__label::after {
+    transform: scaleX(1);
+  }
+
+  /* Два класса — иначе переменные перебьёт .abra-cta
+     внутри @media (max-width: 900px). */
+  .tabbar .abra-cta {
+    --cta-h: 54px;
+    --cta-pad-x: 10px;
+    --cta-bracket-span: 32px;
+    --cta-corner-h: 11px;
+    --cta-corner-w: 8px;
+    --cta-shift: 3px;
+    align-self: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .tabbar .abra-cta__label {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
+  .tabbar,
+  .tabbar__icon,
+  .tabbar__label,
+  .tabbar__label::after {
+    transition: none;
+  }
 }
 
 /* HERO */
@@ -1880,6 +1936,17 @@ section[id],
   gap: 16px 24px;
   font-size: 13px;
   color: var(--text);
+}
+
+/* На ≤720px в конце страницы панель всегда видна — правовые ссылки
+   футера не должны прятаться под ней. 32 — обычный отступ, 66 —
+   панель, 16 — два зазора по 8px. Здесь, а не рядом с остальным TABBAR
+   — иначе .footer { padding: 32px var(--gutter) } выше перебивает
+   padding-bottom по порядку в каскаде (та же специфичность). */
+@media (max-width: 720px) {
+  .footer {
+    padding-bottom: calc(32px + 66px + 16px + env(safe-area-inset-bottom));
+  }
 }
 
 .footer__meta,

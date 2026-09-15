@@ -82,7 +82,7 @@ ARCHITECTURE.md                 Этот файл
 --font-display: "Syne", "Inter", system-ui, sans-serif;
 --font-body: "Inter", system-ui, sans-serif;
 --max-w: 1240px;
---gutter: clamp(20px, 4vw, 56px);
+--gutter: max(clamp(20px, 4vw, 56px), env(safe-area-inset-left), env(safe-area-inset-right)); /* не уже боковой безопасной зоны выреза */
 ```
 
 **Правило**: новый цвет в проект не добавляется. Если нужен приглушённый/полупрозрачный вариант — берётся rgb-триплет существующего токена с нужной alpha (пример — `--border` это `rgba(206,201,195,0.07)`, тот же триплет, что у `--text`).

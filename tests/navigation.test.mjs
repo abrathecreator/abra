@@ -232,3 +232,69 @@ describe("нижняя панель — поведение", () => {
     assert.equal(href, "/#contact");
   });
 });
+
+describe("телефон: cookie-карточка и hero над панелью", () => {
+  const ctx = withBrowser();
+
+  const rects = `(() => {
+    const box = (selector) => {
+      const el = document.querySelector(selector);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), right: Math.round(r.right) };
+    };
+    return {
+      cookie: box("#cookie-banner"),
+      bar: box(".tabbar"),
+      cta: box(".hero .abra-cta"),
+      radius: getComputedStyle(document.getElementById("cookie-banner")).borderRadius,
+    };
+  })()`;
+
+  test("cookie-баннер — отдельная карточка над панелью", async () => {
+    await ctx.page.goto("/cases.html", { width: 390, height: 844 });
+    await ctx.page.eval("localStorage.clear()");
+    await ctx.page.goto("/cases.html", { width: 390, height: 844 });
+    const r = await ctx.page.eval(rects);
+    assert.equal(r.cookie.left, 12);
+    assert.equal(r.cookie.right, 378);
+    assert.equal(r.radius, "18px");
+    assert.ok(r.cookie.bottom <= r.bar.top - 6, `карточка до ${r.cookie.bottom}, панель с ${r.bar.top}`);
+  });
+
+  for (const [width, height] of [[390, 844]]) {
+    test(`hero ${width}×${height}: «Разобрать систему» целиком над панелью`, async () => {
+      await ctx.page.goto("/", { width, height });
+      await ctx.page.wait(1800); // вступительная анимация hero
+      const r = await ctx.page.eval(rects);
+      assert.ok(r.cta.bottom <= r.bar.top - 12, `кнопка до ${r.cta.bottom}, панель с ${r.bar.top}`);
+    });
+  }
+
+  // На 375×667 кнопка «Разобрать систему» физически ниже линии сгиба даже
+  // без панели (портрет уже на полу 200px, .hero__title — двухстрочный
+  // заголовок минимум 80px) — first-screen проверку заменили сценарием
+  // реального посетителя: короткая прокрутка прячет панель, и кнопка
+  // должна поместиться в видимую область уже без неё.
+  test("hero 375×667: после короткой прокрутки панель уходит и «Разобрать систему» видна целиком", async () => {
+    await ctx.page.goto("/", { width: 375, height: 667 });
+    await ctx.page.wait(1800); // вступительная анимация hero
+    await ctx.page.eval(`window.scrollTo({ top: 120, behavior: "instant" })`);
+    await ctx.page.wait(400); // 280мс transition панели + запас — как в тесте автоскрытия выше
+    const r = await ctx.page.eval(`(() => {
+      const bar = document.querySelector(".tabbar");
+      const cta = document.querySelector(".hero .abra-cta").getBoundingClientRect();
+      return {
+        hidden: bar.classList.contains("is-hidden"),
+        cta: { top: Math.round(cta.top), bottom: Math.round(cta.bottom) },
+        innerHeight: window.innerHeight,
+      };
+    })()`);
+    assert.equal(r.hidden, true);
+    assert.ok(r.cta.top >= 0, `кнопка выше экрана: top ${r.cta.top}`);
+    assert.ok(
+      r.cta.bottom <= r.innerHeight - 12,
+      `кнопка до ${r.cta.bottom}, экран высотой ${r.innerHeight}`
+    );
+  });
+});

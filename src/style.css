@@ -626,6 +626,18 @@ canvas {
   }
 }
 
+/* На ≤720px внизу нижняя панель — портрет ниже, чтобы «Разобрать
+   систему» на первом экране целиком стояла над ней. Критерий из
+   спецификации: 390×844 и 375×667, зазор от 12px. Ниже 200px портрет
+   не опускать — если места не хватает, ужимать отступы .hero__sub. */
+@media (max-width: 720px) {
+  .hero__portrait {
+    height: clamp(200px, 30svh, 260px);
+    min-height: 0;
+    max-height: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero__portrait {
     animation: none !important;
@@ -675,6 +687,18 @@ canvas {
   font-size: clamp(15px, 1.4vw, 18px);
   color: var(--text);
   opacity: 0.85;
+}
+
+/* Ужимаем отступы под подзаголовком на ≤720px — на коротких реальных
+   вьюпортах (Safari с открытыми панелями браузера даёт innerHeight
+   заметно меньше 844) эти 26px и есть разница между кнопкой на экране
+   и под ним. Правило намеренно стоит здесь, а не рядом с .hero__portrait
+   выше: при равной специфичности с безусловным .hero__sub выигрывает то,
+   что позже в файле — иначе margin молча откатывался бы обратно. */
+@media (max-width: 720px) {
+  .hero__sub {
+    margin: 18px 0 24px;
+  }
 }
 
 .hero__actions {
@@ -2057,6 +2081,27 @@ section[id],
   .cookie-banner {
     justify-content: flex-start;
     text-align: left;
+  }
+}
+
+/* На ≤720px cookie-баннер — плавающая карточка над нижней панелью:
+   8px зазор + 66px панель + 8px зазор + безопасная зона iPhone. */
+@media (max-width: 720px) {
+  .cookie-banner {
+    left: 12px;
+    right: 12px;
+    bottom: calc(8px + 66px + 8px + env(safe-area-inset-bottom));
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 14px 14px 14px 16px;
+    border: 1px solid var(--border-surface);
+    border-radius: 18px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  }
+
+  .cookie-banner__text {
+    font-size: 12.5px;
+    line-height: 1.45;
   }
 }
 

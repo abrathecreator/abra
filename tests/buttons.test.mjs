@@ -112,4 +112,20 @@ describe("уровень 3 — подчёркивания", () => {
     assert.equal(active.size, "100% 1px");
     assert.equal(active.border, "0px");
   });
+
+  /* getClientRects().length не годится для проверки переноса у
+     inline-block: снаружи это один атомарный бокс, поэтому у него
+     length === 1 и при переносе внутри тоже — сам факт переноса
+     виден только в возросшей высоте. Сравниваем высоту с одиночной
+     строкой (высота у .case__toc-link, где .alnum нет и переноса
+     точно быть не может). */
+  test("оглавление статьи: пункты с .alnum не переносятся на вторую строку", async () => {
+    await page.goto("/growth-system.html", { width: 1440, height: 900 });
+    const heights = await page.eval(`[...document.querySelectorAll(".case__toc-link")].map(
+      (a) => ({ text: a.textContent.trim(), height: a.getBoundingClientRect().height })
+    )`);
+    const singleLine = heights.find((item) => !item.text.includes(".")).height;
+    const broken = heights.filter((item) => item.height > singleLine + 1).map((item) => item.text);
+    assert.deepEqual(broken, [], "все пункты оглавления должны быть в одну строку");
+  });
 });

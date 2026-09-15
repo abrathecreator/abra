@@ -74,3 +74,42 @@ describe("уровень 2 — поведение", () => {
     assert.equal(visibility, "hidden");
   });
 });
+
+describe("уровень 3 — подчёркивания", () => {
+  let browser;
+  let page;
+  before(async () => {
+    browser = await launch();
+    page = await browser.newPage();
+  });
+  after(async () => {
+    page?.close();
+    await browser?.close();
+  });
+
+  const afterTransform = (selector) =>
+    `getComputedStyle(document.querySelector(${JSON.stringify(selector)}), "::after").transform`;
+
+  test("пункт шапки: в покое линии нет, при наведении — на всю ширину", async () => {
+    await page.goto("/cases.html", { width: 1440 });
+    const link = ".nav__links a:nth-child(2)";
+    assert.equal(await page.eval(afterTransform(link)), "matrix(0, 0, 0, 1, 0, 0)");
+    await page.hover(link);
+    assert.equal(await page.eval(afterTransform(link)), "matrix(1, 0, 0, 1, 0, 0)");
+  });
+
+  test("оглавление статьи: активный пункт подчёркнут, левой полосы нет", async () => {
+    await page.goto("/growth-system.html", { width: 1440, height: 900 });
+    await page.eval(`window.scrollTo({ top: 1600, behavior: "instant" })`); // на сайте scroll-behavior: smooth
+    await page.wait(700);
+    const active = await page.eval(`(() => {
+      const link = document.querySelector(".case__toc-link.is-active");
+      if (!link) return null;
+      const cs = getComputedStyle(link);
+      return { size: cs.backgroundSize, border: cs.borderLeftWidth };
+    })()`);
+    assert.ok(active, "в оглавлении есть активный пункт");
+    assert.equal(active.size, "100% 1px");
+    assert.equal(active.border, "0px");
+  });
+});

@@ -215,13 +215,49 @@ canvas {
 }
 
 .nav__links a {
+  position: relative;
   opacity: 0.75;
   transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-.nav__links a:hover {
-  opacity: 1;
-  color: var(--accent);
+/* Уровень 3 системы кнопок — подчёркивание растёт слева, как у
+   .abra-link. Только на десктопной шапке: на телефоне ссылки шапки
+   не показываются. */
+@media (min-width: 721px) {
+  .nav__links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .nav__links a:hover,
+  .nav__links a:focus-visible {
+    opacity: 1;
+  }
+
+  .nav__links a:hover::after,
+  .nav__links a:focus-visible::after,
+  .nav__links a[aria-current]::after {
+    transform: scaleX(1);
+  }
+
+  .nav__links a[aria-current] {
+    opacity: 1;
+    color: var(--accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__links a::after {
+    transition: none;
+  }
 }
 
 .nav__contact {
@@ -3373,15 +3409,27 @@ section[id],
 }
 
 .case__toc-link {
-  display: block;
-  padding: 6px 0 6px 12px;
-  border-left: 2px solid transparent;
+  display: inline-block;
+  /* Раньше отступ давали border-left (2px) + padding-left (12px) =
+     14px. Полоса слева уходит, но отступ пункта от края сайдбара
+     сохраняем margin-left'ом — иначе список визуально прыгнет влево.
+     padding остаётся без левой части, чтобы фон-подчёркивание ниже
+     легло точно под текст, а не под пустой отступ. */
+  margin-left: 14px;
+  padding: 6px 0;
   font-family: var(--font-body);
   font-size: 13px;
   line-height: 1.4;
   color: var(--text);
   opacity: 0.7;
-  transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  /* Уровень 3 системы кнопок: вместо левой полосы — подчёркивание под
+     текстом, растёт слева. Фоном — без псевдоэлемента и без position. */
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 0 calc(100% - 4px);
+  background-size: 0 1px;
+  transition: opacity 0.2s ease, color 0.2s ease,
+    background-size 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .case__toc-link:hover {
@@ -3389,9 +3437,15 @@ section[id],
 }
 
 .case__toc-link.is-active {
-  border-left-color: var(--accent);
   color: var(--accent);
   opacity: 1;
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case__toc-link {
+    transition: none;
+  }
 }
 
 .case__content {

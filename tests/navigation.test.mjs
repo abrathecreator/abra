@@ -34,6 +34,12 @@ describe("viewport и безопасная зона", () => {
     const css = read("src/style.css");
     assert.ok(css.includes("--border-surface: rgba(206, 201, 195, 0.16);"));
     assert.ok(css.includes("--nav-h: calc(84px + env(safe-area-inset-top));"));
+    assert.ok(
+      css.includes(
+        "--gutter: max(clamp(20px, 4vw, 56px), env(safe-area-inset-left), env(safe-area-inset-right));"
+      ),
+      "--gutter включает боковые безопасные зоны"
+    );
   });
 
   describe("в браузере", () => {
@@ -52,6 +58,39 @@ describe("viewport и безопасная зона", () => {
       assert.equal(got.top, "20px");
       assert.equal(got.left, "56px");
       assert.equal(got.margin, "100px");
+    });
+
+    /* Эталон снят до перевода --gutter на max(..., env()): без выреза
+       боковые поля обязаны остаться прежними. */
+    for (const [width, gutter] of [[1440, "56px"], [390, "20px"]]) {
+      test(`${width}px без выреза: боковые поля прежние`, async () => {
+        const pad = async (path, selector) => {
+          await ctx.page.goto(path, { width, height: 844 });
+          return ctx.page.eval(`(() => {
+            const cs = getComputedStyle(document.querySelector(${JSON.stringify(selector)}));
+            return [cs.paddingLeft, cs.paddingRight];
+          })()`);
+        };
+        assert.deepEqual(await pad("/", ".hero__inner"), [gutter, gutter]);
+        assert.deepEqual(await pad("/", ".nav"), [gutter, gutter]);
+        assert.deepEqual(await pad("/privacy.html", ".legal"), [gutter, gutter]);
+      });
+    }
+
+    test("844×390 с вырезом: поля страницы и cookie-баннер не заходят под вырез", async () => {
+      await ctx.page.goto("/privacy.html", { width: 844, height: 390 });
+      await ctx.page.setSafeArea({ left: 47, right: 47, bottom: 21 });
+      const got = await ctx.page.eval(`(() => {
+        const cs = (selector) => getComputedStyle(document.querySelector(selector));
+        return {
+          legal: [cs(".legal").paddingLeft, cs(".legal").paddingRight],
+          nav: [cs(".nav").paddingLeft, cs(".nav").paddingRight],
+          cookie: cs("#cookie-banner").paddingBottom,
+        };
+      })()`);
+      assert.deepEqual(got.legal, ["47px", "47px"]);
+      assert.deepEqual(got.nav, ["47px", "47px"]);
+      assert.equal(got.cookie, "39px", "18px + нижняя безопасная зона");
     });
   });
 });

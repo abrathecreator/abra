@@ -42,7 +42,10 @@
   --font-body: "Inter", system-ui, sans-serif;
 
   --max-w: 1240px;
-  --gutter: clamp(20px, 4vw, 56px);
+  /* Боковое поле страницы. viewport-fit=cover пускает страницу под вырез
+     iPhone в горизонтальной ориентации — поле не уже боковой безопасной
+     зоны; на обычных экранах env() = 0 и остаётся clamp(). */
+  --gutter: max(clamp(20px, 4vw, 56px), env(safe-area-inset-left), env(safe-area-inset-right));
   /* Высота шапки вместе с безопасной зоной выреза iPhone — на неё
      опираются scroll-margin-top и липкие панели. */
   --nav-h: calc(84px + env(safe-area-inset-top));
@@ -168,11 +171,10 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* viewport-fit=cover пускает страницу под вырез iPhone — отступы
-     шапки учитывают безопасную зону; на обычных экранах env() = 0. */
-  padding: calc(20px + env(safe-area-inset-top))
-    max(var(--gutter), env(safe-area-inset-right)) 20px
-    max(var(--gutter), env(safe-area-inset-left));
+  /* viewport-fit=cover пускает страницу под вырез iPhone — сверху шапка
+     учитывает безопасную зону сама, боковые зоны уже внутри --gutter;
+     на обычных экранах env() = 0. */
+  padding: calc(20px + env(safe-area-inset-top)) var(--gutter) 20px;
   /* Сплошной фон до линии текста меню, затухание — только ниже неё.
      Полупрозрачный градиент по всей высоте давал ~0.46 непрозрачности
      на отметке пунктов меню, и текст страницы читался сквозь них. */
@@ -2206,7 +2208,9 @@ section[id],
   justify-content: center;
   flex-wrap: wrap;
   gap: 16px 24px;
-  padding: 18px var(--gutter);
+  /* Снизу — полоска «домой» iPhone в горизонтальной ориентации; на ≤720px
+     отступы переопределены ниже, карточка сама стоит над безопасной зоной. */
+  padding: 18px var(--gutter) calc(18px + env(safe-area-inset-bottom));
   background: var(--bg-warm);
   border-top: 1px solid var(--border);
   transform: translateY(0);

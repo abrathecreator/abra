@@ -2496,7 +2496,8 @@ section[id],
 }
 
 .legal .abra-cta,
-.legal .abra-link {
+.legal .abra-link,
+.legal .content-card {
   border-bottom: 0;
 }
 
@@ -2580,36 +2581,63 @@ section[id],
   border-right-width: 1px;
 }
 
-.content-card:hover::before,
+/* :focus-visible — вне медиа-запроса ниже, чтобы клавиатурный фокус
+   растягивал метки на любом устройстве. :hover продублирован внутри
+   @media (hover: hover) and (pointer: fine), как у .abra-cta: на тач
+   после тапа состояние :hover может «залипнуть», и метки останутся
+   растянутыми без наведения — на тач достаточно состояния покоя. */
 .content-card:focus-visible::before {
   opacity: 1;
 }
 
-.content-card:hover .content-card__mark,
 .content-card:focus-visible .content-card__mark {
   width: calc(50% - 28px);
   height: calc(50% - 20px);
   opacity: 1;
 }
 
-.content-card:hover .content-card__mark--tl,
 .content-card:focus-visible .content-card__mark--tl {
   transform: translate(-4px, -4px);
 }
 
-.content-card:hover .content-card__mark--tr,
 .content-card:focus-visible .content-card__mark--tr {
   transform: translate(4px, -4px);
 }
 
-.content-card:hover .content-card__mark--bl,
 .content-card:focus-visible .content-card__mark--bl {
   transform: translate(-4px, 4px);
 }
 
-.content-card:hover .content-card__mark--br,
 .content-card:focus-visible .content-card__mark--br {
   transform: translate(4px, 4px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .content-card:hover::before {
+    opacity: 1;
+  }
+
+  .content-card:hover .content-card__mark {
+    width: calc(50% - 28px);
+    height: calc(50% - 20px);
+    opacity: 1;
+  }
+
+  .content-card:hover .content-card__mark--tl {
+    transform: translate(-4px, -4px);
+  }
+
+  .content-card:hover .content-card__mark--tr {
+    transform: translate(4px, -4px);
+  }
+
+  .content-card:hover .content-card__mark--bl {
+    transform: translate(-4px, 4px);
+  }
+
+  .content-card:hover .content-card__mark--br {
+    transform: translate(4px, 4px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

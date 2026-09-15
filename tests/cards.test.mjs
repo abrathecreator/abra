@@ -42,6 +42,7 @@ describe("карточки — поведение", () => {
       cardWidth: card.getBoundingClientRect().width,
       cardHeight: card.getBoundingClientRect().height,
       border: cs.borderTopWidth,
+      borderBottom: cs.borderBottomWidth,
       radius: cs.borderTopLeftRadius,
       transform: cs.transform,
       outline: cs.outlineStyle + " " + cs.outlineWidth,
@@ -61,6 +62,20 @@ describe("карточки — поведение", () => {
     assert.equal(m.radius, "0px");
     assert.equal(m.width, 18);
     assert.equal(m.opacity, "0.6");
+  });
+
+  /* .legal a { border-bottom: 1px solid rgba(184,115,51,.35) } наследуется
+     карточкой как обычной ссылкой внутри .legal — .legal .content-card
+     должна перебивать это в покое и при наведении (когда .legal a:hover
+     красит унаследованную рамку в акцентный). */
+  test("рамка от .legal a не просачивается ни в покое, ни при наведении", async () => {
+    await page.goto("/cases.html", { width: 1440 });
+    const rest = await page.eval(measure);
+    assert.equal(rest.borderBottom, "0px");
+    await page.hover(".content-card");
+    await page.wait(300);
+    const hovered = await page.eval(measure);
+    assert.equal(hovered.borderBottom, "0px");
   });
 
   test("при наведении метки растут, но посередине остаётся просвет; подъёма нет", async () => {

@@ -415,6 +415,21 @@ describe("шторка — поведение", () => {
     assert.equal(s.focusOnOpener, true, "фокус вернулся на «Написать» в панели");
   });
 
+  test("Escape в текстовом поле модалки, открытой из шторки, возвращает фокус на «Написать»", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await openSheet();
+    await ctx.page.eval(`document.querySelector("[data-sheet-apply]").click()`);
+    await ctx.page.wait(450);
+    await ctx.page.eval(`document.getElementById("cf-name").focus()`);
+    await ctx.page.press("Escape");
+    await ctx.page.wait(700);
+    const s = await ctx.page.eval(state);
+    assert.equal(s.modalHidden, true, "модалка закрыта");
+    assert.equal(s.barSuppressed, false, "панель больше не подавлена");
+    assert.equal(s.barVisibility, "visible", "панель видима");
+    assert.equal(s.focusOnOpener, true, "фокус вернулся на «Написать» в панели");
+  });
+
   test("на странице без модалки «Оставить заявку» — ссылка на форму главной", async () => {
     await ctx.page.goto("/cases.html", { width: 390, height: 844 });
     const href = await ctx.page.eval(

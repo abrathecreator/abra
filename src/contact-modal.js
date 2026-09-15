@@ -112,6 +112,12 @@ export function initContactModal() {
 
     const finish = () => {
       contactModal.hidden = true;
+      /* Снять фокус с поля внутри модалки синхронно: blur() сразу вызывает
+         focusout и снимает причину "field" в tabbar-state.js — иначе она
+         могла остаться висеть (Chrome переносит фокус на body сам, но уже
+         после этой точки), и панель не открылась бы, а focus() ниже молча
+         ничего не сделал бы на visibility:hidden элементе. */
+      if (contactModal.contains(document.activeElement)) document.activeElement.blur();
       /* Сначала вернуть нижнюю панель, потом фокус: на элемент с
          visibility:hidden фокус не встаёт, и focus() молча не сработает. */
       setTabbarSuppressed("modal", false);

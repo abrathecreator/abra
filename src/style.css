@@ -369,6 +369,15 @@ canvas {
     pointer-events: none;
   }
 
+  /* Фокус с клавиатуры в спрятанной прокруткой панели — показать её,
+     иначе фокус стоит на невидимой вкладке (WCAG 2.4.7, 2.4.11). В CSS,
+     а не в nav.js: пока фокус внутри, панель не спрячет и прокрутка. */
+  .tabbar.is-hidden:focus-within {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .tabbar__tab {
     display: flex;
     flex-direction: column;
@@ -467,6 +476,14 @@ canvas {
    калькулятора (50) и модалки заявки (60). */
 .sheet[hidden] {
   display: none;
+}
+
+/* Шире 720px шторки нет, как и нижней панели с её кнопкой; nav.js при
+   повороте закрывает открытую шторку, это правило — страховка. */
+@media not all and (max-width: 720px) {
+  .sheet {
+    display: none;
+  }
 }
 
 .sheet {

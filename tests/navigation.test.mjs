@@ -207,6 +207,42 @@ describe("нижняя панель — поведение", () => {
     assert.equal((await ctx.page.eval(state)).hidden, false, "у конца страницы — видна");
   });
 
+  test("у конца страницы возвращается и после сдвига короче 6px", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    const maxY = "document.documentElement.scrollHeight - innerHeight";
+    await ctx.page.eval(`window.scrollTo({ top: ${maxY} - 5, behavior: "instant" })`);
+    await ctx.page.wait(400);
+    assert.equal((await ctx.page.eval(state)).hidden, true, "за 5px до конца — спряталась");
+    await ctx.page.eval(`window.scrollTo({ top: ${maxY}, behavior: "instant" })`);
+    await ctx.page.wait(400);
+    assert.equal((await ctx.page.eval(state)).hidden, false, "в самом конце — видна");
+  });
+
+  test("спрятанная прокруткой панель видна, когда в неё приходит фокус с клавиатуры", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await ctx.page.eval(`window.scrollTo({ top: 700, behavior: "instant" })`);
+    await ctx.page.wait(400);
+    assert.equal((await ctx.page.eval(state)).hidden, true, "спряталась");
+    await ctx.page.eval(`document.querySelector(".nav__logo").focus()`);
+    await ctx.page.press("Tab");
+    await ctx.page.wait(400); // 280мс transition панели + запас
+    const r = await ctx.page.eval(`(() => {
+      const tab = document.activeElement;
+      const rect = tab.getBoundingClientRect();
+      return {
+        first: tab === document.querySelector(".tabbar__tab"),
+        top: rect.top,
+        bottom: rect.bottom,
+        opacity: getComputedStyle(document.querySelector(".tabbar")).opacity,
+        y: Math.round(scrollY),
+      };
+    })()`);
+    assert.equal(r.first, true, "Tab от логотипа — первая вкладка");
+    assert.equal(r.y, 700, "страница не прокручивалась — панель вернул фокус, а не прокрутка");
+    assert.ok(r.top >= 0 && r.bottom <= 844, `вкладка ${r.top}–${r.bottom} вне экрана`);
+    assert.equal(r.opacity, "1");
+  });
+
   test("при уменьшении движения не прячется", async () => {
     await ctx.page.goto("/", { width: 390, height: 844, reducedMotion: true });
     await ctx.page.eval(`window.scrollTo({ top: 700, behavior: "instant" })`);
@@ -436,6 +472,32 @@ describe("шторка — поведение", () => {
       `document.querySelector("#contact-sheet .sheet__actions a.abra-cta").getAttribute("href")`
     );
     assert.equal(href, "/#contact");
+  });
+
+  test("при повороте шире 720px шторка закрывается сразу, прокрутка возвращается", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await openSheet();
+    await ctx.page.resize(1024, 768);
+    const s = await ctx.page.eval(state);
+    assert.equal(s.sheetHidden, true, "шторка закрыта");
+    assert.equal(s.open, false);
+    assert.equal(s.overflow, "", "прокрутка разблокирована");
+    assert.equal(s.focusInSheet, false, "фокус не остался в скрытой шторке");
+    assert.equal(s.barSuppressed, false);
+  });
+
+  /* Настоящее восстановление из bfcache в headless Chrome воспроизводится
+     ненадёжно — проверяем обработчик синтетическим pageshow с persisted. */
+  test("pageshow из bfcache закрывает открытую шторку без возврата фокуса", async () => {
+    await ctx.page.goto("/cases.html", { width: 390, height: 844 });
+    await openSheet();
+    await ctx.page.eval(
+      `window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`
+    );
+    const s = await ctx.page.eval(state);
+    assert.equal(s.sheetHidden, true, "шторка закрыта сразу");
+    assert.equal(s.overflow, "", "прокрутка разблокирована");
+    assert.equal(s.focusOnOpener, false, "фокус не переводится на «Написать»");
   });
 
   test("при уменьшении движения открывается и закрывается без анимации", async () => {

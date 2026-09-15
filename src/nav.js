@@ -8,8 +8,12 @@
 
    Нижняя панель (≤720px): прячется при прокрутке вниз, возвращается при
    прокрутке вверх и у конца страницы. При prefers-reduced-motion не
-   прячется совсем. Пока фокус в текстовом поле — скрыта, чтобы не висеть
-   над клавиатурой. */
+   прячется совсем. Если в спрятанную панель пришёл фокус с клавиатуры,
+   её показывает CSS (.tabbar.is-hidden:focus-within). Пока фокус в
+   текстовом поле — скрыта, чтобы не висеть над клавиатурой.
+
+   Шторка закрывается сразу, без анимации и возврата фокуса, когда экран
+   становится шире 720px (поворот) и когда страница вернулась из bfcache. */
 import { openContactModal } from "./contact-modal.js";
 import { setTabbarSuppressed } from "./tabbar-state.js";
 
@@ -60,9 +64,16 @@ function initTabbar(tabbar) {
     "scroll",
     () => {
       const y = window.scrollY;
-      if (Math.abs(y - lastY) < 6) return;
+      /* Конец страницы проверяется до порога в 6px: последний сдвиг до
+         самого низа бывает короче, и панель осталась бы спрятанной. */
       const atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 4;
-      const hide = !reduce.matches && y > lastY && y > 90 && !atEnd;
+      if (atEnd) {
+        tabbar.classList.remove("is-hidden");
+        lastY = y;
+        return;
+      }
+      if (Math.abs(y - lastY) < 6) return;
+      const hide = !reduce.matches && y > lastY && y > 90;
       tabbar.classList.toggle("is-hidden", hide);
       lastY = y;
     },
@@ -109,7 +120,10 @@ function initSheet(sheet, opener) {
     panel.focus();
   };
 
-  const close = ({ returnFocus = true } = {}) => {
+  /* instant — закрыть без анимации: при повороте шире 720px и при
+     восстановлении страницы из bfcache ждать 300мс незачем. */
+  const close = ({ returnFocus = true, instant = false } = {}) => {
+    clearTimeout(closeTimer);
     sheet.classList.remove("is-open");
     document.body.style.overflow = "";
     const finish = () => {
@@ -118,9 +132,23 @@ function initSheet(sheet, opener) {
       setTabbarSuppressed("sheet", false);
       if (returnFocus) opener.focus();
     };
-    if (reduce.matches) finish();
+    if (instant || reduce.matches) finish();
     else closeTimer = setTimeout(finish, 300);
   };
+
+  /* Поворот телефона: шире 720px нижней панели нет, «Написать» в ней
+     display:none — шторка закрывается сразу, фокус на скрытую кнопку
+     не возвращается (он туда и не встанет). */
+  const phone = window.matchMedia("(max-width: 720px)");
+  phone.addEventListener("change", (e) => {
+    if (!e.matches && !sheet.hidden) close({ returnFocus: false, instant: true });
+  });
+
+  /* Назад из bfcache: на страницах без модалки «Оставить заявку» — ссылка,
+     и страница возвращается с открытой шторкой и заблокированной прокруткой. */
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted && !sheet.hidden) close({ returnFocus: false, instant: true });
+  });
 
   opener.addEventListener("click", (e) => {
     e.preventDefault();

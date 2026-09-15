@@ -4,6 +4,7 @@
    собирает его сам). */
 import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
+import { createConnection } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ROOT } from "./pages.mjs";
@@ -60,8 +61,31 @@ async function withTimeout(promise, timeoutMs, message) {
   }
 }
 
+/* Слушает ли кто-то порт. Нужна до запуска: если порт занят чужим
+   сервером, он ответит на первый же опрос waitFor раньше, чем vite
+   preview успеет упасть на --strictPort, и тесты пойдут не туда. */
+function portInUse(port) {
+  return new Promise((resolve) => {
+    const socket = createConnection({ port, host: "localhost" });
+    socket.once("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("error", () => resolve(false));
+  });
+}
+
 export async function launch() {
   const errorHolder = {};
+
+  if (await portInUse(PREVIEW_PORT)) {
+    throw new Error(
+      `vite preview не запущен: порт ${PREVIEW_PORT} уже занят другим процессом — тесты ушли бы на чужой сервер`
+    );
+  }
+  if (await portInUse(DEBUG_PORT)) {
+    throw new Error(`Chrome не запустится: порт отладки ${DEBUG_PORT} уже занят другим процессом`);
+  }
 
   const preview = spawn(
     "npx",
@@ -124,9 +148,27 @@ export async function launch() {
     }
   };
 
+  /* Процесс, завершившийся до готовности, — тоже ошибка старта: vite
+     preview с --strictPort выходит, если порт занят, и без этого waitFor
+     ждал бы полный таймаут. После старта выход штатный (close()). */
+  let ready = false;
+  preview.on("exit", (code, signal) => {
+    if (ready) return;
+    errorHolder.error ??= new Error(
+      `vite preview завершился до готовности (порт ${PREVIEW_PORT} занят?): код ${code ?? signal}`
+    );
+  });
+  chrome.on("exit", (code, signal) => {
+    if (ready) return;
+    errorHolder.error ??= new Error(
+      `Chrome завершился до готовности (порт ${DEBUG_PORT} занят?): код ${code ?? signal}`
+    );
+  });
+
   try {
     await waitFor(`http://localhost:${PREVIEW_PORT}/`, errorHolder);
     await waitFor(`http://127.0.0.1:${DEBUG_PORT}/json/version`, errorHolder);
+    ready = true;
   } catch (err) {
     /* что бы ни пошло не так на старте (таймаут, занятый порт, ENOENT) —
        не оставлять висящие процессы, пробрасываем исходную ошибку дальше */
@@ -176,8 +218,16 @@ async function openPage() {
      нижняя панель прячется, пока фокус в текстовом поле). */
   await send("Emulation.setFocusEmulationEnabled", { enabled: true });
 
+  let safeAreaTouched = false;
+
   const page = {
     async goto(path, { width = 1440, height = 900, reducedMotion = false, js = true } = {}) {
+      if (safeAreaTouched) {
+        safeAreaTouched = false;
+        await send("Emulation.setSafeAreaInsetsOverride", {
+          insets: { top: 0, right: 0, bottom: 0, left: 0 },
+        });
+      }
       await send("Emulation.setDeviceMetricsOverride", {
         width,
         height,
@@ -203,6 +253,26 @@ async function openPage() {
       );
       /* GSAP-таймлайнам входа всё ещё нужна пауза после готовности документа */
       await sleep(1200);
+    },
+    /* Смена размера без перезагрузки — как поворот телефона: срабатывают
+       resize и change у matchMedia, состояние страницы сохраняется. */
+    async resize(width, height) {
+      await send("Emulation.setDeviceMetricsOverride", {
+        width,
+        height,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+      await sleep(300);
+    },
+    /* Эмуляция выреза iPhone: env(safe-area-inset-*) получает заданные
+       значения. Действует до следующего goto(), который сбрасывает их в 0. */
+    async setSafeArea(insets) {
+      safeAreaTouched = true;
+      await send("Emulation.setSafeAreaInsetsOverride", {
+        insets: { top: 0, right: 0, bottom: 0, left: 0, ...insets },
+      });
+      await sleep(100);
     },
     async eval(expression) {
       const res = await send("Runtime.evaluate", {

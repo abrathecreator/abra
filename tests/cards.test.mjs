@@ -46,6 +46,7 @@ describe("карточки — поведение", () => {
       radius: cs.borderTopLeftRadius,
       transform: cs.transform,
       outline: cs.outlineStyle + " " + cs.outlineWidth,
+      outlineOffset: cs.outlineOffset,
       width: parseFloat(tl.width),
       height: parseFloat(tl.height),
       opacity: tl.opacity,
@@ -105,6 +106,36 @@ describe("карточки — поведение", () => {
     await page.wait(700);
     m = await page.eval(measure);
     assert.equal(m.outline, "solid 1px");
+    /* Метки при фокусе уходят наружу на 4px — обводка на 8px, иначе
+       она сливается с ними в двойную линию и прячет просвет. */
+    assert.equal(m.outlineOffset, "8px");
     assert.ok(m.width > 18);
+  });
+});
+
+/* Вырезает из CSS все блоки @media (hover: hover) and (pointer: fine)
+   с учётом вложенных скобок — то, что осталось, действует и на тач. */
+function stripMouseOnlyBlocks(css) {
+  const head = "@media (hover: hover) and (pointer: fine)";
+  let out = "";
+  let i = 0;
+  for (;;) {
+    const start = css.indexOf(head, i);
+    if (start === -1) return out + css.slice(i);
+    out += css.slice(i, start);
+    let j = css.indexOf("{", start);
+    let depth = 0;
+    for (; j < css.length; j++) {
+      if (css[j] === "{") depth++;
+      else if (css[j] === "}" && --depth === 0) break;
+    }
+    i = j + 1;
+  }
+}
+
+describe("карточки — наведение только для мыши", () => {
+  test("все :hover карточки внутри @media (hover: hover) and (pointer: fine)", () => {
+    const rest = stripMouseOnlyBlocks(read("src/style.css"));
+    assert.ok(!rest.includes(".content-card:hover"), "на тач :hover может залипнуть после тапа");
   });
 });

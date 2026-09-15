@@ -2606,7 +2606,13 @@ section[id],
    растягивал метки на любом устройстве. :hover продублирован внутри
    @media (hover: hover) and (pointer: fine), как у .abra-cta: на тач
    после тапа состояние :hover может «залипнуть», и метки останутся
-   растянутыми без наведения — на тач достаточно состояния покоя. */
+   растянутыми без наведения — на тач достаточно состояния покоя.
+   Обводка фокуса дальше, чем в общем правиле (4px): метки уходят наружу
+   на 4px, и на 4px обводка сливалась с ними в двойную линию. */
+.content-card:focus-visible {
+  outline-offset: 8px;
+}
+
 .content-card:focus-visible::before {
   opacity: 1;
 }
@@ -2707,9 +2713,16 @@ section[id],
   transition: transform 0.3s ease;
 }
 
-.content-card:hover .content-card__arrow,
+/* Как у меток: :focus-visible — на любом устройстве, :hover — только
+   для мыши, чтобы на тач стрелка не залипала сдвинутой после тапа. */
 .content-card:focus-visible .content-card__arrow {
   transform: translateX(4px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .content-card:hover .content-card__arrow {
+    transform: translateX(4px);
+  }
 }
 
 @media (max-width: 560px) {

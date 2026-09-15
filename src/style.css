@@ -2520,17 +2520,104 @@ section[id],
   display: block;
   position: relative;
   padding: 28px 56px 28px 28px;
-  background: var(--bg-warm);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+  /* isolate — фон ::before с z-index:-1 ложится под текст карточки,
+     но над фоном страницы. */
+  isolation: isolate;
 }
 
-.content-card:hover,
-.content-card:focus-visible {
-  transform: translateY(-2px);
-  border-color: rgba(184, 115, 51, 0.4);
-  background: #161411;
+/* Вместо скруглённой рамки — фон и метки по углам. В покое метки
+   приглушены; при наведении и фокусе тянутся друг к другу, но посередине
+   сторон всегда остаётся просвет — как у скобок .abra-cta. Карточка не
+   поднимается: движение несут метки. */
+.content-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg-warm);
+  opacity: 0.55;
+  transition: opacity 260ms ease;
+}
+
+.content-card__mark {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 0 solid var(--accent);
+  opacity: 0.6;
+  pointer-events: none;
+  transition: width 360ms cubic-bezier(0.2, 0.8, 0.2, 1) 40ms,
+    height 360ms cubic-bezier(0.2, 0.8, 0.2, 1) 40ms,
+    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 260ms ease;
+}
+
+.content-card__mark--tl {
+  top: 0;
+  left: 0;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.content-card__mark--tr {
+  top: 0;
+  right: 0;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+
+.content-card__mark--bl {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+
+.content-card__mark--br {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+.content-card:hover::before,
+.content-card:focus-visible::before {
+  opacity: 1;
+}
+
+.content-card:hover .content-card__mark,
+.content-card:focus-visible .content-card__mark {
+  width: calc(50% - 28px);
+  height: calc(50% - 20px);
+  opacity: 1;
+}
+
+.content-card:hover .content-card__mark--tl,
+.content-card:focus-visible .content-card__mark--tl {
+  transform: translate(-4px, -4px);
+}
+
+.content-card:hover .content-card__mark--tr,
+.content-card:focus-visible .content-card__mark--tr {
+  transform: translate(4px, -4px);
+}
+
+.content-card:hover .content-card__mark--bl,
+.content-card:focus-visible .content-card__mark--bl {
+  transform: translate(-4px, 4px);
+}
+
+.content-card:hover .content-card__mark--br,
+.content-card:focus-visible .content-card__mark--br {
+  transform: translate(4px, 4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-card::before,
+  .content-card__mark,
+  .content-card__arrow {
+    transition: none;
+  }
 }
 
 .content-card__kicker {

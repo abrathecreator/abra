@@ -36,13 +36,16 @@
   --snow: #EDEBE6;
   --border: rgba(206, 201, 195, 0.07); /* 1,11:1 — декоративные линии и разделители, НЕ ТРОГАТЬ */
   --border-control: rgba(206, 201, 195, 0.45); /* 3,25:1 — границы полей, чекбоксов, кнопки в шапке (WCAG требует 3:1) */
+  --border-surface: rgba(206, 201, 195, 0.16); /* края плавающих плашек: нижняя панель, шторка, cookie-карточка */
 
   --font-display: "AbraNumerals", "Syne", "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
 
   --max-w: 1240px;
   --gutter: clamp(20px, 4vw, 56px);
-  --nav-h: 84px;
+  /* Высота шапки вместе с безопасной зоной выреза iPhone — на неё
+     опираются scroll-margin-top и липкие панели. */
+  --nav-h: calc(84px + env(safe-area-inset-top));
 }
 
 * {
@@ -165,7 +168,11 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px var(--gutter);
+  /* viewport-fit=cover пускает страницу под вырез iPhone — отступы
+     шапки учитывают безопасную зону; на обычных экранах env() = 0. */
+  padding: calc(20px + env(safe-area-inset-top))
+    max(var(--gutter), env(safe-area-inset-right)) 20px
+    max(var(--gutter), env(safe-area-inset-left));
   /* Сплошной фон до линии текста меню, затухание — только ниже неё.
      Полупрозрачный градиент по всей высоте давал ~0.46 непрозрачности
      на отметке пунктов меню, и текст страницы читался сквозь них. */

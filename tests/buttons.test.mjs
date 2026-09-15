@@ -91,7 +91,11 @@ describe("уровень 3 — подчёркивания", () => {
     `getComputedStyle(document.querySelector(${JSON.stringify(selector)}), "::after").transform`;
 
   test("пункт шапки: в покое линии нет, при наведении — на всю ширину", async () => {
-    await page.goto("/cases.html", { width: 1440 });
+    /* /privacy.html — ни одна из трёх ссылок шапки не получает aria-current
+       (см. таблицу в Task 5), поэтому годится как «нейтральная» страница
+       для проверки чистого hover-подчёркивания без наложения на
+       .nav__links a[aria-current]. */
+    await page.goto("/privacy.html", { width: 1440 });
     const link = ".nav__links a:nth-child(2)";
     assert.equal(await page.eval(afterTransform(link)), "matrix(0, 0, 0, 1, 0, 0)");
     await page.hover(link);

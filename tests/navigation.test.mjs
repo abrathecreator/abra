@@ -55,3 +55,58 @@ describe("viewport и безопасная зона", () => {
     });
   });
 });
+
+const SECTION_INDEX = { home: 0, cases: 1, articles: 2 };
+const NAV_LINKS = [
+  ["%BASE_URL%", "Главная"],
+  ["%BASE_URL%cases", "Кейсы"],
+  ["%BASE_URL%articles", "Статьи"],
+];
+
+describe("шапка — три ссылки и текущий раздел", () => {
+  for (const { file, section, current } of PAGES) {
+    test(`${file}: разметка`, () => {
+      const block = read(file).match(/<nav class="nav__links"[^>]*>([\s\S]*?)<\/nav>/);
+      assert.ok(block, "есть .nav__links");
+      const links = [...block[1].matchAll(/<a href="([^"]+)"(?: aria-current="([^"]+)")?>([^<]+)<\/a>/g)];
+      assert.deepEqual(
+        links.map((m) => [m[1], m[3]]),
+        NAV_LINKS,
+        "Главная · Кейсы · Статьи, без якорей"
+      );
+      links.forEach((m, i) => {
+        const expected = section && SECTION_INDEX[section] === i ? current : undefined;
+        assert.equal(m[2], expected, `aria-current у «${m[3]}»`);
+      });
+    });
+  }
+
+  describe("в браузере", () => {
+    const ctx = withBrowser();
+    for (const { path, section, current } of PAGES) {
+      test(`${path}: текущий пункт подчёркнут`, async () => {
+        await ctx.page.goto(path, { width: 1440 });
+        const got = await ctx.page.eval(`(() => {
+          const links = [...document.querySelectorAll(".nav__links a")];
+          const cur = document.querySelector(".nav__links a[aria-current]");
+          return {
+            count: links.length,
+            index: cur ? links.indexOf(cur) : -1,
+            value: cur ? cur.getAttribute("aria-current") : null,
+            line: cur ? getComputedStyle(cur, "::after").transform : null,
+            color: cur ? getComputedStyle(cur).color : null,
+          };
+        })()`);
+        assert.equal(got.count, 3);
+        if (!section) {
+          assert.equal(got.index, -1);
+          return;
+        }
+        assert.equal(got.index, SECTION_INDEX[section]);
+        assert.equal(got.value, current);
+        assert.equal(got.line, "matrix(1, 0, 0, 1, 0, 0)");
+        assert.equal(got.color, "rgb(184, 115, 51)");
+      });
+    }
+  });
+});

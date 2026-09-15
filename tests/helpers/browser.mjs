@@ -90,10 +90,38 @@ export async function launch() {
   });
 
   const killAll = async () => {
-    chrome.kill();
-    preview.kill();
-    await sleep(200);
-    rmSync(profile, { recursive: true, force: true });
+    /* Ждёт реального завершения процесса перед удалением файлов.
+       Если процесс уже завершился, возвращается сразу. */
+    const waitForProcessExit = async (proc) => {
+      if (proc.exitCode !== null || proc.signalCode !== null) {
+        return; /* процесс уже завершился */
+      }
+
+      proc.kill();
+
+      try {
+        /* Ждём события 'exit' с таймаутом 5 секунд */
+        await withTimeout(
+          new Promise((resolve) => proc.once("exit", resolve)),
+          5000,
+          `Процесс не завершился за 5 секунд`
+        );
+      } catch {
+        /* Таймаут — отправляем SIGKILL и даём время на выход */
+        proc.kill("SIGKILL");
+        await sleep(200);
+      }
+    };
+
+    await waitForProcessExit(chrome);
+    await waitForProcessExit(preview);
+
+    /* Удаляем профиль с повторами на случай остаточных файлов */
+    try {
+      rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    } catch {
+      /* Остаток файлов не критичен */
+    }
   };
 
   try {

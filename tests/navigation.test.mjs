@@ -282,6 +282,34 @@ describe("нижняя панель — поведение", () => {
     assert.equal(r.opacity, "1");
   });
 
+  test("программный фокус после тапа не держит панель открытой при прокрутке", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    /* Настоящий клик мышью (не element.click() из JS) — открывает шторку
+       указательной модальностью. */
+    await ctx.page.click(".tabbar__cta");
+    await ctx.page.wait(400);
+    /* «Закрыть» — тоже настоящий клик мышью: nav.js вернёт фокус на
+       .tabbar__cta программным .focus(), который следует за этим кликом,
+       а не за нажатием клавиши. */
+    await ctx.page.click(".sheet__close");
+    await ctx.page.wait(450); // 300мс закрытия шторки + запас
+    const opener = await ctx.page.eval(
+      `document.activeElement === document.querySelector(".tabbar__cta")`
+    );
+    assert.equal(opener, true, "фокус вернулся на «Написать» в панели");
+    await ctx.page.eval(`window.scrollTo({ top: 700, behavior: "instant" })`);
+    await ctx.page.wait(400); // как в тесте автоскрытия выше
+    const r = await ctx.page.eval(`(() => {
+      const bar = document.querySelector(".tabbar");
+      return {
+        hidden: bar.classList.contains("is-hidden"),
+        opacity: getComputedStyle(bar).opacity,
+      };
+    })()`);
+    assert.equal(r.hidden, true, "спряталась при прокрутке вниз");
+    assert.notEqual(r.opacity, "1", "клик мышью не должен держать панель открытой");
+  });
+
   test("при уменьшении движения не прячется", async () => {
     await ctx.page.goto("/", { width: 390, height: 844, reducedMotion: true });
     await ctx.page.eval(`window.scrollTo({ top: 700, behavior: "instant" })`);

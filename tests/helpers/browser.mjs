@@ -293,6 +293,31 @@ async function openPage() {
       await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: box.x, y: box.y });
       await sleep(500);
     },
+    /* Настоящий клик через CDP (в отличие от element.click() из JS) даёт
+       браузеру указательную модальность: последующий programmatic .focus()
+       не считается :focus-visible, если он следует за этим кликом. Нужно
+       тестам на разницу между кликом мышью и фокусом с клавиатуры. */
+    async click(selector) {
+      const box = await page.eval(`(() => {
+        const r = document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      })()`);
+      await send("Input.dispatchMouseEvent", {
+        type: "mousePressed",
+        x: box.x,
+        y: box.y,
+        button: "left",
+        clickCount: 1,
+      });
+      await send("Input.dispatchMouseEvent", {
+        type: "mouseReleased",
+        x: box.x,
+        y: box.y,
+        button: "left",
+        clickCount: 1,
+      });
+      await sleep(80);
+    },
     async press(key) {
       for (const type of ["rawKeyDown", "keyUp"]) {
         await send("Input.dispatchKeyEvent", {

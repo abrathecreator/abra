@@ -227,7 +227,7 @@
         <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="2.5" /><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4" /></svg>
         <span class="tabbar__label">Статьи</span>
       </a>
-      <a class="abra-cta tabbar__cta" href="%BASE_URL%#contact">
+      <a class="abra-cta tabbar__cta" href="%BASE_URL%#contact" data-sheet-open aria-haspopup="dialog" aria-controls="contact-sheet">
         <span class="abra-cta__frame" aria-hidden="true">
           <span class="abra-cta__corner abra-cta__corner--tl"></span>
           <span class="abra-cta__corner abra-cta__corner--tr"></span>
@@ -237,6 +237,38 @@
         <span class="abra-cta__label">Написать</span>
       </a>
     </nav>
+    <div class="sheet" id="contact-sheet" hidden>
+      <div class="sheet__scrim" data-sheet-close></div>
+      <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="contact-sheet-title" tabindex="-1">
+        <span class="sheet__grabber" aria-hidden="true"></span>
+        <h2 class="sheet__title" id="contact-sheet-title">Как удобнее связаться</h2>
+        <p class="sheet__sub">Первый разговор — 30 минут, бесплатно. Отвечаю в течение 48 часов.</p>
+        <div class="sheet__rows">
+          <a class="sheet__row" href="tel:+79110256443">
+            <span class="sheet__row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.6 3.5h2.8l1.5 4-2 1.3a11 11 0 0 0 6.3 6.3l1.3-2 4 1.5v2.8a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2Z" /></svg></span>
+            <span class="sheet__row-text"><span class="sheet__row-title">Позвонить</span><span class="sheet__row-detail">+7 911 025-64-43</span></span>
+            <svg class="sheet__row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6" /></svg>
+          </a>
+          <a class="sheet__row" href="mailto:info@a-bra.ru">
+            <span class="sheet__row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2" /><path d="m4 7 8 6 8-6" /></svg></span>
+            <span class="sheet__row-text"><span class="sheet__row-title">Написать на почту</span><span class="sheet__row-detail">info@a-bra.ru</span></span>
+            <svg class="sheet__row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6" /></svg>
+          </a>
+        </div>
+        <div class="sheet__actions">
+          <button class="abra-cta" type="button" data-sheet-apply aria-haspopup="dialog" aria-controls="contact-modal">
+            <span class="abra-cta__frame" aria-hidden="true">
+              <span class="abra-cta__corner abra-cta__corner--tl"></span>
+              <span class="abra-cta__corner abra-cta__corner--tr"></span>
+              <span class="abra-cta__corner abra-cta__corner--bl"></span>
+              <span class="abra-cta__corner abra-cta__corner--br"></span>
+            </span>
+            <span class="abra-cta__label">Оставить заявку</span>
+          </button>
+          <button class="sheet__close" type="button" data-sheet-close>Закрыть</button>
+        </div>
+      </div>
+    </div>
     <main class="case" id="main" tabindex="-1">
       <span class="case__kicker">[ .Статья ]</span>
 

@@ -10,6 +10,7 @@
    прокрутке вверх и у конца страницы. При prefers-reduced-motion не
    прячется совсем. Пока фокус в текстовом поле — скрыта, чтобы не висеть
    над клавиатурой. */
+import { openContactModal } from "./contact-modal.js";
 import { setTabbarSuppressed } from "./tabbar-state.js";
 
 export function initNav() {
@@ -19,6 +20,10 @@ export function initNav() {
 
   const tabbar = document.querySelector(".tabbar");
   if (tabbar) initTabbar(tabbar);
+
+  const sheet = document.getElementById("contact-sheet");
+  const sheetOpener = document.querySelector("[data-sheet-open]");
+  if (sheet && sheetOpener) initSheet(sheet, sheetOpener);
 }
 
 function initContactMenu(toggle, menu) {
@@ -75,5 +80,82 @@ function initTabbar(tabbar) {
   });
   document.addEventListener("focusout", (e) => {
     if (isTextField(e.target)) setTabbarSuppressed("field", false);
+  });
+}
+
+/* ШТОРКА «Написать» (≤720px) — открывается кнопкой нижней панели вместо
+   перехода по её href (без JS href ведёт на форму главной). Фокус при
+   открытии — на саму панель шторки, чтобы скринридер прочитал заголовок;
+   Tab ходит по кругу; Escape, затемнение и «Закрыть» закрывают и
+   возвращают фокус на «Написать». «Оставить заявку» на страницах с
+   модалкой закрывает шторку и открывает модалку, фокус после неё — тоже
+   на «Написать». */
+function initSheet(sheet, opener) {
+  const panel = sheet.querySelector(".sheet__panel");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let closeTimer = null;
+
+  const focusables = () =>
+    Array.from(panel.querySelectorAll("a[href], button:not([disabled])")).filter(
+      (el) => el.offsetParent !== null
+    );
+
+  const open = () => {
+    clearTimeout(closeTimer);
+    sheet.hidden = false;
+    setTabbarSuppressed("sheet", true);
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => sheet.classList.add("is-open"));
+    panel.focus();
+  };
+
+  const close = ({ returnFocus = true } = {}) => {
+    sheet.classList.remove("is-open");
+    document.body.style.overflow = "";
+    const finish = () => {
+      sheet.hidden = true;
+      /* Сначала показать панель, потом вернуть фокус — см. tabbar-state.js. */
+      setTabbarSuppressed("sheet", false);
+      if (returnFocus) opener.focus();
+    };
+    if (reduce.matches) finish();
+    else closeTimer = setTimeout(finish, 300);
+  };
+
+  opener.addEventListener("click", (e) => {
+    e.preventDefault();
+    open();
+  });
+
+  sheet.querySelectorAll("[data-sheet-close]").forEach((el) => {
+    el.addEventListener("click", () => close());
+  });
+
+  const apply = sheet.querySelector("[data-sheet-apply]");
+  if (apply) {
+    apply.addEventListener("click", () => {
+      close({ returnFocus: false });
+      openContactModal(opener);
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (sheet.hidden) return;
+    if (e.key === "Escape") {
+      close();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const items = focusables();
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   });
 }

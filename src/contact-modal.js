@@ -4,6 +4,21 @@
    с формой должна быть продублирована в каждой странице, где используется
    (см. growth-system.html), а вот логика открытия/закрытия и отправки —
    одна на всех, чтобы не разъезжалась при правках. */
+import { setTabbarSuppressed } from "./tabbar-state.js";
+
+/* Функция открытия, которую initContactModal() регистрирует на странице
+   с #contact-modal. На страницах без модалки остаётся null. */
+let openModalImpl = null;
+
+/* Открыть модалку заявки из другого модуля — шторка «Написать» в nav.js.
+   opener — элемент, на который вернуть фокус после закрытия.
+   Возвращает false, если модалки на странице нет. */
+export function openContactModal(opener) {
+  if (!openModalImpl) return false;
+  openModalImpl(opener);
+  return true;
+}
+
 const pageLoadedAt = Date.now();
 const reducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)"
@@ -72,6 +87,7 @@ export function initContactModal() {
     modalOpener = opener || null;
     clearTimeout(modalCloseTimer);
     contactModal.hidden = false;
+    setTabbarSuppressed("modal", true);
     document.body.style.overflow = "hidden";
     requestAnimationFrame(() => contactModal.classList.add("is-open"));
     /* Фокус на сам диалог (tabindex="-1"), не сразу в поле «Имя» — иначе
@@ -80,6 +96,7 @@ export function initContactModal() {
        равно приведёт в поле имени. */
     modalDialog.focus();
   };
+  openModalImpl = openModal;
 
   const closeModal = () => {
     contactModal.classList.remove("is-open");
@@ -95,6 +112,9 @@ export function initContactModal() {
 
     const finish = () => {
       contactModal.hidden = true;
+      /* Сначала вернуть нижнюю панель, потом фокус: на элемент с
+         visibility:hidden фокус не встаёт, и focus() молча не сработает. */
+      setTabbarSuppressed("modal", false);
       if (modalOpener) modalOpener.focus();
     };
     if (reducedMotion) {

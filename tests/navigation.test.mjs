@@ -298,3 +298,137 @@ describe("телефон: cookie-карточка и hero над панелью"
     );
   });
 });
+
+const sheetBlock = (html) => {
+  const m = html.match(/    <div class="sheet" id="contact-sheet" hidden>[\s\S]*?\n    <\/div>\n/);
+  return m ? m[0] : null;
+};
+const normalizeSheet = (block) =>
+  block.replace(/<(button|a) class="abra-cta"[^>]*>[\s\S]*?<\/\1>/, "@@APPLY@@");
+
+describe("шторка — разметка", () => {
+  const reference = normalizeSheet(sheetBlock(read("index.html")) ?? "");
+
+  for (const { file, modal } of PAGES) {
+    test(`${file}: шторка после панели, вариант «Оставить заявку»`, () => {
+      const html = read(file);
+      assert.equal(html.split('id="contact-sheet"').length - 1, 1);
+      assert.match(
+        html,
+        /<a class="abra-cta tabbar__cta" href="%BASE_URL%#contact" data-sheet-open aria-haspopup="dialog" aria-controls="contact-sheet">/
+      );
+      const block = sheetBlock(html);
+      assert.ok(block, "есть #contact-sheet");
+      assert.ok(html.indexOf('<nav class="tabbar"') < html.indexOf('id="contact-sheet"'));
+      if (modal) {
+        assert.match(block, /<button class="abra-cta" type="button" data-sheet-apply/);
+      } else {
+        assert.match(block, /<a class="abra-cta" href="%BASE_URL%#contact">/);
+        assert.ok(!block.includes("data-sheet-apply"));
+      }
+      assert.equal(normalizeSheet(block), reference, "шторка совпадает с главной");
+    });
+  }
+});
+
+describe("шторка — поведение", () => {
+  const ctx = withBrowser();
+
+  const state = `(() => {
+    const sheet = document.getElementById("contact-sheet");
+    const bar = document.querySelector(".tabbar");
+    const modal = document.getElementById("contact-modal");
+    const active = document.activeElement;
+    return {
+      sheetHidden: sheet.hidden,
+      open: sheet.classList.contains("is-open"),
+      focusOnPanel: active === sheet.querySelector(".sheet__panel"),
+      focusInSheet: sheet.contains(active),
+      focusOnOpener: active ? active.matches("[data-sheet-open]") : false,
+      barSuppressed: bar.classList.contains("is-suppressed"),
+      barVisibility: getComputedStyle(bar).visibility,
+      overflow: document.body.style.overflow,
+      modalHidden: modal ? modal.hidden : null,
+    };
+  })()`;
+
+  const openSheet = async () => {
+    await ctx.page.eval(`document.querySelector("[data-sheet-open]").click()`);
+    await ctx.page.wait(400);
+  };
+
+  test("открывается: фокус на панели, панель навигации скрыта, прокрутка заблокирована", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await openSheet();
+    const s = await ctx.page.eval(state);
+    assert.equal(s.sheetHidden, false);
+    assert.equal(s.open, true);
+    assert.equal(s.focusOnPanel, true);
+    assert.equal(s.barSuppressed, true);
+    assert.equal(s.barVisibility, "hidden");
+    assert.equal(s.overflow, "hidden");
+  });
+
+  test("Tab не выходит из шторки", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await openSheet();
+    for (let i = 0; i < 8; i++) {
+      await ctx.page.press("Tab");
+      assert.equal((await ctx.page.eval(state)).focusInSheet, true, `Tab №${i + 1}`);
+    }
+  });
+
+  test("Escape закрывает и возвращает фокус на «Написать»", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await openSheet();
+    await ctx.page.press("Escape");
+    await ctx.page.wait(450);
+    const s = await ctx.page.eval(state);
+    assert.equal(s.sheetHidden, true);
+    assert.equal(s.focusOnOpener, true);
+    assert.equal(s.barSuppressed, false);
+    assert.equal(s.overflow, "");
+  });
+
+  test("тап по затемнению закрывает", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await openSheet();
+    await ctx.page.eval(`document.querySelector(".sheet__scrim").click()`);
+    await ctx.page.wait(450);
+    assert.equal((await ctx.page.eval(state)).sheetHidden, true);
+  });
+
+  test("«Оставить заявку» открывает модалку, после неё фокус на «Написать»", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844 });
+    await openSheet();
+    await ctx.page.eval(`document.querySelector("[data-sheet-apply]").click()`);
+    await ctx.page.wait(450);
+    let s = await ctx.page.eval(state);
+    assert.equal(s.modalHidden, false, "модалка открыта");
+    assert.equal(s.sheetHidden, true, "шторка закрыта");
+    assert.equal(s.barSuppressed, true, "панель скрыта под модалкой");
+    await ctx.page.press("Escape");
+    await ctx.page.wait(450);
+    s = await ctx.page.eval(state);
+    assert.equal(s.modalHidden, true);
+    assert.equal(s.barSuppressed, false);
+    assert.equal(s.focusOnOpener, true, "фокус вернулся на «Написать» в панели");
+  });
+
+  test("на странице без модалки «Оставить заявку» — ссылка на форму главной", async () => {
+    await ctx.page.goto("/cases.html", { width: 390, height: 844 });
+    const href = await ctx.page.eval(
+      `document.querySelector("#contact-sheet .sheet__actions a.abra-cta").getAttribute("href")`
+    );
+    assert.equal(href, "/#contact");
+  });
+
+  test("при уменьшении движения открывается и закрывается без анимации", async () => {
+    await ctx.page.goto("/", { width: 390, height: 844, reducedMotion: true });
+    await ctx.page.eval(`document.querySelector("[data-sheet-open]").click()`);
+    assert.equal((await ctx.page.eval(state)).sheetHidden, false);
+    await ctx.page.press("Escape");
+    await ctx.page.wait(50);
+    assert.equal((await ctx.page.eval(state)).sheetHidden, true);
+  });
+});

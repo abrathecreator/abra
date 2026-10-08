@@ -47,3 +47,33 @@ test('writeBlock заменяет только блок, readBlock читает 
 test('writeBlock без маркеров — ошибка', () => {
   assert.throws(() => writeBlock('no markers', {}), /нет блока \/\/ <tokens>/)
 })
+
+import { CONTENT_FILE, buildContent, readContentBlock, writeContentBlock } from '../build.mjs'
+
+const contentJson = JSON.parse(readFileSync(CONTENT_FILE, 'utf8'))
+
+test('buildContent: метки, шаблоны, метод и девиз из content.json, без служебного $comment', () => {
+  const content = buildContent(contentJson)
+  assert.equal(content.$comment, undefined)
+  assert.equal(content.motto, 'Магии не будет. Система будет.')
+  assert.deepEqual(content.labels.map(l => l.id), ['tech', 'abra', 'client'])
+  assert.equal(content.templates.length, 5)
+  assert.equal(content.method.length, 5)
+})
+
+test('buildContent падает понятной ошибкой на неверной метке или шаблоне', () => {
+  const badColor = structuredClone(contentJson)
+  badColor.labels[0].color = 'red'
+  assert.throws(() => buildContent(badColor), /метка «tech»: color должен быть accent или muted/)
+  const noText = structuredClone(contentJson)
+  delete noText.templates[1].text
+  assert.throws(() => buildContent(noText), /шаблон «direct»: нужны title и text/)
+})
+
+test('блок CONTENT пишется и читается так же, как блок токенов', () => {
+  const source = 'a\n// <content>\nconst CONTENT = {}\n// </content>\nb\n'
+  const content = buildContent(contentJson)
+  const next = writeContentBlock(source, content)
+  assert.deepEqual(readContentBlock(next), content)
+  assert.equal(writeContentBlock(next, content), next)
+})

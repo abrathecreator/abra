@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Вписывает цвета из hermes-theme/tokens.json в блок // <tokens> плагина.
-//   node hermes-theme/extended/build.mjs          — переписать блок
-//   node hermes-theme/extended/build.mjs --check  — код 1, если блок отстал
+// Вписывает в plugin.js два блока: цвета из hermes-theme/tokens.json (// <tokens>)
+// и тексты/правила из content.json (// <content>).
+//   node hermes-theme/extended/build.mjs          — переписать блоки
+//   node hermes-theme/extended/build.mjs --check  — код 1, если блоки отстали
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,8 +10,11 @@ import { fileURLToPath } from 'node:url'
 const HERE = dirname(fileURLToPath(import.meta.url))
 export const TOKENS_FILE = join(HERE, '..', 'tokens.json')
 export const PLUGIN_FILE = join(HERE, 'plugin.js')
+export const CONTENT_FILE = join(HERE, 'content.json')
 export const BEGIN = '// <tokens>'
 export const END = '// </tokens>'
+const CONTENT_BEGIN = '// <content>'
+const CONTENT_END = '// </content>'
 
 // Роль Hermes → имя токена. Единственное место, где решается, какой цвет куда.
 export const ROLES = {
@@ -88,39 +92,68 @@ export function buildAbx(json) {
   return abx
 }
 
-function blockRange(source) {
-  const start = source.indexOf(BEGIN)
-  const end = source.indexOf(END)
-  if (start < 0 || end < start) throw new Error('В plugin.js нет блока // <tokens> … // </tokens>')
-  return [start, end + END.length]
+function blockRange(source, begin, end) {
+  const start = source.indexOf(begin)
+  const stop = source.indexOf(end)
+  if (start < 0 || stop < start) throw new Error(`В plugin.js нет блока ${begin} … ${end}`)
+  return [start, stop + end.length]
 }
 
-export function readBlock(source) {
-  const [start, end] = blockRange(source)
-  const body = source.slice(start, end)
+function readMarked(source, begin, end) {
+  const [start, stop] = blockRange(source, begin, end)
+  const body = source.slice(start, stop)
   return JSON.parse(body.slice(body.indexOf('{'), body.lastIndexOf('}') + 1))
 }
 
-export function writeBlock(source, abx) {
-  const [start, end] = blockRange(source)
-  const block = `${BEGIN}\n// Пишет build.mjs из hermes-theme/tokens.json — руками не править.\nconst ABX = ${JSON.stringify(abx, null, 2)}\n${END}`
-  return source.slice(0, start) + block + source.slice(end)
+function writeMarked(source, begin, end, name, from, value) {
+  const [start, stop] = blockRange(source, begin, end)
+  const block = `${begin}\n// Пишет build.mjs из ${from} — руками не править.\nconst ${name} = ${JSON.stringify(value, null, 2)}\n${end}`
+  return source.slice(0, start) + block + source.slice(stop)
+}
+
+export const readBlock = source => readMarked(source, BEGIN, END)
+export const writeBlock = (source, abx) => writeMarked(source, BEGIN, END, 'ABX', 'hermes-theme/tokens.json', abx)
+export const readContentBlock = source => readMarked(source, CONTENT_BEGIN, CONTENT_END)
+export const writeContentBlock = (source, content) =>
+  writeMarked(source, CONTENT_BEGIN, CONTENT_END, 'CONTENT', 'hermes-theme/extended/content.json', content)
+
+// content.json → блок CONTENT: проверяет форму, чтобы опечатка в правке текста
+// падала здесь, а не молча в приложении.
+export function buildContent(json) {
+  const { $comment, ...content } = json
+  for (const label of content.labels ?? []) {
+    if (!['accent', 'muted'].includes(label.color)) {
+      throw new Error(`метка «${label.id}»: color должен быть accent или muted`)
+    }
+    if (!['dot', 'ring'].includes(label.glyph)) throw new Error(`метка «${label.id}»: glyph должен быть dot или ring`)
+    if (!label.name || !Array.isArray(label.words) || !label.words.length) {
+      throw new Error(`метка «${label.id}»: нужны name и непустой words`)
+    }
+  }
+  for (const template of content.templates ?? []) {
+    if (!template.title || !template.text) throw new Error(`шаблон «${template.id}»: нужны title и text`)
+  }
+  if (!content.motto || !content.labels?.length || !content.templates?.length || !content.method?.length) {
+    throw new Error('content.json: нужны motto, labels, templates и method')
+  }
+  return content
 }
 
 function main(argv) {
   const abx = buildAbx(JSON.parse(readFileSync(TOKENS_FILE, 'utf8')))
+  const content = buildContent(JSON.parse(readFileSync(CONTENT_FILE, 'utf8')))
   const source = readFileSync(PLUGIN_FILE, 'utf8')
-  const next = writeBlock(source, abx)
+  const next = writeContentBlock(writeBlock(source, abx), content)
   if (argv.includes('--check')) {
     if (next !== source) {
-      console.error('FAIL plugin.js отстал от tokens.json — запустите: node hermes-theme/extended/build.mjs')
+      console.error('FAIL plugin.js отстал от tokens.json или content.json — запустите: node hermes-theme/extended/build.mjs')
       return 1
     }
-    console.log('ok   блок токенов в plugin.js совпадает с tokens.json')
+    console.log('ok   блоки токенов и содержимого в plugin.js совпадают с tokens.json и content.json')
     return 0
   }
   if (next !== source) writeFileSync(PLUGIN_FILE, next)
-  console.log(next === source ? 'plugin.js уже актуален' : 'plugin.js обновлён из tokens.json')
+  console.log(next === source ? 'plugin.js уже актуален' : 'plugin.js обновлён из tokens.json и content.json')
   return 0
 }
 

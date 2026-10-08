@@ -2,7 +2,20 @@
 // Источник — hermes-theme/extended/plugin.js в репозитории сайта; ставится копией в
 // ~/.hermes/desktop-plugins/abraxus-extended/plugin.js (см. INSTALL.md рядом).
 // Цвета берутся только из блока ABX ниже — его пишет build.mjs из tokens.json.
-import { host, STATUSBAR_AREAS, THEMES_AREA, TITLEBAR_AREAS, useI18n, useTheme, useValue } from '@hermes/plugin-sdk'
+import {
+  atom,
+  host,
+  PALETTE_AREA,
+  ROUTES_AREA,
+  SESSION_ROW_AREAS,
+  SIDEBAR_NAV_AREA,
+  STATUSBAR_AREAS,
+  THEMES_AREA,
+  TITLEBAR_AREAS,
+  useI18n,
+  useTheme,
+  useValue
+} from '@hermes/plugin-sdk'
 import { useEffect, useState } from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
@@ -68,6 +81,124 @@ const ABX = {
   }
 }
 // </tokens>
+
+// <content>
+// Пишет build.mjs из hermes-theme/extended/content.json — руками не править.
+const CONTENT = {
+  "motto": "Магии не будет. Система будет.",
+  "labels": [
+    {
+      "id": "tech",
+      "name": "Техническое",
+      "glyph": "dot",
+      "color": "muted",
+      "words": [
+        "плагин",
+        "hermes",
+        "doctor",
+        "доктор",
+        "subagent",
+        "batch",
+        "export",
+        "код",
+        "тему",
+        "темы",
+        "инструмент",
+        "исправь",
+        "проверь"
+      ]
+    },
+    {
+      "id": "abra",
+      "name": "ABRA",
+      "glyph": "ring",
+      "color": "accent",
+      "words": [
+        "abra",
+        "a-bra",
+        "бренд",
+        "сайт",
+        "кейс",
+        "статья",
+        "контент"
+      ]
+    },
+    {
+      "id": "client",
+      "name": "Клиент",
+      "glyph": "dot",
+      "color": "accent",
+      "words": [
+        "мастерстрой",
+        "жби",
+        "gbi",
+        "директ",
+        "кампани",
+        "расход",
+        "cpc",
+        "ctr",
+        "callibri",
+        "amocrm",
+        "сделк",
+        "сделок",
+        "лид",
+        "обращени",
+        "воронк",
+        "отчёт"
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "funnel",
+      "title": "Диагностика воронки",
+      "text": "Восстанови фактическую воронку {клиент} за {период}: baseline по этапам, где теряются лиды, симптомы против причин. Источники: Директ, Callibri, amoCRM."
+    },
+    {
+      "id": "direct",
+      "title": "Отчёт по Директу",
+      "text": "Read-only отчёт по кампаниям Яндекс Директа {кабинет} за {период}: расход, показы, клики, CTR, CPC, конверсии. В кабинете ничего не меняй."
+    },
+    {
+      "id": "leads",
+      "title": "Сверка лидов",
+      "text": "Сверь обращения Callibri со сделками amoCRM за {период}: потерянные, нецелевые, без сделки."
+    },
+    {
+      "id": "deals",
+      "title": "Разбор сделок",
+      "text": "Проанализируй сделки amoCRM {воронка}: застрявшие, без задач, просроченные; у кого следующий шаг."
+    },
+    {
+      "id": "note",
+      "title": "Field note",
+      "text": "Сформулируй field note из этого наблюдения: один тезис, один конфликт, один вывод."
+    }
+  ],
+  "method": [
+    {
+      "step": "Увидеть",
+      "text": "Восстановить фактическую картину: данные, baseline, источник."
+    },
+    {
+      "step": "Понять",
+      "text": "Найти причинность и отделить симптомы от причин."
+    },
+    {
+      "step": "Спроектировать",
+      "text": "Спроектировать переход: приоритеты, ответственные, риски, контрольные точки."
+    },
+    {
+      "step": "Построить",
+      "text": "Поставить изменение на землю, не ломая работающий контур."
+    },
+    {
+      "step": "Усилить",
+      "text": "Проверить результат в реальности и начать следующий цикл."
+    }
+  ]
+}
+// </content>
 
 export const THEME_NAME = 'abraxus-extended'
 
@@ -442,6 +573,171 @@ export function TextsBridge() {
   return null
 }
 
+// ── Метки сеансов ───────────────────────────────────────────────────────────
+// Значок перед названием сеанса: категория по словам в названии (порядок
+// CONTENT.labels — первая подходящая побеждает) или ручная метка из ⌘K.
+// Названия берутся тем же RPC, что у приложения (session.list), по durable id.
+const LABEL_COLORS = { accent: ABX.mark.stroke, muted: ABX.colors.mutedForeground }
+const MANUAL_KEY = 'labels.manual'
+const NONE = 'none'
+const $titles = atom({})
+const $manual = atom({})
+
+const normalize = text => String(text ?? '').toLowerCase().replace(/ё/g, 'е')
+
+export function classify(title) {
+  const text = normalize(title)
+  return CONTENT.labels.find(label => label.words.some(word => text.includes(normalize(word))))?.id ?? null
+}
+
+function labelOf(sessionId) {
+  const manual = $manual.get()[sessionId]
+  if (manual) return manual === NONE ? null : manual
+  return classify($titles.get()[sessionId])
+}
+
+async function refreshTitles() {
+  try {
+    const reply = await host.request('session.list', { limit: 500 })
+    const titles = {}
+    for (const row of reply?.sessions ?? []) titles[row._lineage_root_id ?? row.id] = row.title ?? ''
+    $titles.set(titles)
+  } catch {
+    // Нет связи с бэкендом — метки появятся при следующем sessions.changed.
+  }
+}
+
+export function SessionLabel({ sessionId }) {
+  const { themeName } = useTheme()
+  useValue($titles)
+  useValue($manual)
+  if (themeName !== THEME_NAME) return null
+  const label = CONTENT.labels.find(item => item.id === labelOf(sessionId))
+  if (!label) return null
+  const color = LABEL_COLORS[label.color]
+  return jsx('span', {
+    role: 'img',
+    'aria-label': label.name,
+    title: label.name,
+    style: {
+      display: 'inline-block',
+      flex: '0 0 auto',
+      width: 6,
+      height: 6,
+      marginRight: 4,
+      borderRadius: '50%',
+      boxSizing: 'border-box',
+      background: label.glyph === 'dot' ? color : 'transparent',
+      border: label.glyph === 'ring' ? `1px solid ${color}` : 'none'
+    }
+  })
+}
+
+function setManualLabel(storage, value) {
+  const sessionId = host.state.focusedStoredSessionId.get()
+  if (!sessionId) return
+  const next = { ...$manual.get() }
+  if (value === null) delete next[sessionId]
+  else next[sessionId] = value
+  $manual.set(next)
+  storage.set(MANUAL_KEY, next)
+}
+
+// ── Шаблоны задач ───────────────────────────────────────────────────────────
+// Шаблон вставляется в поле ввода, но не отправляется: {скобки} дописываются
+// руками. Если поля ввода на экране нет (страница ABRAXUS, настройки) —
+// переход в новый чат и вторая попытка, когда поле смонтируется.
+export async function insertTemplate(text) {
+  if (await host.composer.insertText(null, text)) return true
+  host.navigate('/')
+  await new Promise(resolve => setTimeout(resolve, 250))
+  return host.composer.insertText(null, text)
+}
+
+// ── Страница ABRAXUS ────────────────────────────────────────────────────────
+export const PAGE_PATH = '/abraxus'
+const ink = { snow: ABX.colors.secondaryForeground, text: ABX.colors.foreground, muted: ABX.colors.mutedForeground }
+const tag = text => jsx('div', {
+  style: { color: ABX.mark.stroke, fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', margin: '40px 0 16px' },
+  children: `[ .${text} ]`
+})
+
+export function AbraxusPage() {
+  return jsxs('div', {
+    style: { height: '100%', overflowY: 'auto', background: ABX.colors.background, color: ink.text },
+    children: jsxs('div', {
+      style: { maxWidth: 880, margin: '0 auto', padding: '48px 32px 80px' },
+      children: [
+        jsxs('div', {
+          style: { display: 'flex', alignItems: 'center', gap: 20 },
+          children: [
+            jsx('svg', {
+              width: 36,
+              height: 54,
+              viewBox: SPLASH_VIEWBOX,
+              'aria-hidden': true,
+              children: jsx('path', {
+                d: MARK_PATH,
+                fill: 'none',
+                stroke: ABX.mark.stroke,
+                strokeWidth: 6,
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round'
+              })
+            }),
+            jsxs('div', {
+              children: [
+                jsx('h1', { style: { margin: 0, fontSize: 28, fontWeight: 600, color: ink.snow }, children: 'ABRAXUS' }),
+                jsx('p', { style: { margin: '4px 0 0', color: ink.muted }, children: CONTENT.motto })
+              ]
+            })
+          ]
+        }),
+        tag('Задачи'),
+        jsx('div', {
+          style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 },
+          children: CONTENT.templates.map(template =>
+            jsxs('button', {
+              key: template.id,
+              type: 'button',
+              onClick: () => insertTemplate(template.text),
+              style: {
+                textAlign: 'left',
+                cursor: 'pointer',
+                background: ABX.colors.card,
+                color: ink.text,
+                border: `1px solid ${ABX.colors.border}`,
+                borderRadius: 6,
+                padding: '14px 16px',
+                font: 'inherit'
+              },
+              children: [
+                jsx('div', { style: { color: ink.snow, fontWeight: 600, marginBottom: 6 }, children: template.title }),
+                jsx('div', { style: { color: ink.muted, fontSize: 13, lineHeight: 1.5 }, children: template.text })
+              ]
+            })
+          )
+        }),
+        tag('Метод'),
+        jsx('ol', {
+          style: { margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 10 },
+          children: CONTENT.method.map((item, index) =>
+            jsxs('li', {
+              key: item.step,
+              style: { display: 'grid', gridTemplateColumns: '40px 160px 1fr', alignItems: 'baseline' },
+              children: [
+                jsx('span', { style: { color: ABX.mark.stroke, fontVariantNumeric: 'tabular-nums' }, children: `0${index + 1}` }),
+                jsx('span', { style: { color: ink.snow, fontWeight: 600 }, children: item.step }),
+                jsx('span', { style: { color: ink.muted }, children: item.text })
+              ]
+            })
+          )
+        })
+      ]
+    })
+  })
+}
+
 export default {
   id: THEME_NAME,
   name: 'ABRAXUS',
@@ -458,5 +754,42 @@ export default {
     })
     ctx.register({ id: 'texts', area: TITLEBAR_AREAS.center, render: () => jsx(TextsBridge, {}) })
     ctx.onDispose(dropTexts)
+
+    $manual.set(ctx.storage.get(MANUAL_KEY, {}))
+    refreshTitles()
+    ctx.onEvent('sessions.changed', refreshTitles)
+    ctx.onEvent('gateway.ready', refreshTitles)
+    ctx.register({
+      id: 'session-label',
+      area: SESSION_ROW_AREAS.leading,
+      data: { render: ({ sessionId }) => jsx(SessionLabel, { sessionId }) }
+    })
+    const labelChoices = [...CONTENT.labels.map(label => [label.name, label.id]), ['Без метки', NONE], ['Автоматически', null]]
+    labelChoices.forEach(([name, value], index) =>
+      ctx.register({
+        id: `label-${index}`,
+        area: PALETTE_AREA,
+        data: {
+          id: `label-${index}`,
+          label: `Метка сеанса: ${name}`,
+          keywords: ['abraxus', 'метка', 'сеанс'],
+          run: () => setManualLabel(ctx.storage, value)
+        }
+      })
+    )
+    CONTENT.templates.forEach(template =>
+      ctx.register({
+        id: `task-${template.id}`,
+        area: PALETTE_AREA,
+        data: {
+          id: `task-${template.id}`,
+          label: `Задача: ${template.title}`,
+          keywords: ['abraxus', 'шаблон', 'задача'],
+          run: () => insertTemplate(template.text)
+        }
+      })
+    )
+    ctx.register({ id: 'page', area: ROUTES_AREA, data: { path: PAGE_PATH }, render: () => jsx(AbraxusPage, {}) })
+    ctx.register({ id: 'nav', area: SIDEBAR_NAV_AREA, data: { path: PAGE_PATH, label: 'ABRAXUS', codicon: 'compass' } })
   }
 }

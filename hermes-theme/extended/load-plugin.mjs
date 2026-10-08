@@ -12,8 +12,27 @@ const STUBS = {
     export const THEMES_AREA = 'themes'
     export const STATUSBAR_AREAS = { left: 'statusBar.left', right: 'statusBar.right' }
     export const TITLEBAR_AREAS = { left: 'titleBar.left', center: 'titleBar.center', right: 'titleBar.right' }
+    export const PALETTE_AREA = 'palette'
+    export const ROUTES_AREA = 'routes'
+    export const SIDEBAR_NAV_AREA = 'sidebar.nav'
+    export const SESSION_ROW_AREAS = { leading: 'sessionRow.leading', trailing: 'sessionRow.trailing' }
+    export const atom = initial => {
+      let value = initial
+      return { get: () => value, set: next => { value = next } }
+    }
     export const host = {
-      state: { busy: 'busy-atom' },
+      state: { busy: 'busy-atom', focusedStoredSessionId: { get: () => s().focused ?? null } },
+      request: async (method, params) => {
+        s().requests.push([method, params])
+        return s().sessionList
+      },
+      navigate: path => s().navigations.push(path),
+      composer: {
+        insertText: async (sessionId, text) => {
+          s().inserts.push([sessionId, text])
+          return s().insertResults.length ? s().insertResults.shift() : true
+        }
+      },
       i18n: {
         registerAppLocale: (id, registration) => {
           const entry = { id, registration, disposed: false }
@@ -24,7 +43,7 @@ const STUBS = {
     }
     export const useTheme = () => ({ themeName: s().themeName })
     export const useI18n = () => ({ locale: s().locale, t: s().t })
-    export const useValue = atom => (atom === 'busy-atom' ? s().busy : undefined)`,
+    export const useValue = a => (a === 'busy-atom' ? s().busy : typeof a?.get === 'function' ? a.get() : undefined)`,
   react: `
     const s = () => globalThis.__abxSdk
     export const useState = init => [typeof init === 'function' ? init() : init, value => { s().lastSet = value }]
@@ -52,20 +71,35 @@ function installHooks() {
 }
 
 export function sdkState(over = {}) {
-  globalThis.__abxSdk = { themeName: 'abraxus-extended', busy: false, effects: [], locales: [], locale: 'ru', t: {}, ...over }
+  globalThis.__abxSdk = {
+    themeName: 'abraxus-extended', busy: false, effects: [], locales: [], locale: 'ru', t: {},
+    requests: [], navigations: [], inserts: [], insertResults: [], sessionList: { sessions: [] }, focused: null,
+    ...over
+  }
   return globalThis.__abxSdk
 }
 
 let loads = 0
 
-export async function loadPlugin() {
+export async function loadPlugin(over = {}) {
   installHooks()
-  sdkState()
+  sdkState(over)
   const mod = await import(`${pathToFileURL(PLUGIN_FILE).href}?load=${++loads}`)
   const contributions = []
   const disposers = []
+  const events = {}
+  const stored = {}
   const ctx = {
     source: 'plugin:abraxus-extended',
+    storage: {
+      get: (key, fallback) => (key in stored ? stored[key] : fallback),
+      set: (key, value) => { stored[key] = value },
+      remove: key => { delete stored[key] }
+    },
+    onEvent: (type, listener) => {
+      ;(events[type] ??= []).push(listener)
+      return () => {}
+    },
     register: c => {
       contributions.push(c)
       return () => {}
@@ -73,5 +107,5 @@ export async function loadPlugin() {
     onDispose: fn => disposers.push(fn)
   }
   mod.default.register(ctx)
-  return { mod, plugin: mod.default, contributions, disposers }
+  return { mod, plugin: mod.default, contributions, disposers, events, stored }
 }

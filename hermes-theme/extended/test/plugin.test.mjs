@@ -105,11 +105,15 @@ test('поле ввода: медные уголки в покое, рамка �
   assert.match(ruleBody(media, `  ${mod.COMPOSER_SELECTOR}::after`) ?? '', /transition: none/)
 })
 
-test('созвездие: как в hero сайта — 90 точек, связи, каждая шестая медная, детерминированно', async () => {
+test('созвездие: густое, короткие связи к ближайшим соседям, каждая шестая медная, детерминированно', async () => {
   const { mod } = await loadPlugin()
   const svg = mod.constellationSvg()
   assert.equal(svg, mod.constellationSvg(), 'одинаковое при каждом вызове')
-  assert.equal((svg.match(/<circle /g) ?? []).length, 90)
+  assert.match(svg, /viewBox="0 0 2400 1000"/, 'широкий холст — меньше растяжения на широком экране')
+  assert.equal((svg.match(/<circle /g) ?? []).length, 170)
+  const segments = [...svg.matchAll(/M(\d+) (\d+)L(\d+) (\d+)/g)].map(m => Math.hypot(m[1] - m[3], m[2] - m[4]))
+  assert.ok(segments.length > 150, `связей ${segments.length}`)
+  assert.ok(Math.max(...segments) <= 220, `самая длинная связь ${Math.max(...segments).toFixed(0)}`)
   assert.ok(svg.includes(`stroke="${ABX.mark.stroke}"`), 'медные связи')
   assert.ok(svg.includes(`stroke="${ABX.colors.foreground}"`), 'светлые связи')
   assert.ok(svg.includes(`fill="${ABX.colors.foreground}"`), 'точки')
@@ -121,6 +125,7 @@ test('фон за перепиской: статуя скрыта, созвез�
   assert.equal(mod.BACKDROP_SELECTOR, 'div:has(> img[src*="filler-bg0"])')
   assert.match(ruleBody(css, `${mod.BACKDROP_SELECTOR} > img`), /display: none !important/)
   assert.match(ruleBody(css, mod.BACKDROP_SELECTOR), /mix-blend-mode: normal !important/)
+  assert.match(ruleBody(css, mod.BACKDROP_SELECTOR), /opacity: 0\.25 !important/)
   const layer = ruleBody(css, `${mod.BACKDROP_SELECTOR}::before`)
   assert.match(layer, /url\("data:image\/svg\+xml,/)
   assert.match(layer, /animation: abx-drift /)

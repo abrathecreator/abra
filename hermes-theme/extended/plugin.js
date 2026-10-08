@@ -112,30 +112,38 @@ export const BACKDROP_SELECTOR = 'div:has(> img[src*="filler-bg0"])'
 export const ASSISTANT_SELECTOR = '[data-slot="aui_assistant-message-content"]'
 export const CARET_SELECTOR = '[data-slot="composer-rich-input"]'
 
-// Созвездие как в src/hero.js: 90 точек, связь при расстоянии < 16 % диагонали,
-// прозрачность (1 − d / L) × 0,5, каждая шестая связь медная. Генератор с
-// фиксированным зерном — картинка одна и та же при каждом запуске.
+// Созвездие по мотиву src/hero.js: точки, связи с прозрачностью (1 − d / L) × 0,5,
+// каждая шестая связь медная. Гуще, чем на сайте, и короче связи: каждая точка
+// соединяется не более чем с тремя ближайшими соседями ближе 220 единиц.
+// Холст 2400 × 1000 — на широком окне картинка почти не растягивается.
+// Генератор с фиксированным зерном — картинка одна и та же при каждом запуске.
 export function constellationSvg() {
-  const W = 1600
+  const W = 2400
   const H = 1000
+  const LIMIT = 220
   let seed = 20260908
   const rand = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296
-  const nodes = Array.from({ length: 90 }, () => ({ x: rand() * W, y: rand() * H, depth: rand() }))
-  const limit = Math.hypot(W, H) * 0.16
+  const nodes = Array.from({ length: 170 }, () => ({ x: rand() * W, y: rand() * H, depth: rand() }))
+  const pairs = new Map()
+  nodes.forEach((a, i) => {
+    nodes
+      .map((b, j) => ({ j, d: Math.hypot(a.x - b.x, a.y - b.y) }))
+      .filter(({ j, d }) => j !== i && d < LIMIT)
+      .sort((p, q) => p.d - q.d)
+      .slice(0, 3)
+      .forEach(({ j, d }) => pairs.set(i < j ? `${i}-${j}` : `${j}-${i}`, d))
+  })
   const paths = {}
-  for (let i = 0; i < nodes.length; i++) {
-    for (let j = i + 1; j < nodes.length; j++) {
-      const d = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y)
-      if (d >= limit) continue
-      const alpha = Math.max(1, Math.round((1 - d / limit) * 0.5 * 10)) / 10
-      const color = (i + j) % 6 === 0 ? ABX.mark.stroke : ABX.colors.foreground
-      const key = `${color}|${alpha}`
-      paths[key] = (paths[key] ?? '') + `M${nodes[i].x | 0} ${nodes[i].y | 0}L${nodes[j].x | 0} ${nodes[j].y | 0}`
-    }
+  for (const [key, d] of pairs) {
+    const [i, j] = key.split('-').map(Number)
+    const alpha = Math.max(1, Math.round((1 - d / LIMIT) * 0.5 * 10)) / 10
+    const color = (i + j) % 6 === 0 ? ABX.mark.stroke : ABX.colors.foreground
+    const bucket = `${color}|${alpha}`
+    paths[bucket] = (paths[bucket] ?? '') + `M${nodes[i].x | 0} ${nodes[i].y | 0}L${nodes[j].x | 0} ${nodes[j].y | 0}`
   }
   const lines = Object.entries(paths)
-    .map(([key, d]) => {
-      const [color, alpha] = key.split('|')
+    .map(([bucket, d]) => {
+      const [color, alpha] = bucket.split('|')
       return `<path d="${d}" stroke="${color}" stroke-opacity="${alpha}" fill="none"/>`
     })
     .join('')
@@ -144,6 +152,11 @@ export function constellationSvg() {
     .join('')
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${lines}<g fill="${ABX.colors.foreground}" fill-opacity=".85">${dots}</g></svg>`
 }
+
+// Компактный data URI: экранируются только символы, которые ломают url() —
+// почти вдвое короче encodeURIComponent, а лимит customCSS у Hermes — 32 КБ.
+const svgUrlCompact = svg =>
+  `url("data:image/svg+xml,${svg.replace(/"/g, "'").replace(/%/g, '%25').replace(/#/g, '%23').replace(/</g, '%3C').replace(/>/g, '%3E')}")`
 
 const CORNER = `linear-gradient(${ABX.mark.stroke}, ${ABX.mark.stroke})`
 // Каждый уголок — два слоя фона: горизонталь и вертикаль; порядок слоёв
@@ -201,7 +214,7 @@ ${ASSISTANT_SELECTOR} {
   padding-left: 14px;
 }
 ${BACKDROP_SELECTOR} {
-  opacity: 0.35 !important;
+  opacity: 0.25 !important;
   mix-blend-mode: normal !important;
   overflow: hidden;
 }
@@ -212,7 +225,7 @@ ${BACKDROP_SELECTOR}::before {
   content: "";
   position: absolute;
   inset: -4%;
-  background: ${svgUrl(constellationSvg())} center / cover no-repeat;
+  background: ${svgUrlCompact(constellationSvg())} center / cover no-repeat;
   animation: abx-drift 90s ease-in-out infinite alternate;
 }
 @keyframes abx-drift {

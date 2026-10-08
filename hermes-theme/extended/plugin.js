@@ -112,34 +112,26 @@ export const BACKDROP_SELECTOR = 'div:has(> img[src*="filler-bg0"])'
 export const ASSISTANT_SELECTOR = '[data-slot="aui_assistant-message-content"]'
 export const CARET_SELECTOR = '[data-slot="composer-rich-input"]'
 
-// Созвездие по мотиву src/hero.js: точки, связи с прозрачностью (1 − d / L) × 0,5,
-// каждая шестая связь медная. Гуще, чем на сайте, и короче связи: каждая точка
-// соединяется не более чем с тремя ближайшими соседями ближе 220 единиц.
-// Холст 2400 × 1000 — на широком окне картинка почти не растягивается.
-// Генератор с фиксированным зерном — картинка одна и та же при каждом запуске.
+// Созвездие как в src/hero.js: 90 точек, связь при расстоянии < 16 % диагонали,
+// прозрачность (1 − d / L) × 0,5, каждая шестая связь медная. Генератор с
+// фиксированным зерном — картинка одна и та же при каждом запуске.
 export function constellationSvg() {
-  const W = 2400
+  const W = 1600
   const H = 1000
-  const LIMIT = 220
   let seed = 20260908
   const rand = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296
-  const nodes = Array.from({ length: 170 }, () => ({ x: rand() * W, y: rand() * H, depth: rand() }))
-  const pairs = new Map()
-  nodes.forEach((a, i) => {
-    nodes
-      .map((b, j) => ({ j, d: Math.hypot(a.x - b.x, a.y - b.y) }))
-      .filter(({ j, d }) => j !== i && d < LIMIT)
-      .sort((p, q) => p.d - q.d)
-      .slice(0, 3)
-      .forEach(({ j, d }) => pairs.set(i < j ? `${i}-${j}` : `${j}-${i}`, d))
-  })
+  const nodes = Array.from({ length: 90 }, () => ({ x: rand() * W, y: rand() * H, depth: rand() }))
+  const limit = Math.hypot(W, H) * 0.16
   const paths = {}
-  for (const [key, d] of pairs) {
-    const [i, j] = key.split('-').map(Number)
-    const alpha = Math.max(1, Math.round((1 - d / LIMIT) * 0.5 * 10)) / 10
-    const color = (i + j) % 6 === 0 ? ABX.mark.stroke : ABX.colors.foreground
-    const bucket = `${color}|${alpha}`
-    paths[bucket] = (paths[bucket] ?? '') + `M${nodes[i].x | 0} ${nodes[i].y | 0}L${nodes[j].x | 0} ${nodes[j].y | 0}`
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const d = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y)
+      if (d >= limit) continue
+      const alpha = Math.max(1, Math.round((1 - d / limit) * 0.5 * 10)) / 10
+      const color = (i + j) % 6 === 0 ? ABX.mark.stroke : ABX.colors.foreground
+      const bucket = `${color}|${alpha}`
+      paths[bucket] = (paths[bucket] ?? '') + `M${nodes[i].x | 0} ${nodes[i].y | 0}L${nodes[j].x | 0} ${nodes[j].y | 0}`
+    }
   }
   const lines = Object.entries(paths)
     .map(([bucket, d]) => {

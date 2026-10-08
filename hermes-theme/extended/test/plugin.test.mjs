@@ -105,15 +105,15 @@ test('поле ввода: медные уголки в покое, рамка �
   assert.match(ruleBody(media, `  ${mod.COMPOSER_SELECTOR}::after`) ?? '', /transition: none/)
 })
 
-test('созвездие: густое, короткие связи к ближайшим соседям, каждая шестая медная, детерминированно', async () => {
+test('созвездие: как в hero сайта — 90 точек, связи короче 16 % диагонали, каждая шестая медная, детерминированно', async () => {
   const { mod } = await loadPlugin()
   const svg = mod.constellationSvg()
   assert.equal(svg, mod.constellationSvg(), 'одинаковое при каждом вызове')
-  assert.match(svg, /viewBox="0 0 2400 1000"/, 'широкий холст — меньше растяжения на широком экране')
-  assert.equal((svg.match(/<circle /g) ?? []).length, 170)
+  assert.match(svg, /viewBox="0 0 1600 1000"/)
+  assert.equal((svg.match(/<circle /g) ?? []).length, 90)
   const segments = [...svg.matchAll(/M(\d+) (\d+)L(\d+) (\d+)/g)].map(m => Math.hypot(m[1] - m[3], m[2] - m[4]))
-  assert.ok(segments.length > 150, `связей ${segments.length}`)
-  assert.ok(Math.max(...segments) <= 220, `самая длинная связь ${Math.max(...segments).toFixed(0)}`)
+  assert.ok(segments.length > 400, `сплошная паутина, связей ${segments.length}`)
+  assert.ok(Math.max(...segments) < Math.hypot(1600, 1000) * 0.16 + 2, 'связи не длиннее 16 % диагонали')
   assert.ok(svg.includes(`stroke="${ABX.mark.stroke}"`), 'медные связи')
   assert.ok(svg.includes(`stroke="${ABX.colors.foreground}"`), 'светлые связи')
   assert.ok(svg.includes(`fill="${ABX.colors.foreground}"`), 'точки')

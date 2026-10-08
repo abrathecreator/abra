@@ -97,6 +97,21 @@ const svgUrl = svg => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
 // поменяет атрибут или класс, правило перестанет совпадать — вернётся надпись.
 export const INTRO_SELECTOR = '[data-slot="aui_intro"] .wordmark'
 
+// Ещё два согласованных исключения, с тем же молчаливым откатом.
+// Метки панелей (SidebarPanelLabel: квадратик .dither, за ним текст .truncate)
+// получают фирменный формат сайта [ .МЕТКА ] вместо квадратика.
+export const LABEL_TEXT_SELECTOR = '.dither + .truncate'
+export const LABEL_DOT_SELECTOR = '.dither:has(+ .truncate)'
+// Поле ввода — как кнопка .abra-cta на сайте: медные уголки 12×15 px, при
+// фокусе горизонтали смыкаются в рамку за 320 мс.
+export const COMPOSER_SELECTOR = '[data-slot="composer-surface"]'
+
+const CORNER = `linear-gradient(${ABX.mark.stroke}, ${ABX.mark.stroke})`
+// Каждый уголок — два слоя фона: горизонталь и вертикаль; порядок слоёв
+// совпадает с CORNER_POSITIONS (левый верх, правый верх, левый низ, правый низ).
+const cornerSizes = horizontal => Array(4).fill(`${horizontal} 1px, 1px 15px`).join(', ')
+const CORNER_POSITIONS = 'left top, left top, right top, right top, left bottom, left bottom, right bottom, right bottom'
+
 export const CUSTOM_CSS = `
 :root {
   --dt-primary-solid: ${ABX.solid.fill} !important;
@@ -112,9 +127,39 @@ ${INTRO_SELECTOR} {
 ${INTRO_SELECTOR} > * {
   display: none !important;
 }
+${LABEL_DOT_SELECTOR} {
+  display: none !important;
+}
+${LABEL_TEXT_SELECTOR}::before {
+  content: "[ .";
+}
+${LABEL_TEXT_SELECTOR}::after {
+  content: " ]";
+}
+${COMPOSER_SELECTOR} {
+  border-color: transparent !important;
+}
+${COMPOSER_SELECTOR}::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background-image: ${Array(8).fill(CORNER).join(', ')};
+  background-position: ${CORNER_POSITIONS};
+  background-repeat: no-repeat;
+  background-size: ${cornerSizes('12px')};
+  transition: background-size 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+${COMPOSER_SELECTOR}:focus-within::after {
+  background-size: ${cornerSizes('calc(50% + 1px)')};
+}
 @media (prefers-reduced-motion: reduce) {
   ${INTRO_SELECTOR} {
     background-image: ${svgUrl(splashSvg(false))};
+  }
+  ${COMPOSER_SELECTOR}::after {
+    transition: none;
   }
 }
 `.trim()

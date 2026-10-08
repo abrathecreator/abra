@@ -89,9 +89,15 @@ check(imports.every(i => allowed.includes(i)), `импорты только ${al
 section('5. CSS')
 const selectors = [...mod.CUSTOM_CSS.matchAll(/([^{}]+)\{/g)].map(m => m[1].trim())
 const extra = selectors.filter(
-  s => s !== ':root' && !s.startsWith(mod.INTRO_SELECTOR) && s !== '@media (prefers-reduced-motion: reduce)'
+  s =>
+    s !== ':root' &&
+    ![mod.INTRO_SELECTOR, mod.LABEL_TEXT_SELECTOR, mod.LABEL_DOT_SELECTOR, mod.COMPOSER_SELECTOR].some(a => s.startsWith(a)) &&
+    s !== '@media (prefers-reduced-motion: reduce)'
 )
-check(extra.length === 0, `селекторы только :root и заставка${extra.length ? ': лишние ' + extra.join(' | ') : ''}`)
+check(
+  extra.length === 0,
+  `селекторы только :root, заставка, метки панелей и поле ввода${extra.length ? ': лишние ' + extra.join(' | ') : ''}`
+)
 const cssBytes = Buffer.byteLength(mod.CUSTOM_CSS)
 check(cssBytes < 32768, `размер customCSS ${cssBytes} байт < 32 768`)
 
@@ -116,6 +122,9 @@ if (!existsSync(DIST)) {
     .join('\n')
   check(bundle.includes('aui_intro'), 'в сборке Desktop есть заставка data-slot="aui_intro"')
   check(bundle.includes('wordmark fit-text'), 'в сборке Desktop есть класс надписи wordmark')
+  check(bundle.includes('dither inline-block size-2 shrink-0'), 'в сборке Desktop есть квадратик меток панелей (dither)')
+  check(bundle.includes('min-w-0 truncate leading-none'), 'в сборке Desktop есть текст меток панелей (truncate)')
+  check(bundle.includes('composer-surface'), 'в сборке Desktop есть поле ввода data-slot="composer-surface"')
 }
 
 console.log(`\n${failures ? 'ПРОВАЛ' : 'OK'}: ${failures} ошибок`)

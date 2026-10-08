@@ -29,11 +29,13 @@ EXTENDED закрывает это через официальный Desktop Plu
 6. Заставку нового чата Hermes держит за собой: слот плагина `CHAT_EMPTY_AREA` в черновике не монтируется (у черновика нет `sessionId`; подтверждено замером временным плагином 08.10.2026). Знак ставится **одним CSS-правилом** по `[data-slot="aui_intro"] .wordmark`, с молчаливым откатом к надписи Hermes, если вёрстка изменится.
 7. Палитра попадает в плагин **скриптом сборки** из `hermes-theme/tokens.json` — ручного дублирования цветов нет.
 
+8. **Дополнение после установки (08.10.2026):** ещё два исключения по селекторам с тем же молчаливым откатом — метки панелей в формате сайта `[ .МЕТКА ]` вместо квадратика и поле ввода как кнопка `.abra-cta` (раздел «Метки панелей и поле ввода»).
+
 ## Вне рамок
 
 - Светлая тема.
 - Syne и любые правки типографики, кроме выбора Inter.
-- Фирменные детали по селекторам (скобки `[ .Сегодня ]` в боковой панели, уголки вокруг поля ввода).
+- Syne в заголовках ответов агента.
 - Страница или панель ABRAXUS, пункты в ⌘K, клики по знаку в строке статуса.
 - Изменения STANDARD: он остаётся для CLI/TUI и как запасная тема Desktop.
 - Скругления: у Hermes `--radius-scalar` уже 0,2 (углы около 2 px), менять не нужно.
@@ -164,6 +166,11 @@ export default {
 
 ---
 
+### Метки панелей и поле ввода
+
+- **Метки** (`SidebarPanelLabel`: «Закреплённые», «Сеансы», «Запланированные задачи», заголовки правой панели). Селекторы — `.dither + .truncate` (текст метки) и `.dither:has(+ .truncate)` (квадратик перед ней). Квадратик скрывается, у текста `::before` — `"[ ."`, `::after` — `" ]"`; цвет, капс и разрядка — от Hermes. Длинную метку Hermes обрезает многоточием вместе с закрывающей скобкой.
+- **Поле ввода** — `[data-slot="composer-surface"]`. Серая рамка Hermes — `transparent !important`. Уголки — `::after` поверх (z-index 10, `pointer-events: none`) из восьми однотонных градиентов `accent`: горизонталь 12 × 1 px и вертикаль 1 × 15 px в каждом углу, как у `.abra-cta` на сайте. `:focus-within` — горизонтали растут до `calc(50% + 1px)` и смыкаются в рамку, `transition: background-size 320ms cubic-bezier(0.2, 0.8, 0.2, 1)`; при «Уменьшить движение» — без перехода.
+
 ## Проверки (`check.mjs`)
 
 Одна команда `node hermes-theme/extended/check.mjs`, код 1 при любой ошибке. Путь к Hermes — `HERMES_AGENT_DIR` или `~/.hermes/hermes-agent`.
@@ -172,7 +179,7 @@ export default {
 2. **Тема:** заданы все поля `DesktopThemeColors` — список читается из `apps/desktop/src/themes/types.ts` установленного Hermes; все значения — `#RRGGBB`; `name`, `label` есть, `name` ≠ `abraxus`.
 3. **Контраст** (WCAG): текст на фоне, карточке и пузыре ≥ 4,5:1; muted на фоне ≥ 4,5:1; медь на фоне и на bg-warm ≥ 4,5:1; тёмный текст на меди ≥ 4,5:1; `input` на фоне ≥ 3:1; ошибка на фоне ≥ 4,5:1; `snow` на `accent-fill` ≥ 4,5:1.
 4. **Код:** `node --check plugin.js`; все `import … from` — только `@hermes/plugin-sdk`, `react` и `react/jsx-runtime`.
-5. **CSS:** в `customCSS` нет селекторов, кроме `:root` и `[data-slot="aui_intro"] .wordmark` (включая его потомков и `@media (prefers-reduced-motion: reduce)`); размер < 32 768 байт.
+5. **CSS:** в `customCSS` нет селекторов, кроме `:root`, `[data-slot="aui_intro"] .wordmark`, `.dither + .truncate`, `.dither:has(+ .truncate)`, `[data-slot="composer-surface"]` (включая их псевдоэлементы и `@media (prefers-reduced-motion: reduce)`); размер < 32 768 байт.
 6. **Совместимость с установленным Hermes:** в собранном Desktop (`app.asar.unpacked/dist`) есть строки `aui_intro`, `wordmark`; в SDK (`apps/desktop/src/sdk/index.ts`) экспортируются `THEMES_AREA`, `STATUSBAR_AREAS`, `useTheme`, `useValue`, `host`; в `host.state` есть `busy`. Запускать после каждого `hermes update`.
 
 ## Проверка в приложении

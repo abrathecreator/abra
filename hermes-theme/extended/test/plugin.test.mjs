@@ -37,13 +37,15 @@ test('медная заливка — переменные с !important', async
   assert.match(mod.CUSTOM_CSS, new RegExp(`--dt-primary-solid-foreground: ${ABX.solid.ink} !important;`))
 })
 
-test('в CSS только :root и правило заставки', async () => {
+test('в CSS только :root, заставка, метки панелей и поле ввода', async () => {
   const { mod } = await loadPlugin()
   const selectors = [...mod.CUSTOM_CSS.matchAll(/([^{}]+)\{/g)].map(m => m[1].trim())
   for (const selector of selectors) {
     assert.ok(
       selector === ':root' ||
-        selector.startsWith(mod.INTRO_SELECTOR) ||
+        [mod.INTRO_SELECTOR, mod.LABEL_TEXT_SELECTOR, mod.LABEL_DOT_SELECTOR, mod.COMPOSER_SELECTOR].some(s =>
+          selector.startsWith(s)
+        ) ||
         selector === '@media (prefers-reduced-motion: reduce)',
       `лишний селектор: ${selector}`
     )
@@ -61,6 +63,37 @@ test('заставка: анимированный знак и статичны�
   assert.ok(!still.includes('@keyframes'), 'статичный знак без анимации')
   const media = mod.CUSTOM_CSS.slice(mod.CUSTOM_CSS.indexOf('@media (prefers-reduced-motion: reduce)'))
   assert.equal(decodeUrls(media)[0], still, 'статичный знак — внутри медиазапроса')
+})
+
+// Тело правила по точному селектору (первое совпадение).
+const ruleBody = (css, selector) => {
+  const start = css.indexOf(`${selector} {`)
+  return start < 0 ? null : css.slice(css.indexOf('{', start) + 1, css.indexOf('}', start))
+}
+
+test('метки панелей: [ .МЕТКА ] вместо квадратика', async () => {
+  const { mod } = await loadPlugin()
+  assert.equal(mod.LABEL_TEXT_SELECTOR, '.dither + .truncate')
+  assert.match(ruleBody(mod.CUSTOM_CSS, `${mod.LABEL_TEXT_SELECTOR}::before`), /content: "\[ \."/)
+  assert.match(ruleBody(mod.CUSTOM_CSS, `${mod.LABEL_TEXT_SELECTOR}::after`), /content: " \]"/)
+  assert.match(ruleBody(mod.CUSTOM_CSS, mod.LABEL_DOT_SELECTOR), /display: none !important/)
+})
+
+test('поле ввода: медные уголки в покое, рамка при фокусе, без анимации при «Уменьшить движение»', async () => {
+  const { mod } = await loadPlugin()
+  const css = mod.CUSTOM_CSS
+  assert.equal(mod.COMPOSER_SELECTOR, '[data-slot="composer-surface"]')
+  assert.match(ruleBody(css, mod.COMPOSER_SELECTOR), /border-color: transparent !important/)
+  const corners = ruleBody(css, `${mod.COMPOSER_SELECTOR}::after`)
+  assert.match(corners, /pointer-events: none/)
+  assert.equal(corners.split(`linear-gradient(${ABX.mark.stroke}, ${ABX.mark.stroke})`).length - 1, 8, 'четыре уголка по две линии')
+  assert.match(corners, /12px 1px/, 'горизонталь уголка 12 px')
+  assert.match(corners, /1px 15px/, 'вертикаль уголка 15 px')
+  assert.match(corners, /background-size: (12px 1px, 1px 15px(, )?){4};/, 'слои парами: горизонталь, вертикаль — по одному углу')
+  assert.match(corners, /transition: background-size 320ms cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/)
+  assert.match(ruleBody(css, `${mod.COMPOSER_SELECTOR}:focus-within::after`), /calc\(50% \+ 1px\) 1px/)
+  const media = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
+  assert.match(ruleBody(media, `  ${mod.COMPOSER_SELECTOR}::after`) ?? '', /transition: none/)
 })
 
 // Разворачивает дерево jsx-заглушек: { type, props } → найти узел по типу.

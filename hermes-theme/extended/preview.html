@@ -22,6 +22,11 @@
   .splash p { color: #84817C; margin: 0; }
   .bar { display: flex; align-items: center; gap: 10px; background: #131210; border-top: 1px solid #2B2927; padding: 4px 8px; font: 12px "JetBrains Mono", monospace; color: #84817C; }
   .note { color: #84817C; font-size: 13px; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .panel-label { display: flex; align-items: center; gap: 8px; padding-left: 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .16em; color: #B87333; }
+  .dither { display: inline-block; width: 8px; height: 8px; background: currentColor; border-radius: 1px; }
+  .composer { position: relative; isolation: isolate; overflow: hidden; border: 1px solid #2B2927; border-radius: 3px; background: #131210; padding: 10px 12px; }
+  .composer input { width: 100%; background: transparent; border: 0; outline: none; color: #CEC9C3; font: inherit; }
 </style>
 </head>
 <body>
@@ -39,11 +44,21 @@
     <div class="panel"><div class="bar" id="bar-idle"></div><p class="note">Агент свободен</p></div>
     <div class="panel"><div class="bar" id="bar-busy"></div><p class="note">Агент работает</p></div>
   </div>
+  <h2>Метки панелей и поле ввода</h2>
+  <p class="note">Та же вёрстка, что у Hermes (SidebarPanelLabel, composer-surface), с настоящим CSS темы. Щёлкните в поле — уголки сомкнутся в рамку.</p>
+  <div class="grid">
+    <div class="panel" style="display:grid;gap:14px">
+      <span class="panel-label"><span aria-hidden="true" class="dither"></span><span class="min-w-0 truncate leading-none">Закреплённые</span></span>
+      <span class="panel-label"><span aria-hidden="true" class="dither"></span><span class="min-w-0 truncate leading-none">Сеансы</span></span>
+    </div>
+    <div class="panel"><div class="composer" data-slot="composer-surface"><input id="composer-input" placeholder="Что обсудим?" /></div></div>
+  </div>
 </main>
 <script type="module">
-  import plugin, { splashSvg, StatusMark } from './plugin.js'
+  import plugin, { CUSTOM_CSS, splashSvg, StatusMark } from './plugin.js'
 
   document.getElementById('served-hint').remove()
+  document.head.insertAdjacentHTML('beforeend', `<style>${CUSTOM_CSS}</style>`)
 
   for (const [id, animated] of [['splash-animated', true], ['splash-still', false]]) {
     document.getElementById(id).innerHTML =

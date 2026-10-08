@@ -100,8 +100,11 @@ hermes-theme/         — ABRAXUS: фирменный скин для Hermes Age
                         с style.css/abra-tokens.css). standard/ — YAML-скин
                         abraxus.yaml + check.py (запускать питоном из
                         ~/.hermes/hermes-agent/venv) + preview.html + INSTALL.md.
-                        extended/ (Desktop-плагин) — ещё не начат. При правке
-                        токенов сайта догонять tokens.json и скин
+                        extended/ — Desktop-плагин abraxus-extended:
+                        plugin.js (блок ABX пишет build.mjs из tokens.json,
+                        руками не править) + check.mjs + тесты node --test.
+                        При правке токенов сайта догонять tokens.json,
+                        скин и node extended/build.mjs
 DESIGN_SYSTEM.md      — описание дизайн-системы для человека
 ARCHITECTURE.md       — человекочитаемая документация для разработчиков
 TECHDEBT.md           — известные нерешённые проблемы, читай перед крупными правками

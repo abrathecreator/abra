@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ABRAXUS Extended</title>
+<script type="importmap">
+{ "imports": {
+  "@hermes/plugin-sdk": "data:text/javascript,export const THEMES_AREA='themes';export const STATUSBAR_AREAS={left:'statusBar.left'};export const host={state:{busy:'busy'}};export const useTheme=()=>({themeName:'abraxus-extended'});export const useValue=a=>globalThis.__busy;",
+  "react": "data:text/javascript,export const useState=i=>[typeof i==='function'?i():i,()=>{}];export const useEffect=()=>{};",
+  "react/jsx-runtime": "data:text/javascript,export const jsx=(type,props)=>({type,props});export const jsxs=jsx;"
+} }
+</script>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0C0B09; color: #CEC9C3; font: 15px/1.55 Inter, system-ui, sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1, h2 { color: #EDEBE6; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .panel { background: #131210; border: 1px solid #2B2927; border-radius: 6px; padding: 20px; }
+  .splash { display: grid; justify-items: center; gap: 12px; padding: 32px 0; }
+  .splash p { color: #84817C; margin: 0; }
+  .bar { display: flex; align-items: center; gap: 10px; background: #131210; border-top: 1px solid #2B2927; padding: 4px 8px; font: 12px "JetBrains Mono", monospace; color: #84817C; }
+  .note { color: #84817C; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="note" id="served-hint">Если ниже пусто — страница открыта как файл. Откройте через сервер: <code>python3 -m http.server 8765 --directory ~/Documents/abrasite/hermes-theme/extended</code> и http://localhost:8765/preview.html</p>
+  <h1>ABRAXUS EXTENDED</h1>
+  <p class="note">Знак, цвета и анимация — из самого plugin.js (импорт с заглушками SDK), не копия.</p>
+  <h2>Заставка нового чата</h2>
+  <div class="grid">
+    <div class="panel"><div class="splash" id="splash-animated"></div><p class="note">Обычный режим: контур рисуется, затем бежит штрих</p></div>
+    <div class="panel"><div class="splash" id="splash-still"></div><p class="note">«Уменьшить движение»: статичный знак</p></div>
+  </div>
+  <h2>Строка статуса</h2>
+  <div class="grid">
+    <div class="panel"><div class="bar" id="bar-idle"></div><p class="note">Агент свободен</p></div>
+    <div class="panel"><div class="bar" id="bar-busy"></div><p class="note">Агент работает</p></div>
+  </div>
+</main>
+<script type="module">
+  import plugin, { splashSvg, StatusMark } from './plugin.js'
+
+  document.getElementById('served-hint').remove()
+
+  for (const [id, animated] of [['splash-animated', true], ['splash-still', false]]) {
+    document.getElementById(id).innerHTML =
+      `<div style="width:116px;height:170px">${splashSvg(animated)}</div><p>Search the repo, edit files, run tests…</p>`
+  }
+
+  // Мини-рендер jsx-заглушек в DOM — только для превью.
+  const SVG = 'http://www.w3.org/2000/svg'
+  const attr = k => ({ className: 'class', strokeWidth: 'stroke-width', strokeLinecap: 'stroke-linecap', strokeLinejoin: 'stroke-linejoin' })[k] ?? k
+  const toDom = (node, svg = false) => {
+    if (node == null) return document.createTextNode('')
+    if (typeof node.type === 'function') return toDom(node.type(node.props), svg)
+    const inSvg = svg || node.type === 'svg'
+    const el = inSvg ? document.createElementNS(SVG, node.type) : document.createElement(node.type)
+    for (const [k, v] of Object.entries(node.props ?? {})) {
+      if (k === 'children') continue
+      if (k === 'style') Object.assign(el.style, v)
+      else el.setAttribute(attr(k), v)
+    }
+    for (const child of [].concat(node.props?.children ?? [])) el.append(toDom(child, inSvg))
+    return el
+  }
+
+  plugin.register({ register: () => () => {}, onDispose: () => {} })
+  for (const [id, busy] of [['bar-idle', false], ['bar-busy', true]]) {
+    globalThis.__busy = busy
+    const bar = document.getElementById(id)
+    bar.append(toDom({ type: StatusMark, props: {} }))
+    bar.insertAdjacentHTML('beforeend', '<b style="color:#CEC9C3">opus-5.5</b> │ ctx 22%')
+  }
+</script>
+</body>
+</html>

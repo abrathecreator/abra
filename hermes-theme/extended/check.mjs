@@ -92,13 +92,19 @@ const selectors = [...mod.CUSTOM_CSS.matchAll(/([^{}]+)\{/g)].map(m => m[1].trim
 const extra = selectors.filter(
   s =>
     s !== ':root' &&
-    ![mod.INTRO_SELECTOR, mod.LABEL_TEXT_SELECTOR, mod.LABEL_DOT_SELECTOR, mod.COMPOSER_SELECTOR].some(a => s.startsWith(a)) &&
-    s !== '@media (prefers-reduced-motion: reduce)'
+    ![
+      mod.INTRO_SELECTOR,
+      mod.LABEL_TEXT_SELECTOR,
+      mod.LABEL_DOT_SELECTOR,
+      mod.COMPOSER_SELECTOR,
+      mod.BACKDROP_SELECTOR,
+      mod.ASSISTANT_SELECTOR,
+      mod.CARET_SELECTOR
+    ].some(a => s.startsWith(a)) &&
+    s !== '@media (prefers-reduced-motion: reduce)' &&
+    !['@keyframes abx-drift', 'from', 'to'].includes(s)
 )
-check(
-  extra.length === 0,
-  `селекторы только :root, заставка, метки панелей и поле ввода${extra.length ? ': лишние ' + extra.join(' | ') : ''}`
-)
+check(extra.length === 0, `только согласованные селекторы${extra.length ? ': лишние ' + extra.join(' | ') : ''}`)
 const cssBytes = Buffer.byteLength(mod.CUSTOM_CSS)
 check(cssBytes < 32768, `размер customCSS ${cssBytes} байт < 32 768`)
 
@@ -126,6 +132,9 @@ if (!existsSync(DIST)) {
   check(bundle.includes('dither inline-block size-2 shrink-0'), 'в сборке Desktop есть квадратик меток панелей (dither)')
   check(bundle.includes('min-w-0 truncate leading-none'), 'в сборке Desktop есть текст меток панелей (truncate)')
   check(bundle.includes('composer-surface'), 'в сборке Desktop есть поле ввода data-slot="composer-surface"')
+  check(bundle.includes('filler-bg0'), 'в сборке Desktop есть фон-статуя (filler-bg0) для созвездия')
+  check(bundle.includes('aui_assistant-message-content'), 'в сборке Desktop есть ответ агента aui_assistant-message-content')
+  check(bundle.includes('composer-rich-input'), 'в сборке Desktop есть поле набора composer-rich-input')
 }
 
 const SERVICE_PATH = mod.SERVICE_KEY

@@ -6,7 +6,7 @@
 <title>ABRAXUS Extended</title>
 <script type="importmap">
 { "imports": {
-  "@hermes/plugin-sdk": "data:text/javascript,export const THEMES_AREA='themes';export const STATUSBAR_AREAS={left:'statusBar.left'};export const host={state:{busy:'busy'}};export const useTheme=()=>({themeName:'abraxus-extended'});export const useValue=a=>globalThis.__busy;",
+  "@hermes/plugin-sdk": "data:text/javascript,export const THEMES_AREA='themes';export const STATUSBAR_AREAS={left:'statusBar.left'};export const TITLEBAR_AREAS={center:'titleBar.center'};export const host={state:{busy:'busy'},i18n:{registerAppLocale:()=>()=>{}}};export const useTheme=()=>({themeName:'abraxus-extended'});export const useI18n=()=>({locale:'ru',t:{}});export const useValue=a=>globalThis.__busy;",
   "react": "data:text/javascript,export const useState=i=>[typeof i==='function'?i():i,()=>{}];export const useEffect=()=>{};",
   "react/jsx-runtime": "data:text/javascript,export const jsx=(type,props)=>({type,props});export const jsxs=jsx;"
 } }
@@ -25,6 +25,9 @@
   .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .panel-label { display: flex; align-items: center; gap: 8px; padding-left: 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .16em; color: #B87333; }
   .dither { display: inline-block; width: 8px; height: 8px; background: currentColor; border-radius: 1px; }
+  .chat { position: relative; isolation: isolate; height: 340px; overflow: hidden; border: 1px solid #2B2927; border-radius: 6px; background: #0C0B09; }
+  .chat__body { position: relative; z-index: 3; padding: 28px; display: grid; gap: 16px; max-width: 680px; }
+  .chat__user { justify-self: end; background: #131210; border: 1px solid #2B2927; border-radius: 10px; padding: 8px 12px; }
   .composer { position: relative; isolation: isolate; overflow: hidden; border: 1px solid #2B2927; border-radius: 3px; background: #131210; padding: 10px 12px; }
   .composer input { width: 100%; background: transparent; border: 0; outline: none; color: #CEC9C3; font: inherit; }
 </style>
@@ -52,6 +55,15 @@
       <span class="panel-label"><span aria-hidden="true" class="dither"></span><span class="min-w-0 truncate leading-none">Сеансы</span></span>
     </div>
     <div class="panel"><div class="composer" data-slot="composer-surface"><input id="composer-input" placeholder="Что обсудим?" /></div></div>
+  </div>
+  <h2>Переписка: фон-созвездие и ответ агента</h2>
+  <p class="note">Слой фона повторяет вёрстку Hermes (картинка filler-bg0 в слое с прозрачностью); в приложении он виден при включённом фоне в Appearance.</p>
+  <div class="chat">
+    <div aria-hidden="true" style="pointer-events:none;position:absolute;inset:0;z-index:2;opacity:.025;mix-blend-mode:difference"><img alt="" src="ds-assets/filler-bg0.jpg" /></div>
+    <div class="chat__body">
+      <div class="chat__user">Найди узкое место в воронке за сентябрь</div>
+      <div data-slot="aui_assistant-message-content">Узкое место — переход «заявка → встреча»: 18 % против 31 % в августе. Трафик и CPL в норме, проседает скорость первого касания.</div>
+    </div>
   </div>
 </main>
 <script type="module">

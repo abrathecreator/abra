@@ -37,16 +37,25 @@ test('медная заливка — переменные с !important', async
   assert.match(mod.CUSTOM_CSS, new RegExp(`--dt-primary-solid-foreground: ${ABX.solid.ink} !important;`))
 })
 
-test('в CSS только :root, заставка, метки панелей и поле ввода', async () => {
+test('в CSS только согласованные селекторы', async () => {
   const { mod } = await loadPlugin()
   const selectors = [...mod.CUSTOM_CSS.matchAll(/([^{}]+)\{/g)].map(m => m[1].trim())
   for (const selector of selectors) {
     assert.ok(
       selector === ':root' ||
-        [mod.INTRO_SELECTOR, mod.LABEL_TEXT_SELECTOR, mod.LABEL_DOT_SELECTOR, mod.COMPOSER_SELECTOR].some(s =>
+        [
+          mod.INTRO_SELECTOR,
+          mod.LABEL_TEXT_SELECTOR,
+          mod.LABEL_DOT_SELECTOR,
+          mod.COMPOSER_SELECTOR,
+          mod.BACKDROP_SELECTOR,
+          mod.ASSISTANT_SELECTOR,
+          mod.CARET_SELECTOR
+        ].some(s =>
           selector.startsWith(s)
         ) ||
-        selector === '@media (prefers-reduced-motion: reduce)',
+        selector === '@media (prefers-reduced-motion: reduce)' ||
+        ['@keyframes abx-drift', 'from', 'to'].includes(selector),
       `лишний селектор: ${selector}`
     )
   }
@@ -55,14 +64,14 @@ test('в CSS только :root, заставка, метки панелей и 
 
 test('заставка: анимированный знак и статичный для «Уменьшить движение»', async () => {
   const { mod } = await loadPlugin()
-  const [animated, still] = decodeUrls(mod.CUSTOM_CSS)
+  const [animated, still] = decodeUrls(mod.CUSTOM_CSS).filter(svg => svg.includes(mod.MARK_PATH))
   assert.ok(animated.includes(`d="${mod.MARK_PATH}"`))
   assert.ok(animated.includes('@keyframes'), 'есть анимация')
   assert.ok(animated.includes(`stroke="${ABX.mark.signal}"`), 'светлый штрих')
   assert.ok(still.includes(`stroke="${ABX.mark.stroke}"`))
   assert.ok(!still.includes('@keyframes'), 'статичный знак без анимации')
   const media = mod.CUSTOM_CSS.slice(mod.CUSTOM_CSS.indexOf('@media (prefers-reduced-motion: reduce)'))
-  assert.equal(decodeUrls(media)[0], still, 'статичный знак — внутри медиазапроса')
+  assert.ok(decodeUrls(media).includes(still), 'статичный знак — внутри медиазапроса')
 })
 
 // Тело правила по точному селектору (первое совпадение).
@@ -94,6 +103,39 @@ test('поле ввода: медные уголки в покое, рамка �
   assert.match(ruleBody(css, `${mod.COMPOSER_SELECTOR}:focus-within::after`), /calc\(50% \+ 1px\) 1px/)
   const media = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
   assert.match(ruleBody(media, `  ${mod.COMPOSER_SELECTOR}::after`) ?? '', /transition: none/)
+})
+
+test('созвездие: как в hero сайта — 90 точек, связи, каждая шестая медная, детерминированно', async () => {
+  const { mod } = await loadPlugin()
+  const svg = mod.constellationSvg()
+  assert.equal(svg, mod.constellationSvg(), 'одинаковое при каждом вызове')
+  assert.equal((svg.match(/<circle /g) ?? []).length, 90)
+  assert.ok(svg.includes(`stroke="${ABX.mark.stroke}"`), 'медные связи')
+  assert.ok(svg.includes(`stroke="${ABX.colors.foreground}"`), 'светлые связи')
+  assert.ok(svg.includes(`fill="${ABX.colors.foreground}"`), 'точки')
+})
+
+test('фон за перепиской: статуя скрыта, созвездие дрейфует, при «Уменьшить движение» — стоит', async () => {
+  const { mod } = await loadPlugin()
+  const css = mod.CUSTOM_CSS
+  assert.equal(mod.BACKDROP_SELECTOR, 'div:has(> img[src*="filler-bg0"])')
+  assert.match(ruleBody(css, `${mod.BACKDROP_SELECTOR} > img`), /display: none !important/)
+  assert.match(ruleBody(css, mod.BACKDROP_SELECTOR), /mix-blend-mode: normal !important/)
+  const layer = ruleBody(css, `${mod.BACKDROP_SELECTOR}::before`)
+  assert.match(layer, /url\("data:image\/svg\+xml,/)
+  assert.match(layer, /animation: abx-drift /)
+  assert.match(css, /@keyframes abx-drift/)
+  const media = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
+  assert.match(ruleBody(media, `  ${mod.BACKDROP_SELECTOR}::before`) ?? '', /animation: none/)
+  assert.ok(Buffer.byteLength(css) < 32768, `customCSS ${Buffer.byteLength(css)} байт`)
+})
+
+test('ответ агента — медная линия слева, курсор в поле ввода — медный', async () => {
+  const { mod } = await loadPlugin()
+  assert.equal(mod.ASSISTANT_SELECTOR, '[data-slot="aui_assistant-message-content"]')
+  assert.match(ruleBody(mod.CUSTOM_CSS, mod.ASSISTANT_SELECTOR), new RegExp(`border-left: 1px solid ${ABX.mark.stroke}`))
+  assert.equal(mod.CARET_SELECTOR, '[data-slot="composer-rich-input"]')
+  assert.match(ruleBody(mod.CUSTOM_CSS, mod.CARET_SELECTOR), new RegExp(`caret-color: ${ABX.mark.stroke}`))
 })
 
 // Разворачивает дерево jsx-заглушек: { type, props } → найти узел по типу.

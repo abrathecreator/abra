@@ -1,0 +1,128 @@
+# ABRAXUS STANDARD v1.0 — фирменный скин Hermes на дизайн-токенах a-bra.ru.
+#
+# Только штатный YAML-механизм: без customCSS, без плагинов, без правки Hermes.
+# Каждый цвет ссылается на токен из hermes-theme/tokens.json комментарием
+# «# token: <имя>» — проверка (check.py) сверяет значение с токеном, поэтому
+# палитру меняют в tokens.json, а здесь только переносят hex.
+# Где какой ключ реально виден (CLI / TUI / Desktop) — README.md рядом.
+
+name: abraxus
+description: "ABRAXUS / SYSTEM CORE — медь на графите, токены a-bra.ru"
+
+colors:
+  # ── Поверхность ────────────────────────────────────────────────
+  background: "#0C0B09"                # token: bg — TUI красит им терминал, Desktop — окно
+  status_bar_bg: "#131210"             # token: bg-warm
+  voice_status_bg: "#131210"           # token: bg-warm
+  completion_menu_bg: "#2B2927"        # token: line-surface — в Desktop это ещё и обводка полей
+  completion_menu_meta_bg: "#2B2927"   # token: line-surface
+  completion_menu_current_bg: "#2B1E11"       # token: accent-fill
+  completion_menu_meta_current_bg: "#2B1E11"  # token: accent-fill
+  selection_bg: "#2B1E11"              # token: accent-fill
+
+  # ── Текст ──────────────────────────────────────────────────────
+  ui_text: "#CEC9C3"                   # token: text — основной текст (Desktop foreground)
+  banner_text: "#CEC9C3"               # token: text — тело баннера и ответа в CLI
+  status_bar_text: "#CEC9C3"           # token: text
+  ui_primary: "#EDEBE6"                # token: snow — имя, заголовки, линейки в TUI
+  banner_title: "#EDEBE6"              # token: snow
+  banner_dim: "#84817C"                # token: muted — второстепенный текст (Desktop muted)
+  status_bar_dim: "#84817C"            # token: muted
+  session_label: "#84817C"             # token: muted
+  ui_thinking: "#84817C"               # token: muted — текст рассуждений в TUI
+  syntax_comment: "#84817C"            # token: muted
+
+  # ── Акцент: медь ───────────────────────────────────────────────
+  ui_accent: "#B87333"                 # token: accent — главный акцент (Desktop primary/ring)
+  banner_accent: "#B87333"             # token: accent — заголовки секций баннера
+  ui_label: "#B87333"                  # token: accent — метки, как .tag на сайте
+  prompt: "#B87333"                    # token: accent — символ приглашения
+  response_border: "#B87333"           # token: accent — рамка ответа в CLI
+  ui_tool: "#B87333"                   # token: accent — маркер ● вызова инструмента
+  status_bar_strong: "#B87333"         # token: accent — в CLI ещё и фон бейджа сессии
+  status_bar_bad: "#B87333"            # token: accent — «внимание», ещё не ошибка
+  syntax_keyword: "#B87333"            # token: accent
+  syntax_string: "#D0A984"             # token: accent-tint
+  shell_dollar: "#D0A984"              # token: accent-tint — знак $ у shell-команд в TUI
+  syntax_number: "#EDEBE6"             # token: snow
+
+  # ── Линии ──────────────────────────────────────────────────────
+  ui_border: "#2B2927"                 # token: line-surface — рамки (Desktop border)
+  banner_border: "#63615D"             # token: line-control — рамка баннера CLI
+  input_rule: "#63615D"                # token: line-control — линия над полем ввода
+  session_border: "#63615D"            # token: line-control
+
+  # ── Состояния ──────────────────────────────────────────────────
+  ui_ok: "#7C9A6E"                     # token: ok
+  status_bar_good: "#7C9A6E"           # token: ok
+  ui_warn: "#C9A24B"                   # token: warn
+  status_bar_warn: "#C9A24B"           # token: warn
+  ui_error: "#C07460"                  # token: bad-text — Desktop destructive
+  status_bar_critical: "#C07460"       # token: bad-text
+
+  # ── Diff в TUI: *_added/*_removed — фон строки, *_word — цвет текста ──
+  diff_added: "#20251B"                # token: ok-fill
+  diff_removed: "#2A1813"              # token: bad-fill
+  diff_added_word: "#7C9A6E"           # token: ok
+  diff_removed_word: "#C07460"         # token: bad-text
+
+# light_colors / dark_colors сознательно не заданы: скин задаёт background,
+# поэтому TUI всегда берёт тёмную полярность и light_colors не применил бы,
+# а CLI и Desktop эти блоки не читают вовсе. Подробности — README.md.
+
+branding:
+  agent_name: "ABRAXUS"
+  welcome: "ABRAXUS / SYSTEM CORE на связи. Опишите задачу или введите /help."
+  goodbye: "[ .Сессия сохранена ]"
+  response_label: " [ .ABRAXUS ] "
+  prompt_symbol: "›"
+  help_header: "[ .Команды ]"
+
+tool_prefix: "╎"
+
+spinner:
+  # Вариант «Скобки» (по умолчанию). Остальные варианты — README.md.
+  waiting_faces: ["[ . ]", "[ .. ]", "[ ... ]"]
+  thinking_faces: ["[ ◦ ]", "[ ∘ ]", "[ ▪ ]", "[ ▫ ]"]
+  thinking_verbs:
+    - "собираю систему"
+    - "ищу узкое место"
+    - "сверяю воронку"
+    - "считаю юнит-экономику"
+    - "связываю маркетинг и продажи"
+    - "раскладываю по слоям"
+    - "проверяю гипотезу"
+    - "свожу данные"
+    - "выстраиваю маршрут"
+    - "калибрую метрики"
+  wings:
+    - ["[ .", "]"]
+
+# Rich-разметка: одна цветная группа на строку и без текста вне [..][/] —
+# иначе парсер TUI разорвёт строку на несколько. Цвета — те же токены:
+# #EDEBE6 snow, #84817C muted, #B87333 accent.
+banner_logo: |-
+  [bold #EDEBE6] █████╗ ██████╗ ██████╗  █████╗ ██╗  ██╗██╗   ██╗███████╗[/]
+  [bold #EDEBE6]██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗██╔╝██║   ██║██╔════╝[/]
+  [bold #EDEBE6]███████║██████╔╝██████╔╝███████║ ╚███╔╝ ██║   ██║███████╗[/]
+  [bold #EDEBE6]██╔══██║██╔══██╗██╔══██╗██╔══██║ ██╔██╗ ██║   ██║╚════██║[/]
+  [bold #EDEBE6]██║  ██║██████╔╝██║  ██║██║  ██║██╔╝ ██╗╚██████╔╝███████║[/]
+  [#84817C]╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝[/]
+  [#B87333]               [ .S Y S T E M   C O R E ][/]
+
+banner_hero: |-
+  [#B87333]⠀⠀⠀⠀⢀⣤⣶⡶⠿⠿⠷⣶⣦⣄⠀⠀⠀⠀⠀[/]
+  [#B87333]⠀⠀⢀⣾⠟⠉⠀⠀⠀⠀⠀⠀⠈⠻⣷⣄⠀⠀⠀[/]
+  [#B87333]⠀⢠⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣆⠀⠀[/]
+  [#B87333]⠀⣾⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⡀⠀[/]
+  [#B87333]⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠇⠀[/]
+  [#B87333]⠀⠸⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⡟⠀⠀[/]
+  [#B87333]⠀⠀⠹⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⠟⠁⠀⠀[/]
+  [#B87333]⠀⠀⠀⠈⠻⣷⣄⠀⠀⠀⠀⢀⣴⡿⠃⠀⠀⠀⠀[/]
+  [#B87333]⠀⠀⠀⠀⠀⠈⠻⣷⣄⢀⣴⡿⠋⠀⠀⠀⠀⠀⠀[/]
+  [#B87333]⠀⠀⠀⠀⠀⠀⠀⢈⣿⣿⡋⠀⠀⠀⠀⠀⠀⠀⠀[/]
+  [#B87333]⠀⠀⠀⠀⠀⢀⣴⡿⠋⠈⢿⣦⡀⠀⠀⠀⠀⠀⠀[/]
+  [#B87333]⠀⠀⠀⠀⣠⡾⠋⠀⠀⠀⠀⠙⢿⣦⡀⠀⠀⠀⠀[/]
+  [#B87333]⠀⠀⣠⣾⠟⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⣦⡀⠀⠀[/]
+  [#B87333]⠀⠾⠿⠷⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠿⠿⠆⠀[/]
+  [#84817C]⠀[ .core online ][/]

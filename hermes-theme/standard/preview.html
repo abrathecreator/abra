@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ABRAXUS Standard</title>
+<style>
+  /* Превью к согласованию, не часть скина. Цвета — снимок tokens.json и
+     того, что настоящие конвертеры Hermes (489c1ac) вывели из abraxus.yaml. */
+  :root { color-scheme: dark;
+    --bg: #0C0B09; --bg-warm: #131210; --text: #CEC9C3; --snow: #EDEBE6;
+    --accent: #B87333; --accent-tint: #D0A984; --accent-fill: #2B1E11;
+    --muted: #84817C; --line: #1A1816; --line-surface: #2B2927; --line-control: #63615D;
+    --ok: #7C9A6E; --warn: #C9A24B; --bad-text: #C07460; --ok-fill: #20251B; --bad-fill: #2A1813;
+    --tui-border: #413F3D;
+    --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, "Apple Braille", monospace;
+    --sans: Inter, -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 var(--sans); }
+  main { max-width: 1180px; margin: 0 auto; padding: 48px 20px 96px; }
+  h1, h2, h3 { color: var(--snow); font-weight: 600; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(28px, 4vw, 40px); margin: 0 0 8px; }
+  h2 { font-size: 22px; margin: 64px 0 6px; }
+  h3 { font-size: 15px; margin: 0 0 10px; }
+  p { margin: 0 0 12px; max-width: 74ch; }
+  .tag { color: var(--accent); font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase; }
+  .lead { color: var(--muted); }
+  code { font-family: var(--mono); font-size: 0.92em; color: var(--snow); }
+  .where { display: inline-flex; gap: 6px; margin-left: 6px; vertical-align: 2px; }
+  .where span { font: 11px/1 var(--mono); padding: 3px 6px; border: 1px solid var(--line-control); border-radius: 4px; color: var(--muted); }
+
+  /* Палитра */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 18px; }
+  .sw { background: var(--bg-warm); border: 1px solid var(--line-surface); border-radius: 8px; overflow: hidden; }
+  .sw i { display: block; height: 56px; border-bottom: 1px solid var(--line-surface); }
+  .sw div { padding: 8px 10px; font: 12px/1.45 var(--mono); }
+  .sw b { color: var(--snow); font-weight: 500; }
+  .sw small { display: block; color: var(--muted); }
+
+  /* Окна */
+  .win { margin-top: 18px; border: 1px solid var(--line-surface); border-radius: 10px; overflow: hidden; background: var(--bg); }
+  .win__bar { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: #0C0C0A; border-bottom: 1px solid var(--line-surface); font: 12px var(--sans); color: var(--muted); }
+  .win__bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line-control); }
+  .term { padding: 16px 18px; font: 13px/1.45 var(--mono); white-space: pre; overflow-x: auto; color: var(--text); }
+  .term .snow { color: var(--snow); font-weight: 700; } .term .mut { color: var(--muted); } .term .acc { color: var(--accent); }
+  .term .tint { color: var(--accent-tint); } .term .ok { color: var(--ok); } .term .warn { color: var(--warn); } .term .err { color: var(--bad-text); }
+  .term .ctl { color: var(--line-control); } .term .tb { color: var(--tui-border); }
+  .term .add { background: var(--ok-fill); color: var(--ok); } .term .del { background: var(--bad-fill); color: var(--bad-text); }
+  .term .sel { background: var(--accent-fill); }
+  .art { display: block; line-height: 1; }
+  .row { display: flex; gap: 26px; align-items: flex-start; }
+  .row svg { flex: 0 0 auto; }
+  .boxed { border: 1px solid var(--line-control); border-radius: 4px; padding: 12px 16px; display: inline-flex; gap: 26px; }
+  .status { display: block; background: var(--bg-warm); color: var(--text); padding: 2px 6px; margin: 10px -18px -16px; }
+  .badge { background: var(--accent); color: var(--bg-warm); font-weight: 700; padding: 0 4px; }
+  .menu { display: inline-block; background: var(--line-surface); }
+  .menu .cur { background: var(--accent-fill); color: var(--snow); }
+  .split { display: grid; grid-template-columns: auto 1fr; gap: 28px; }
+
+  /* Desktop */
+  .dt { display: grid; grid-template-columns: 230px 1fr; min-height: 420px; font: 13.5px/1.5 var(--sans); }
+  .dt__side { background: #100F0D; border-right: 1px solid var(--line-surface); padding: 14px 10px; }
+  .dt__side h4 { margin: 14px 8px 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .dt__item { padding: 6px 8px; border-radius: 6px; color: var(--text); }
+  .dt__item.on { background: #2B1E11; box-shadow: inset 2px 0 0 var(--accent); }
+  .dt__item small { color: var(--muted); }
+  .dt__main { display: flex; flex-direction: column; padding: 18px 22px; gap: 14px; }
+  .bubble { align-self: flex-end; max-width: 70%; background: #2B1E11; border: 1px solid var(--line-surface); padding: 9px 13px; border-radius: 12px; color: var(--text); }
+  .answer { max-width: 78ch; }
+  .answer strong { color: var(--snow); }
+  .tool { font: 12px var(--mono); color: var(--muted); border: 1px solid var(--line-surface); background: #141310; border-radius: 8px; padding: 7px 10px; }
+  .tool b { color: var(--accent); font-weight: 500; }
+  .composer { margin-top: auto; border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line-surface)); border-radius: 12px; padding: 12px 14px; color: var(--muted); background: #141310; display: flex; justify-content: space-between; align-items: center; }
+  .send { background: #935C29; color: #FCFCFC; border-radius: 8px; padding: 5px 12px; font-size: 12px; }
+
+  /* Варианты */
+  .variants { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 18px; }
+  .var { background: var(--bg-warm); border: 1px solid var(--line-surface); border-radius: 10px; padding: 16px; }
+  .var.default { border-color: var(--accent); }
+  .var h3 span { color: var(--accent); font: 11px var(--mono); letter-spacing: 0.1em; margin-left: 8px; }
+  .var dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font: 12.5px/1.5 var(--mono); }
+  .var dt { color: var(--muted); } .var dd { margin: 0; color: var(--snow); white-space: pre-wrap; }
+  .spin { font: 13px var(--mono); color: var(--text); background: var(--bg); border-radius: 6px; padding: 8px 10px; margin-top: 10px; white-space: pre; overflow-x: auto; }
+
+  /* Матрица */
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line-surface); vertical-align: top; }
+  th { color: var(--snow); font-weight: 600; }
+  td:first-child { font-family: var(--mono); font-size: 12.5px; color: var(--snow); white-space: nowrap; }
+  .y { color: var(--ok); } .n { color: var(--muted); } .p { color: var(--warn); }
+  .note { border-left: 2px solid var(--accent); padding: 4px 0 4px 14px; margin: 16px 0; color: var(--text); }
+  @media (max-width: 760px) { .split, .dt { grid-template-columns: 1fr; } .dt__side { display: none; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="tag">[ .Hermes skin ]</div>
+  <h1>ABRAXUS STANDARD v1.0</h1>
+  <p class="lead">Фирменный YAML-скин Hermes на дизайн-токенах a-bra.ru. Только штатный механизм: без customCSS, без плагинов, без правки Hermes. Цвета на этой странице — снимок <code>tokens.json</code> и того, что настоящие конвертеры Hermes 489c1ac вывели из <code>abraxus.yaml</code>. Шрифты здесь браузерные: в терминале будет шрифт вашего профиля, а в Desktop — системный (YAML шрифтов не задаёт).</p>
+
+  <h2>Палитра</h2>
+  <p class="lead">Пятнадцать цветов, которые реально стоят в скине. Все из tokens.json: значения сайта и их смеси «цвет поверх фона × alpha», как блок [SHEETS] в abra-tokens.css. Новых цветов нет.</p>
+  <div class="swatches" id="swatches"></div>
+
+  <h2>CLI — классический интерфейс <span class="where"><span>hermes</span></span></h2>
+  <p class="lead">Баннер при ширине терминала ≥ 95 колонок: слева знак (<code>banner_hero</code>), сверху надпись (<code>banner_logo</code>). Фон терминала CLI не перекрашивает — нужен тёмный профиль.</p>
+  <div class="win"><div class="win__bar"><i></i><i></i><i></i>&nbsp;Терминал — hermes</div>
+  <div class="term" id="cli"></div></div>
+
+  <h2>TUI <span class="where"><span>hermes --tui</span></span></h2>
+  <p class="lead">TUI сам красит фон терминала в <code>#0C0B09</code> (OSC 11) и возвращает исходный при выходе. Подпись под логотипом и значок ☤ зашиты в Hermes и скином не меняются. Линии <code>ui_border</code> TUI поднимает до порога видимости: <code>#2B2927 → #413F3D</code>.</p>
+  <div class="win"><div class="win__bar"><i></i><i></i><i></i>&nbsp;Терминал — hermes --tui</div>
+  <div class="term" id="tui"></div></div>
+
+  <h2>Desktop <span class="where"><span>Settings → Appearance → Abraxus</span></span></h2>
+  <p class="lead">Desktop берёт из YAML семь ключей (background, ui_text, ui_accent, ui_border, banner_dim, ui_error, completion_menu_bg) и выводит остальное смешиванием. Брендинг, логотип и спиннер в Desktop не отображаются — это задача EXTENDED. Кнопка «громкой» заливки затемнена самим Hermes до <code>#935C29</code> ради белого текста.</p>
+  <div class="win"><div class="win__bar"><i></i><i></i><i></i>&nbsp;Hermes</div>
+    <div class="dt">
+      <aside class="dt__side">
+        <h4>Сегодня</h4>
+        <div class="dt__item on">Воронка МСК ЖБИ<br /><small>2 мин назад</small></div>
+        <div class="dt__item">Юнит-экономика Q4<br /><small>1 ч назад</small></div>
+        <h4>Вчера</h4>
+        <div class="dt__item">Отчёт по Директу</div>
+      </aside>
+      <section class="dt__main">
+        <div class="bubble">Найди узкое место в воронке за сентябрь</div>
+        <div class="tool"><b>●</b> read_file · reports/funnel-2026-09.csv</div>
+        <div class="answer">Узкое место — <strong>переход «заявка → встреча»</strong>: 18 % против 31 % в августе. Трафик и CPL в норме, проседает скорость первого касания.</div>
+        <div class="composer"><span>Сообщение ABRAXUS…</span><span class="send">Отправить</span></div>
+      </section>
+    </div>
+  </div>
+
+  <h2>Варианты брендинга</h2>
+  <p class="lead">В скин входит один вариант, рамкой отмечен вариант по умолчанию. Переключение — заменой строк в <code>branding</code>.</p>
+  <div class="variants" id="branding"></div>
+
+  <h2>Варианты приветствия</h2>
+  <p class="lead"><code>welcome</code> выводит только классический CLI при запуске. TUI и Desktop его не показывают.</p>
+  <div class="variants" id="welcome"></div>
+
+  <h2>Варианты спиннера</h2>
+  <p class="lead">Скин задаёт «лица» и глаголы (выбираются случайно на каждый шаг) и «крылья». Сама анимация кадров ⠋⠙⠹ зашита в Hermes. Крылья видны только у «сырого» спиннера (например, <code>hermes chat -q</code>), в интерактивном CLI и в TUI статус выглядит как «лицо + глагол». Desktop эти тексты не показывает.</p>
+  <div class="variants" id="spinner"></div>
+
+  <h2>Где что отображается</h2>
+  <p class="lead">Проверено по исходникам Hermes 489c1ac (ветка main от 07.10.2026).</p>
+  <table>
+    <thead><tr><th>Ключ</th><th>CLI</th><th>TUI</th><th>Desktop</th></tr></thead>
+    <tbody id="matrix"></tbody>
+  </table>
+  <div class="note">Побочный эффект: свой <code>agent_name</code> gateway передаёт в релей ботов как отображаемое имя. В многоагентном чате ответы получат префикс «<b>ABRAXUS:</b>». Отключить нельзя, можно заменить имя переменной <code>GATEWAY_RELAY_DISPLAY_NAME</code> — см. INSTALL.md.</div>
+</main>
+<script>
+const ART = {"logo": [" █████╗ ██████╗ ██████╗  █████╗ ██╗  ██╗██╗   ██╗███████╗", "██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗██╔╝██║   ██║██╔════╝", "███████║██████╔╝██████╔╝███████║ ╚███╔╝ ██║   ██║███████╗", "██╔══██║██╔══██╗██╔══██╗██╔══██║ ██╔██╗ ██║   ██║╚════██║", "██║  ██║██████╔╝██║  ██║██║  ██║██╔╝ ██╗╚██████╔╝███████║", "╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝", "               [ .S Y S T E M   C O R E ]"], "hero": ["⠀⠀⠀⠀⢀⣤⣶⡶⠿⠿⠷⣶⣦⣄⠀⠀⠀⠀⠀", "⠀⠀⢀⣾⠟⠉⠀⠀⠀⠀⠀⠀⠈⠻⣷⣄⠀⠀⠀", "⠀⢠⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣆⠀⠀", "⠀⣾⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⡀⠀", "⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠇⠀", "⠀⠸⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⡟⠀⠀", "⠀⠀⠹⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⠟⠁⠀⠀", "⠀⠀⠀⠈⠻⣷⣄⠀⠀⠀⠀⢀⣴⡿⠃⠀⠀⠀⠀", "⠀⠀⠀⠀⠀⠈⠻⣷⣄⢀⣴⡿⠋⠀⠀⠀⠀⠀⠀", "⠀⠀⠀⠀⠀⠀⠀⢈⣿⣿⡋⠀⠀⠀⠀⠀⠀⠀⠀", "⠀⠀⠀⠀⠀⢀⣴⡿⠋⠈⢿⣦⡀⠀⠀⠀⠀⠀⠀", "⠀⠀⠀⠀⣠⡾⠋⠀⠀⠀⠀⠙⢿⣦⡀⠀⠀⠀⠀", "⠀⠀⣠⣾⠟⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⣦⡀⠀⠀", "⠀⠾⠿⠷⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠿⠿⠆⠀", "⠀[ .core online ]"]};
+
+const swatches = [
+  ["bg", "#0C0B09", "фон · background"], ["bg-warm", "#131210", "статус-бар"], ["text", "#CEC9C3", "основной текст"],
+  ["snow", "#EDEBE6", "заголовки"], ["accent", "#B87333", "медь · акцент"], ["accent-tint", "#D0A984", "строки кода, $"],
+  ["accent-fill", "#2B1E11", "выделение, активная строка"], ["muted", "#84817C", "второстепенный"], ["line-surface", "#2B2927", "рамки, меню"],
+  ["line-control", "#63615D", "линия ввода, рамка баннера"], ["ok", "#7C9A6E", "успех"], ["warn", "#C9A24B", "предупреждение"],
+  ["bad-text", "#C07460", "ошибка"], ["ok-fill", "#20251B", "diff +"], ["bad-fill", "#2A1813", "diff −"],
+];
+document.getElementById("swatches").innerHTML = swatches.map(([n, v, r]) =>
+  `<div class="sw"><i style="background:${v}"></i><div><b>${n}</b> ${v}<small>${r}</small></div></div>`).join("");
+
+// Брайль рисуем точками: у браузерных шрифтов пустая клетка ⠀ часто выходит «квадратом»,
+// в терминале такой проблемы нет. Те же символы, что в banner_hero.
+const DOTS = [[0, 0, 0x01], [0, 1, 0x02], [0, 2, 0x04], [1, 0, 0x08], [1, 1, 0x10], [1, 2, 0x20], [0, 3, 0x40], [1, 3, 0x80]];
+function brailleSvg(lines, color, cw = 8, ch = 17) {
+  const w = Math.max(...lines.map(l => [...l].length)) * cw, h = lines.length * ch;
+  let dots = "";
+  lines.forEach((line, r) => [...line].forEach((g, c) => {
+    const code = g.codePointAt(0) - 0x2800;
+    if (code < 0 || code > 0xff) return;
+    for (const [dx, dy, bit] of DOTS) if (code & bit)
+      dots += `<circle cx="${c * cw + 2 + dx * 4}" cy="${r * ch + 2.5 + dy * 4}" r="1.35"/>`;
+  }));
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="${color}" aria-label="знак ABRA шрифтом Брайля">${dots}</svg>`;
+}
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const span = (cls, s) => `<span class="${cls}">${esc(s)}</span>`;
+const pad = (s, n) => s + " ".repeat(Math.max(0, n - [...s].length));
+
+// CLI: знак слева, справа — сводка, как в hermes_cli/banner.py
+const right = [
+  span("acc", "Available Tools"), span("mut", "  terminal  ") + "read_file, write_file, patch, search_files",
+  span("mut", "  web       ") + "web_search, web_extract", span("mut", "  memory    ") + "memory, session_search",
+  "", span("acc", "Available Skills"), span("mut", "  ") + "yandex-direct-audit, dream-life-plan, …", "",
+  span("mut", "Model  ") + "claude-opus-5-5", span("mut", "Session ") + span("mut", "20261008_1912"),
+];
+const markLines = ART.hero.slice(0, -1), caption = ART.hero.at(-1).replace(/\u2800/g, " ");
+const logoBlock = `<span class="art">${ART.logo.map((l, i) => i < 5 ? span("snow", l) : i === 5 ? span("mut", l) : span("acc", l)).join("\n")}</span>`;
+const heroBlock = `<span>${brailleSvg(markLines, "#B87333")}\n${span("mut", caption)}</span>`;
+document.getElementById("cli").innerHTML = [
+  logoBlock, `<span class="boxed">${heroBlock}<span>${right.join("\n")}</span></span>`, "",
+  "ABRAXUS / SYSTEM CORE на связи. Опишите задачу или введите /help.", "",
+  span("ctl", "─".repeat(80)),
+  span("acc", "› ") + "найди узкое место в воронке за сентябрь", "",
+  span("mut", "  [ ▪ ] сверяю воронку..."),
+  span("acc", "  ╎ ") + span("mut", "📄 read_file reports/funnel-2026-09.csv  0.3s"), "",
+  span("acc", "╭─ [ .ABRAXUS ] " + "─".repeat(63) + "╮"),
+  span("acc", "│ ") + "Узкое место — переход «заявка → встреча»: 18 % против 31 %." + " ".repeat(17) + span("acc", "│"),
+  span("acc", "╰" + "─".repeat(78) + "╯"), "",
+  span("acc", "› ") + "/sk" + "\n  " + `<span class="menu"><span class="cur"> /skin      </span><span class="mut"> сменить скин </span>\n   /skills    <span class="mut"> навыки      </span></span>`,
+  `<span class="status"><span class="badge"> ABRAXUS </span> claude-opus-5-5 ${span("mut", "│")} ${span("ok", "ctx 18%")} ${span("mut", "│ $0.42 │ 12:04")}</span>`,
+].join("\n");
+
+// TUI
+const tuiRight = [span("acc", "Tools"), span("mut", "  terminal  ") + "read_file · write_file · patch", span("mut", "  web       ") + "web_search · web_extract",
+  "", span("acc", "Skills"), span("mut", "  yandex-direct-audit · dream-life-plan"), "", span("mut", "  /help — [ .Команды ]")];
+document.getElementById("tui").innerHTML = [
+  logoBlock,
+  span("mut", "☤ Nous Research · Посланник цифровых богов") + span("mut", "   ← зашито в Hermes"), "",
+  `<span class="row">${heroBlock}<span>${tuiRight.join("\n")}</span></span>`,
+  span("acc", "› ") + "сравни сентябрь с августом и покажи правку в отчёте", "",
+  span("acc", "● ") + span("mut", "patch reports/summary.md"),
+  span("tb", "  ┌─────────────────────────────────────────────"),
+  span("tb", "  │ ") + span("del", "- Конверсия заявка → встреча: 31 %          "),
+  span("tb", "  │ ") + span("add", "+ Конверсия заявка → встреча: 18 % (−13 п.п.)"),
+  span("tb", "  └─────────────────────────────────────────────"), "",
+  span("acc", "╎ ") + "Проседает скорость первого касания. Проверка:",
+  span("acc", "╎ ") + span("acc", "const") + " lag " + span("acc", "=") + " median(" + span("tint", "'first_touch'") + ") " + span("mut", "// часы"),
+  span("acc", "╎ ") + span("tint", "$ ") + "hermes cron run funnel-report " + span("ok", "✓ готово"),
+  span("acc", "╎ ") + span("warn", "⚠ 3 заявки без источника") + "   " + span("err", "✗ amoCRM: 401"),
+  `<span class="status">${span("acc", "[ ◦ ] свожу данные…")} ${span("mut", "│ ABRAXUS │ opus-5.5 │")} ${span("ok", "ctx 22%")}</span>`,
+].join("\n");
+
+// Варианты
+const variant = (title, tag, rows, extra = "", def = false) =>
+  `<div class="var${def ? " default" : ""}"><h3>${title}<span>${tag}</span></h3><dl>${rows.map(([k, v]) =>
+    `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>${extra}</div>`;
+
+document.getElementById("branding").innerHTML = [
+  variant("A · System Core", "ПО УМОЛЧАНИЮ", [["agent_name", "ABRAXUS"], ["response_label", " [ .ABRAXUS ] "], ["prompt_symbol", "›"], ["help_header", "[ .Команды ]"], ["goodbye", "[ .Сессия сохранена ]"], ["tool_prefix", "╎"]], "", true),
+  variant("B · Сигнатура", "ДЛИННОЕ ИМЯ", [["agent_name", "ABRAXUS System Core"], ["response_label", " [ .SYSTEM CORE ] "], ["prompt_symbol", "▸"], ["help_header", "[ .Команды ядра ]"], ["goodbye", "[ .Ядро остановлено ]"], ["tool_prefix", "╎"]],
+    `<p class="lead" style="margin-top:10px;font-size:13px">Узкий TUI покажет только «ABRAXUS». В релей ботов уйдёт полное имя.</p>`),
+  variant("C · Минимал ASCII", "ЛЮБОЙ ТЕРМИНАЛ", [["agent_name", "ABRAXUS"], ["response_label", " ABRAXUS "], ["prompt_symbol", ">"], ["help_header", "Команды"], ["goodbye", "До связи."], ["tool_prefix", "|"]],
+    `<p class="lead" style="margin-top:10px;font-size:13px">Для терминалов без Unicode-шрифтов. Логотип и знак лучше тогда убрать.</p>`),
+].join("");
+
+document.getElementById("welcome").innerHTML = [
+  variant("A · Короткое", "ПО УМОЛЧАНИЮ", [["welcome", "ABRAXUS / SYSTEM CORE на связи. Опишите задачу или введите /help."]], "", true),
+  variant("B · Про систему роста", "RU", [["welcome", "[ .Система готова ] Маркетинг, продажи, аналитика или продукт — с чего начнём? /help — команды."]]),
+  variant("C · English", "EN", [["welcome", "ABRAXUS / SYSTEM CORE online. Describe the task or type /help."]]),
+].join("");
+
+const spinRow = (face, verb, wings) => `${wings ? wings[0] + " " : ""}⠹ ${face} ${verb}... ${wings ? wings[1] + " " : ""}(1.4s)`;
+document.getElementById("spinner").innerHTML = [
+  variant("A · Скобки", "ПО УМОЛЧАНИЮ", [["waiting", "[ . ]  [ .. ]  [ ... ]"], ["thinking", "[ ◦ ]  [ ∘ ]  [ ▪ ]  [ ▫ ]"], ["wings", "[ .  …  ]"]],
+    `<div class="spin">${esc(spinRow("[ ◦ ]", "собираю систему"))}\n${esc(spinRow("[ ▪ ]", "ищу узкое место", ["[ .", "]"]))}</div>`, true),
+  variant("B · Орбита", "ДЛЯ EXTENDED", [["waiting", "(◦  )  ( ◦ )  (  ◦)"], ["thinking", "◌  ◦  ∘"], ["wings", "⟨  …  ⟩"]],
+    `<div class="spin">${esc(spinRow("◌", "сверяю воронку"))}\n${esc(spinRow("( ◦ )", "свожу данные", ["⟨", "⟩"]))}</div>`),
+  variant("C · Сигнал", "ТИХИЙ", [["waiting", "▪▫▫  ▫▪▫  ▫▫▪"], ["thinking", "▸  ▪  ▫"], ["wings", "›  …  ‹"]],
+    `<div class="spin">${esc(spinRow("▸", "калибрую метрики"))}\n${esc(spinRow("▫▪▫", "проверяю гипотезу", ["›", "‹"]))}</div>`),
+].join("") + `<div class="var" style="grid-column:1/-1"><h3>Глаголы<span>ОБЩИЕ ДЛЯ ВСЕХ ВАРИАНТОВ</span></h3><dl>
+  <dt>RU (в скине)</dt><dd>собираю систему · ищу узкое место · сверяю воронку · считаю юнит-экономику · связываю маркетинг и продажи · раскладываю по слоям · проверяю гипотезу · свожу данные · выстраиваю маршрут · калибрую метрики</dd>
+  <dt>EN (замена)</dt><dd>assembling the system · finding the bottleneck · checking the funnel · running unit economics · linking marketing and sales · mapping the layers · testing the hypothesis · reconciling data · plotting the route · calibrating metrics</dd></dl></div>`;
+
+// Матрица: проверено по hermes_cli/skin_engine.py, banner.py, agent/display.py, ui-tui/src/theme.ts, apps/desktop/src/themes/skin.ts
+const Y = '<span class="y">да</span>', N = '<span class="n">—</span>', P = t => `<span class="p">${t}</span>`;
+const matrix = [
+  ["background", P("нет, фон терминала свой"), Y + " + красит терминал", Y + " фон окна"],
+  ["ui_text / banner_text", Y + " banner_text: ответ и баннер", Y + " текст", Y + " foreground (ui_text)"],
+  ["ui_accent", Y, Y + " акцент", Y + " primary, фокус, курсор"],
+  ["ui_border", N, P("поднят до #413F3D"), Y + " все рамки"],
+  ["banner_dim", Y, Y + " приглушённый", Y + " muted-текст"],
+  ["ui_error", Y, Y, Y + " destructive"],
+  ["completion_menu_bg", Y + " меню /команд", Y + " меню и панели", P("обводка полей ввода")],
+  ["status_bar_*, input_rule, response_border, session_*", Y, P("частично"), N],
+  ["diff_*, syntax_*, ui_tool, ui_thinking, shell_dollar", N, Y, N],
+  ["light_colors / dark_colors", N, P("dark_colors — поверх colors; light_colors — только при светлом background"), N],
+  ["branding.agent_name", Y + " баннер, статус", Y + " баннер", N + " (уходит в релей ботов)"],
+  ["branding.welcome / goodbye", Y, N, N],
+  ["branding.response_label", Y + " рамка ответа", N, N],
+  ["branding.prompt_symbol", Y, Y, N],
+  ["branding.help_header", Y + " /help", Y + " /help", N],
+  ["tool_prefix", Y + " строки инструментов", Y + " маркер ответа", N],
+  ["spinner.*", Y, Y + " статус: лицо + глагол", N],
+  ["banner_logo / banner_hero", Y + " при ширине ≥ 95", Y + " при ширине ≥ лого + 2", N],
+];
+document.getElementById("matrix").innerHTML = matrix.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("");
+</script>
+</body>
+</html>

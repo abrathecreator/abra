@@ -94,6 +94,14 @@ sheets/               — перенос дизайн-системы в Google S
                         при правке токенов обновлять и его) +
                         abra-theme-msk-zhbi.gs (тема под конкретную таблицу
                         реестра МСК ЖБИ, сохраняет смысл голубых/жёлтых полей)
+hermes-theme/         — ABRAXUS: фирменный скин для Hermes Agent, к сайту не
+                        подключается. tokens.json — единственный источник
+                        цветов (значения сайта + их смеси, check.py сверяет
+                        с style.css/abra-tokens.css). standard/ — YAML-скин
+                        abraxus.yaml + check.py (запускать питоном из
+                        ~/.hermes/hermes-agent/venv) + preview.html + INSTALL.md.
+                        extended/ (Desktop-плагин) — ещё не начат. При правке
+                        токенов сайта догонять tokens.json и скин
 DESIGN_SYSTEM.md      — описание дизайн-системы для человека
 ARCHITECTURE.md       — человекочитаемая документация для разработчиков
 TECHDEBT.md           — известные нерешённые проблемы, читай перед крупными правками

@@ -1,0 +1,200 @@
+# ABRAXUS EXTENDED — плагин темы для Hermes Desktop — дизайн
+
+- **Дата:** 08.10.2026
+- **Статус:** дизайн согласован с владельцем по частям в чате, ждёт ревью текста
+- **Предыдущий этап:** ABRAXUS STANDARD v1.0 (`hermes-theme/standard/`, коммит `950bb8b`) — YAML-скин, установлен и активен
+- **Целевая версия Hermes:** Hermes Agent `489c1ac` (2026.9.24), сборка Desktop от 07.10.2026 в `~/.hermes/hermes-agent/apps/desktop/release/`
+- **Визуальный референс:** выбор движения знака — экран `motion-v2.html` визуального компаньона (варианты A «Орбита» и B «Сигнал по контуру»)
+
+---
+
+## Зачем
+
+Hermes Desktop — рабочее окно владельца на весь день. После STANDARD оно уже графитово-медное, но YAML-скин упирается в потолок штатного механизма:
+
+1. Desktop берёт из YAML семь ключей и выводит остальное смешиванием — поля и чекбоксы получаются 1,36:1 вместо 3:1, как на сайте.
+2. Медь на «громких» кнопках Hermes затемняет до `#935C29` ради белого текста.
+3. Шрифт задать нельзя — интерфейс остаётся на системном.
+4. Знака ABRA нет: на заставке нового чата — надпись HERMES AGENT, в работе — ничего фирменного.
+
+EXTENDED закрывает это через официальный Desktop Plugin SDK. Цель — окно Hermes воспринимается как продолжение a-bra.ru и при этом ничем не мешает работе и не ломается от `hermes update`.
+
+## Решения, принятые с владельцем (08.10.2026)
+
+1. Анимированный знак живёт **в двух местах**: крупно — на заставке нового чата, мелко — в строке статуса как индикатор работы агента.
+2. **Только тёмная тема** в этой версии. Светлая — отдельным шагом позже; палитра устроена так, чтобы её можно было добавить блоком.
+3. **Только Inter**, без Syne: у Hermes нет отдельного слота под шрифт заголовков, а селекторы ради него хрупкие.
+4. Движение знака: на заставке — **B «Сигнал по контуру»**, в строке статуса — **A «Орбита»**.
+5. **CSS — только публичные переменные Hermes**, селекторов по интерфейсу нет. Единственное согласованное исключение — подмена надписи на заставке (п. 6).
+6. Заставку нового чата Hermes держит за собой: слот плагина `CHAT_EMPTY_AREA` в черновике не монтируется (у черновика нет `sessionId`; подтверждено замером временным плагином 08.10.2026). Знак ставится **одним CSS-правилом** по `[data-slot="aui_intro"] .wordmark`, с молчаливым откатом к надписи Hermes, если вёрстка изменится.
+7. Палитра попадает в плагин **скриптом сборки** из `hermes-theme/tokens.json` — ручного дублирования цветов нет.
+
+## Вне рамок
+
+- Светлая тема.
+- Syne и любые правки типографики, кроме выбора Inter.
+- Фирменные детали по селекторам (скобки `[ .Сегодня ]` в боковой панели, уголки вокруг поля ввода).
+- Страница или панель ABRAXUS, пункты в ⌘K, клики по знаку в строке статуса.
+- Изменения STANDARD: он остаётся для CLI/TUI и как запасная тема Desktop.
+- Скругления: у Hermes `--radius-scalar` уже 0,2 (углы около 2 px), менять не нужно.
+- Текст под надписью на заставке («Search the repo, edit files…») — остаётся от Hermes.
+
+---
+
+## Структура
+
+```
+hermes-theme/
+  tokens.json                ← без изменений: все нужные цвета, включая ANSI-палитру, в нём уже есть
+  extended/
+    plugin.js                ← готовый к установке плагин; блок между // <tokens> и // </tokens> пишет сборка
+    build.mjs                ← node build.mjs — переписать блок; node build.mjs --check — код 1 при расхождении
+    check.mjs                ← все проверки (раздел «Проверки»)
+    preview.html             ← превью заставки и строки статуса во всех состояниях
+    INSTALL.md               ← установка, обновление, удаление
+```
+
+Ничего из `hermes-theme/` не входит в сборку a-bra.ru. Скрипты — Node без зависимостей (у владельца Node 26).
+
+Установка: копия `plugin.js` в `~/.hermes/desktop-plugins/abraxus-extended/plugin.js` (имя папки обязано совпадать с `id` плагина). Hermes подхватывает файл и его изменения без перезапуска. Удаление — удалить папку.
+
+## Плагин `abraxus-extended`
+
+Один ESM-файл без JSX и без сборки на стороне Hermes. Разрешённые импорты — только `@hermes/plugin-sdk` и `react/jsx-runtime`.
+
+```
+export default {
+  id: 'abraxus-extended',
+  name: 'ABRAXUS',
+  register(ctx) {
+    ctx.register({ id: 'theme', area: THEMES_AREA, data: THEME })
+    ctx.register({ id: 'mark', area: STATUSBAR_AREAS.left, order: 0, render: () => jsx(StatusMark, {}) })
+  }
+}
+```
+
+### Блок токенов
+
+Между маркерами — одно объявление `const ABX = { ... }` в виде JSON-литерала (только строки и вложенные объекты), чтобы `check.mjs` мог прочитать его через `JSON.parse` без исполнения плагина. Всё остальное в `plugin.js` (тема, CSS, SVG знака) берёт цвета только из `ABX`.
+
+`build.mjs` содержит единственную таблицу «роль Hermes → имя токена» и пишет в блок готовые hex-значения. Правка цвета: `tokens.json` → `node build.mjs` → проверка → копия в Hermes.
+
+### Тема
+
+`name: 'abraxus-extended'`, `label: 'ABRAXUS'` — имя отличается от YAML-скина `abraxus`: при совпадении Desktop предпочёл бы YAML-версию (`resolveTheme`: built-in → user → backend → contributed).
+
+`colors` и `darkColors` — одна и та же тёмная палитра (переключатель светлый/тёмный на ABRAXUS не действует; Hermes по яркости фона всё равно рисует тёмный режим).
+
+| Поле `DesktopThemeColors` | Токен | Значение |
+|---|---|---|
+| `background` | bg | `#0C0B09` |
+| `foreground` | text | `#CEC9C3` |
+| `card` | bg-warm | `#131210` |
+| `cardForeground` | text | `#CEC9C3` |
+| `muted` | bg-warm | `#131210` |
+| `mutedForeground` | muted | `#84817C` |
+| `popover` | bg-warm | `#131210` |
+| `popoverForeground` | text | `#CEC9C3` |
+| `primary` | accent | `#B87333` |
+| `primaryForeground` | bg | `#0C0B09` |
+| `secondary` | accent-fill | `#2B1E11` |
+| `secondaryForeground` | snow | `#EDEBE6` |
+| `accent` | accent-fill | `#2B1E11` |
+| `accentForeground` | snow | `#EDEBE6` |
+| `border` | line-surface | `#2B2927` |
+| `input` | line-control | `#63615D` |
+| `ring` | accent | `#B87333` |
+| `midground` | accent | `#B87333` |
+| `midgroundForeground` | bg | `#0C0B09` |
+| `composerRing` | accent | `#B87333` |
+| `destructive` | bad-text | `#C07460` |
+| `destructiveForeground` | bg | `#0C0B09` |
+| `sidebarBackground` | bg | `#0C0B09` |
+| `sidebarBorder` | line-surface | `#2B2927` |
+| `userBubble` | bg-warm | `#131210` |
+| `userBubbleBorder` | line-surface | `#2B2927` |
+
+`typography`:
+- `fontSans`: `Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif` + эмодзи-фолбэк, как у встроенных тем Hermes.
+- `fontMono`: стек Hermes по умолчанию с JetBrains Mono первым (у сайта моноширинного шрифта нет).
+- `fontUrl`: `https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap` — так же грузят шрифты встроенные темы Hermes; у интерфейса Desktop нет CSP. Без сети — системный шрифт.
+- `baseSize`, `lineHeight`, `letterSpacing` — не задаются.
+
+`terminal` и `darkTerminal` — одна палитра:
+
+| Поле | Токен | | Поле | Токен |
+|---|---|---|---|---|
+| `foreground` | text | | `black` | bg-warm |
+| `cursor` | accent | | `red` | bad-text |
+| `selectionBackground` | accent-fill | | `green` | ok |
+| `brightBlack` | muted | | `yellow` | warn |
+| `brightWhite` | snow | | `blue` | info |
+| остальные `bright*` | как обычные | | `magenta` | accent |
+| | | | `cyan` | accent-tint |
+| | | | `white` | text |
+
+### CSS темы (`customCSS`)
+
+Ровно два блока, оба только при активной теме ABRAXUS (Hermes вставляет `customCSS` при её выборе и убирает при смене):
+
+1. **Медная заливка.** `:root { --dt-primary-solid: #B87333 !important; --dt-primary-solid-foreground: #0C0B09 !important; }` — `!important` нужен, потому что Hermes ставит эти переменные инлайн-стилем на `<html>`. Контраст 5,19:1.
+2. **Знак на заставке** — см. ниже.
+
+### Знак на заставке (вариант B)
+
+- Селектор: `[data-slot="aui_intro"] .wordmark` — смысловой атрибут заставки и класс надписи (`apps/desktop/src/components/chat/intro.tsx`, `wordmark.tsx`).
+- Оба `span` надписи скрываются; у `<p class="wordmark">` снимается ширина Hermes (`width` ставится инлайн-стилем, поэтому `!important`) и задаётся высота около 170 px; знак — `background` с SVG в data URI, по центру, `contain`.
+- SVG — путь из `public/mark.svg` (`M 6 155 L 82 75 A 44 44 0 1 0 18 75 L 94 155 Z`), медь `accent`, линия 6 единиц, `stroke-linecap/linejoin: round`. Внутри SVG — CSS-анимация: отрисовка контура за 2,4 с (`stroke-dashoffset` 1 → 0 при `pathLength="1"`), затем по контуру с периодом 6 с бежит штрих цвета `snow` длиной 7 % контура.
+- `@media (prefers-reduced-motion: reduce)` во внешнем CSS подставляет второй data URI — тот же знак без анимации. На медиазапрос внутри SVG-картинки не полагаемся.
+- `aria-label="HERMES AGENT"` у надписи остаётся от Hermes — подменяется только картинка.
+- Если Hermes изменит атрибут или класс, правило перестанет совпадать и вернётся надпись HERMES AGENT; тема и строка статуса не зависят от этого правила.
+
+### Знак в строке статуса (вариант A)
+
+Компонент `StatusMark`:
+
+- Место: левая часть строки статуса. Hermes ставит вклады плагинов после своих элементов этой части, `order: 0` — первым среди плагинов. Владелец может скрыть знак штатным меню видимости строки статуса.
+- Рендерит `null`, если активная тема не `abraxus-extended` (`useTheme().themeName` из SDK) — при смене темы знак исчезает сам.
+- SVG около 12 × 18 px: контур знака медью, над кольцом — точка цвета `snow` на орбите вокруг центра кольца (50; 44,8), радиус чуть больше кольца.
+- `useValue(host.state.busy)`: свободен — точка неподвижна в верхней точке; работает — орбита вращается CSS-анимацией, оборот 1,6 с; по окончании возвращается в покой.
+- `prefers-reduced-motion: reduce` (`matchMedia` с подпиской на изменения): вращения нет, при работе точка становится медной.
+- `role="img"`, `aria-label` и `title`: «ABRAXUS — работает» / «ABRAXUS — свободен».
+- Без кликов и без собственного JS-таймера: анимация на CSS, в свёрнутом окне движок её не рисует. `createBudgetedLoop` не нужен — покадрового JS нет.
+- Стили компонента — инлайн-стилями и одним `<style>`-элементом с keyframes, внедрённым плагином и удаляемым в `ctx.onDispose`.
+
+---
+
+## Проверки (`check.mjs`)
+
+Одна команда `node hermes-theme/extended/check.mjs`, код 1 при любой ошибке. Путь к Hermes — `HERMES_AGENT_DIR` или `~/.hermes/hermes-agent`.
+
+1. **Токены:** `build.mjs --check` — блок `ABX` в `plugin.js` совпадает со сборкой из `tokens.json`; базовые и производные токены по-прежнему проверяет `standard/check.py`.
+2. **Тема:** заданы все поля `DesktopThemeColors` — список читается из `apps/desktop/src/themes/types.ts` установленного Hermes; все значения — `#RRGGBB`; `name`, `label` есть, `name` ≠ `abraxus`.
+3. **Контраст** (WCAG): текст на фоне, карточке и пузыре ≥ 4,5:1; muted на фоне ≥ 4,5:1; медь на фоне и на bg-warm ≥ 4,5:1; тёмный текст на меди ≥ 4,5:1; `input` на фоне ≥ 3:1; ошибка на фоне ≥ 4,5:1; `snow` на `accent-fill` ≥ 4,5:1.
+4. **Код:** `node --check plugin.js`; все `import … from` — только `@hermes/plugin-sdk` и `react/jsx-runtime`.
+5. **CSS:** в `customCSS` нет селекторов, кроме `:root` и `[data-slot="aui_intro"] .wordmark` (включая его потомков и `@media (prefers-reduced-motion: reduce)`); размер < 32 768 байт.
+6. **Совместимость с установленным Hermes:** в собранном Desktop (`app.asar.unpacked/dist`) есть строки `aui_intro`, `wordmark`; в SDK (`apps/desktop/src/sdk/index.ts`) экспортируются `THEMES_AREA`, `STATUSBAR_AREAS`, `useTheme`, `useValue`, `host`; в `host.state` есть `busy`. Запускать после каждого `hermes update`.
+
+## Проверка в приложении
+
+После установки владелец присылает скриншоты, сверяем с `preview.html`:
+- Settings → Appearance → ABRAXUS: цвета, Inter, поля и чекбоксы.
+- Новый сеанс: знак рисуется, по контуру бежит штрих.
+- Строка статуса: точка стоит; во время ответа агента вращается; останавливается после.
+- Системные настройки → Универсальный доступ → «Уменьшить движение»: заставка и строка статуса статичны.
+- Переключение на другую тему: знак в строке статуса исчезает, на заставке возвращается HERMES AGENT.
+
+## Сбои и откат
+
+| Что | Что видит владелец |
+|---|---|
+| Ошибка в коде плагина | Уведомление Hermes; плагин изолирован границей ошибок, приложение работает |
+| Hermes сменил вёрстку заставки | Снова надпись HERMES AGENT; остальное работает; `check.mjs` п. 6 называет, что исчезло |
+| Нет интернета | Системный шрифт вместо Inter |
+| Плагин удалён при активной теме | Desktop откатывается на свою тему по умолчанию (Nous); перед удалением лучше выбрать Abraxus из STANDARD |
+
+## Документация
+
+- `hermes-theme/extended/INSTALL.md` — установка, обновление (`build.mjs` → `check.mjs` → копия), удаление, что проверить после `hermes update`.
+- `hermes-theme/README.md` — статус EXTENDED, правило палитры дополняется сборкой.
+- `CLAUDE.md`, раздел «Структура файлов» — строка про `extended/`.

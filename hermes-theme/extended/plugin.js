@@ -2,6 +2,7 @@
 // Источник — hermes-theme/extended/plugin.js в репозитории сайта; ставится копией в
 // ~/.hermes/desktop-plugins/abraxus-extended/plugin.js (см. INSTALL.md рядом).
 // Цвета берутся только из блока ABX ниже — его пишет build.mjs из tokens.json.
+import { THEMES_AREA } from '@hermes/plugin-sdk'
 
 // <tokens>
 // Пишет build.mjs из hermes-theme/tokens.json — руками не править.
@@ -65,3 +66,79 @@ const ABX = {
   }
 }
 // </tokens>
+
+export const THEME_NAME = 'abraxus-extended'
+
+// Знак ABRA — путь из public/mark.svg сайта. Кольцо — окружность r = 44
+// через (18; 75) и (82; 75), её центр (50; 44,8).
+export const MARK_PATH = 'M 6 155 L 82 75 A 44 44 0 1 0 18 75 L 94 155 Z'
+const SPLASH_VIEWBOX = '-14 -14 128 185'
+
+// Заставка нового чата: контур рисуется за 2,4 с, затем раз в 6 с по нему
+// пробегает светлый штрих (вариант B). Без animated — статичный знак.
+export function splashSvg(animated) {
+  const line = `fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" pathLength="1" d="${MARK_PATH}"`
+  const style = animated
+    ? '<style>.b{stroke-dasharray:1;animation:d 2.4s ease-out both}' +
+      '.t{stroke-dasharray:.07 .93;stroke-dashoffset:1;opacity:0;animation:r 6s linear 2.4s infinite}' +
+      '@keyframes d{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}' +
+      '@keyframes r{from{opacity:1;stroke-dashoffset:1}to{opacity:1;stroke-dashoffset:0}}</style>'
+    : ''
+  const trace = animated ? `<path class="t" stroke="${ABX.mark.signal}" ${line}/>` : ''
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${SPLASH_VIEWBOX}">${style}<path class="b" stroke="${ABX.mark.stroke}" ${line}/>${trace}</svg>`
+}
+
+const svgUrl = svg => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+
+// Единственное согласованное исключение из «CSS только через переменные»:
+// надпись HERMES AGENT на заставке нового чата заменяется знаком. Если Hermes
+// поменяет атрибут или класс, правило перестанет совпадать — вернётся надпись.
+export const INTRO_SELECTOR = '[data-slot="aui_intro"] .wordmark'
+
+export const CUSTOM_CSS = `
+:root {
+  --dt-primary-solid: ${ABX.solid.fill} !important;
+  --dt-primary-solid-foreground: ${ABX.solid.ink} !important;
+}
+${INTRO_SELECTOR} {
+  width: 116px !important;
+  height: 170px;
+  margin-inline: auto;
+  mix-blend-mode: normal;
+  background: ${svgUrl(splashSvg(true))} center / contain no-repeat;
+}
+${INTRO_SELECTOR} > * {
+  display: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  ${INTRO_SELECTOR} {
+    background-image: ${svgUrl(splashSvg(false))};
+  }
+}
+`.trim()
+
+const EMOJI = '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", emoji'
+
+export const THEME = {
+  name: THEME_NAME,
+  label: 'ABRAXUS',
+  description: 'Медь на графите — дизайн-система a-bra.ru',
+  colors: ABX.colors,
+  darkColors: ABX.colors,
+  typography: {
+    fontSans: `Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif, ${EMOJI}`,
+    fontMono: `"JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace, ${EMOJI}`,
+    fontUrl: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap'
+  },
+  terminal: ABX.terminal,
+  darkTerminal: ABX.terminal,
+  customCSS: CUSTOM_CSS
+}
+
+export default {
+  id: THEME_NAME,
+  name: 'ABRAXUS',
+  register(ctx) {
+    ctx.register({ id: 'theme', area: THEMES_AREA, data: THEME })
+  }
+}

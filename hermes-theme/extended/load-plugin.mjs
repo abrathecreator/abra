@@ -11,8 +11,19 @@ const STUBS = {
     const s = () => globalThis.__abxSdk
     export const THEMES_AREA = 'themes'
     export const STATUSBAR_AREAS = { left: 'statusBar.left', right: 'statusBar.right' }
-    export const host = { state: { busy: 'busy-atom' } }
+    export const TITLEBAR_AREAS = { left: 'titleBar.left', center: 'titleBar.center', right: 'titleBar.right' }
+    export const host = {
+      state: { busy: 'busy-atom' },
+      i18n: {
+        registerAppLocale: (id, registration) => {
+          const entry = { id, registration, disposed: false }
+          s().locales.push(entry)
+          return () => { entry.disposed = true }
+        }
+      }
+    }
     export const useTheme = () => ({ themeName: s().themeName })
+    export const useI18n = () => ({ locale: s().locale, t: s().t })
     export const useValue = atom => (atom === 'busy-atom' ? s().busy : undefined)`,
   react: `
     const s = () => globalThis.__abxSdk
@@ -41,7 +52,7 @@ function installHooks() {
 }
 
 export function sdkState(over = {}) {
-  globalThis.__abxSdk = { themeName: 'abraxus-extended', busy: false, effects: [], ...over }
+  globalThis.__abxSdk = { themeName: 'abraxus-extended', busy: false, effects: [], locales: [], locale: 'ru', t: {}, ...over }
   return globalThis.__abxSdk
 }
 

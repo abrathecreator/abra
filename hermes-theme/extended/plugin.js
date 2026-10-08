@@ -2,7 +2,7 @@
 // Источник — hermes-theme/extended/plugin.js в репозитории сайта; ставится копией в
 // ~/.hermes/desktop-plugins/abraxus-extended/plugin.js (см. INSTALL.md рядом).
 // Цвета берутся только из блока ABX ниже — его пишет build.mjs из tokens.json.
-import { host, STATUSBAR_AREAS, THEMES_AREA, useTheme, useValue } from '@hermes/plugin-sdk'
+import { host, STATUSBAR_AREAS, THEMES_AREA, TITLEBAR_AREAS, useI18n, useTheme, useValue } from '@hermes/plugin-sdk'
 import { useEffect, useState } from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
@@ -259,6 +259,116 @@ export function StatusMark() {
   })
 }
 
+// ── Тексты ──────────────────────────────────────────────────────────────────
+// Штатный механизм языковых пакетов Hermes: поверх текущего каталога
+// регистрируются фирменные подсказки, строка заставки и имя ABRAXUS вместо
+// Hermes. Только пока выбрана тема ABRAXUS.
+export const NEW_SESSION_PLACEHOLDERS = [
+  'Какую систему разбираем?',
+  'Где теряются деньги?',
+  'Маркетинг, продажи, аналитика или продукт?',
+  'С какой цифры начнём?',
+  'Что сейчас не сходится?'
+]
+export const FOLLOW_UP_PLACEHOLDERS = ['Добавьте вводные', 'Что проверить дальше?', 'Копнуть глубже?']
+export const INTRO_LINE = 'ABRAXUS / SYSTEM CORE на связи. Опишите задачу — разложу её по системе.'
+
+// Служебные тексты (запуск, ошибки, обновления, бэкенд, телеметрия, сервисы
+// Nous) остаются с именем Hermes — чтобы совпадать с документацией и командами.
+export const SERVICE_KEY =
+  /boot|start|reconnect|sharedMetrics|connector|connections|gateway|error|fail|update|upgrade|backend|outOfDate|version|install|restart|vault|doctor|diagnos|reset|storage|methodNotAllowed|codeSkew/i
+// Названия продуктов Nous (Hermes Cloud, Hermes Desktop, Hermes Agent) — не трогаем.
+const NAME = /\bHermes\b(?! (?:Cloud|Desktop|Agent)\b)/g
+const rename = value => (typeof value === 'string' ? value.replace(NAME, 'ABRAXUS') : value)
+export const hasName = value => typeof value === 'string' && value.search(NAME) >= 0
+
+// Функция каталога «пробуется» заглушками: если в результате есть Hermes —
+// оборачивается переименованием, иначе не трогается.
+function probe(fn) {
+  try {
+    return fn('X', 'X', 'X', 'X')
+  } catch {
+    return undefined
+  }
+}
+
+function renameTree(node, path) {
+  if (SERVICE_KEY.test(path)) return undefined
+  if (typeof node === 'string') return hasName(node) ? rename(node) : undefined
+  if (Array.isArray(node)) return node.some(hasName) ? node.map(rename) : undefined
+  if (typeof node === 'function') {
+    const sample = probe(node)
+    const touched = hasName(sample) || (Array.isArray(sample) && sample.some(hasName))
+    return touched ? (...args) => {
+      const out = node(...args)
+      return Array.isArray(out) ? out.map(rename) : rename(out)
+    } : undefined
+  }
+  if (!node || typeof node !== 'object') return undefined
+  let out
+  for (const [key, value] of Object.entries(node)) {
+    const next = renameTree(value, path ? `${path}.${key}` : key)
+    if (next !== undefined) (out ??= {})[key] = next
+  }
+  return out
+}
+
+export function brandTexts(t) {
+  const out = renameTree(t, '') ?? {}
+  out.composer = {
+    ...out.composer,
+    newSessionPlaceholders: NEW_SESSION_PLACEHOLDERS,
+    followUpPlaceholders: FOLLOW_UP_PLACEHOLDERS
+  }
+  const stock = { '': [INTRO_LINE], default: [INTRO_LINE], none: [INTRO_LINE], neutral: [INTRO_LINE] }
+  for (const key of Object.keys(t?.intro?.stock ?? {})) stock[key] = [INTRO_LINE]
+  out.intro = { stock, custom: () => [INTRO_LINE] }
+  return out
+}
+
+// Слияние без потерь: после регистрации каталог уже без Hermes, и новый проход
+// находит меньше строк — старые подмены сохраняются, иначе тексты мигали бы.
+function mergeKeep(base, next) {
+  if (!base || typeof base !== 'object' || Array.isArray(base) || typeof next !== 'object' || Array.isArray(next)) {
+    return next
+  }
+  const out = { ...base }
+  for (const [key, value] of Object.entries(next)) out[key] = key in base ? mergeKeep(base[key], value) : value
+  return out
+}
+
+const fingerprint = (locale, translations) =>
+  locale + JSON.stringify(translations, (key, value) => (typeof value === 'function' ? `fn:${key}` : value))
+
+let texts = null
+
+function dropTexts() {
+  texts?.dispose()
+  texts = null
+}
+
+function applyTexts(active, locale, t) {
+  if (!active) return dropTexts()
+  const base = texts?.locale === locale ? texts.translations : {}
+  const translations = mergeKeep(base, brandTexts(t))
+  const print = fingerprint(locale, translations)
+  if (texts?.print === print) return
+  dropTexts()
+  texts = { locale, translations, print, dispose: host.i18n.registerAppLocale(locale, { translations }) }
+}
+
+// Невидимый компонент в постоянном слоте заголовка окна: он есть на всех
+// экранах, поэтому тексты не пропадают в настройках и на других страницах.
+export function TextsBridge() {
+  const { themeName } = useTheme()
+  const { locale, t } = useI18n()
+  const active = themeName === THEME_NAME
+  useEffect(() => {
+    applyTexts(active, locale, t)
+  }, [active, locale, t])
+  return null
+}
+
 export default {
   id: THEME_NAME,
   name: 'ABRAXUS',
@@ -273,5 +383,7 @@ export default {
       order: 0,
       data: { id: `${THEME_NAME}:mark`, toggleLabel: 'ABRAXUS', render: () => jsx(StatusMark, {}) }
     })
+    ctx.register({ id: 'texts', area: TITLEBAR_AREAS.center, render: () => jsx(TextsBridge, {}) })
+    ctx.onDispose(dropTexts)
   }
 }

@@ -2,9 +2,10 @@
 // Проверки ABRAXUS EXTENDED. Запускать после правки токенов и после каждого
 // `hermes update`:  node ~/Documents/abrasite/hermes-theme/extended/check.mjs
 import { spawnSync } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
+import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 import { TOKENS_FILE, buildAbx, writeBlock } from './build.mjs'
 import { PLUGIN_FILE, loadPlugin } from './load-plugin.mjs'
@@ -126,6 +127,56 @@ if (!existsSync(DIST)) {
   check(bundle.includes('min-w-0 truncate leading-none'), 'в сборке Desktop есть текст меток панелей (truncate)')
   check(bundle.includes('composer-surface'), 'в сборке Desktop есть поле ввода data-slot="composer-surface"')
 }
+
+const SERVICE_PATH = mod.SERVICE_KEY
+
+section('7. Имя ABRAXUS в текстах (настоящий русский каталог Hermes)')
+// Каталог собирается из исходников установленного Hermes его же esbuild.
+const tmp = mkdtempSync(join(tmpdir(), 'abraxus-catalog-'))
+const esbuild = join(HERMES, 'node_modules', '.bin', 'esbuild')
+const bundled = spawnSync(esbuild, [
+  join(DESKTOP, 'src', 'i18n', 'ru.ts'), '--bundle', '--platform=node', '--format=esm', '--log-level=error',
+  `--tsconfig=${join(DESKTOP, 'tsconfig.json')}`, `--outfile=${join(tmp, 'ru.mjs')}`
+])
+if (bundled.status !== 0) {
+  check(false, `не удалось собрать ru.ts: ${String(bundled.stderr).slice(0, 200)}`)
+} else {
+  const { ru } = await import(pathToFileURL(join(tmp, 'ru.mjs')).href)
+  const out = mod.brandTexts(ru)
+  const renamed = []
+  const kept = []
+  const walk = (node, over, path) => {
+    if (typeof node === 'string' || Array.isArray(node)) {
+      const text = [].concat(node).join(' | ')
+      if (!/\bHermes\b/.test(text)) return
+      if (over === undefined) kept.push(`${path}: ${text}`)
+      else renamed.push(`${path}: ${[].concat(over).join(' | ')}`)
+    } else if (typeof node === 'function') {
+      let sample
+      try { sample = [].concat(node('X', 'X', 'X', 'X')).join(' | ') } catch { return }
+      if (!/\bHermes\b/.test(sample)) return
+      if (over === undefined) kept.push(`${path}(): ${sample}`)
+      else renamed.push(`${path}(): ${[].concat(over('X', 'X', 'X', 'X')).join(' | ')}`)
+    } else if (node && typeof node === 'object') {
+      for (const [key, value] of Object.entries(node)) walk(value, over?.[key], path ? `${path}.${key}` : key)
+    }
+  }
+  walk(ru, out, '')
+  check(renamed.length > 50, `переименовано ${renamed.length} текстов, оставлено служебных с Hermes: ${kept.length}`)
+  const text = line => line.slice(line.indexOf(': ') + 2)
+  check(renamed.every(line => !mod.hasName(text(line))), 'в переименованных не осталось Hermes (кроме названий продуктов Nous)')
+  check(
+    kept.every(line => SERVICE_PATH.test(line.split(':')[0]) || !mod.hasName(text(line))),
+    'Hermes остался только в служебных ключах и названиях продуктов Nous'
+  )
+  if (process.argv.includes('--names')) {
+    console.log('\n  Переименовано:\n' + renamed.map(l => `    ${l}`).join('\n'))
+    console.log('\n  Оставлено (служебное):\n' + kept.map(l => `    ${l}`).join('\n'))
+  } else {
+    console.log('       полный список: node hermes-theme/extended/check.mjs --names')
+  }
+}
+rmSync(tmp, { recursive: true, force: true })
 
 console.log(`\n${failures ? 'ПРОВАЛ' : 'OK'}: ${failures} ошибок`)
 process.exitCode = failures ? 1 : 0

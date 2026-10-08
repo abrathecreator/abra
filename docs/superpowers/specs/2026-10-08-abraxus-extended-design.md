@@ -60,7 +60,7 @@ hermes-theme/
 
 ## Плагин `abraxus-extended`
 
-Один ESM-файл без JSX и без сборки на стороне Hermes. Разрешённые импорты — только `@hermes/plugin-sdk` и `react/jsx-runtime`.
+Один ESM-файл без JSX и без сборки на стороне Hermes. Разрешённые импорты — `@hermes/plugin-sdk`, `react` и `react/jsx-runtime` (так разрешает загрузчик Hermes; `useState`/`useEffect` нужны для подписки на «Уменьшить движение»).
 
 ```
 export default {
@@ -171,7 +171,7 @@ export default {
 1. **Токены:** `build.mjs --check` — блок `ABX` в `plugin.js` совпадает со сборкой из `tokens.json`; базовые и производные токены по-прежнему проверяет `standard/check.py`.
 2. **Тема:** заданы все поля `DesktopThemeColors` — список читается из `apps/desktop/src/themes/types.ts` установленного Hermes; все значения — `#RRGGBB`; `name`, `label` есть, `name` ≠ `abraxus`.
 3. **Контраст** (WCAG): текст на фоне, карточке и пузыре ≥ 4,5:1; muted на фоне ≥ 4,5:1; медь на фоне и на bg-warm ≥ 4,5:1; тёмный текст на меди ≥ 4,5:1; `input` на фоне ≥ 3:1; ошибка на фоне ≥ 4,5:1; `snow` на `accent-fill` ≥ 4,5:1.
-4. **Код:** `node --check plugin.js`; все `import … from` — только `@hermes/plugin-sdk` и `react/jsx-runtime`.
+4. **Код:** `node --check plugin.js`; все `import … from` — только `@hermes/plugin-sdk`, `react` и `react/jsx-runtime`.
 5. **CSS:** в `customCSS` нет селекторов, кроме `:root` и `[data-slot="aui_intro"] .wordmark` (включая его потомков и `@media (prefers-reduced-motion: reduce)`); размер < 32 768 байт.
 6. **Совместимость с установленным Hermes:** в собранном Desktop (`app.asar.unpacked/dist`) есть строки `aui_intro`, `wordmark`; в SDK (`apps/desktop/src/sdk/index.ts`) экспортируются `THEMES_AREA`, `STATUSBAR_AREAS`, `useTheme`, `useValue`, `host`; в `host.state` есть `busy`. Запускать после каждого `hermes update`.
 

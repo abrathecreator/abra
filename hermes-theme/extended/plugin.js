@@ -147,6 +147,8 @@ const STATUS_CSS =
   '.abx-orbit--spin{animation:abx-orbit 1.6s linear infinite}' +
   '@keyframes abx-orbit{to{transform:rotate(360deg)}}'
 
+// Счётчик пользователей на самом элементе: стиль снимается, только когда его
+// отпустила последняя загруженная копия плагина.
 function injectStatusStyle() {
   if (typeof document === 'undefined') return () => {}
   let el = document.getElementById(STATUS_STYLE_ID)
@@ -154,9 +156,14 @@ function injectStatusStyle() {
     el = document.createElement('style')
     el.id = STATUS_STYLE_ID
     el.textContent = STATUS_CSS
+    el.abxUsers = 0
     document.head.appendChild(el)
   }
-  return () => el.remove()
+  el.abxUsers += 1
+  return () => {
+    el.abxUsers -= 1
+    if (el.abxUsers === 0) el.remove()
+  }
 }
 
 const REDUCE_QUERY = '(prefers-reduced-motion: reduce)'
@@ -213,6 +220,13 @@ export default {
   register(ctx) {
     ctx.register({ id: 'theme', area: THEMES_AREA, data: THEME })
     ctx.onDispose(injectStatusStyle())
-    ctx.register({ id: 'mark', area: STATUSBAR_AREAS.left, order: 0, render: () => jsx(StatusMark, {}) })
+    // render — внутри data: только так Hermes добавляет знак в меню видимости
+    // строки статуса (toggleLabel); render на верхнем уровне меню игнорирует.
+    ctx.register({
+      id: 'mark',
+      area: STATUSBAR_AREAS.left,
+      order: 0,
+      data: { id: `${THEME_NAME}:mark`, toggleLabel: 'ABRAXUS', render: () => jsx(StatusMark, {}) }
+    })
   }
 }

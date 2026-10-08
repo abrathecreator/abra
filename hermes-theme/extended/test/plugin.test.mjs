@@ -78,14 +78,17 @@ const renderMark = async (over = {}) => {
   const { mod, contributions } = await loadPlugin()
   const mark = contributions.find(c => c.area === 'statusBar.left')
   const state = sdkState(over)
-  const element = mark.render()
+  const element = mark.data.render()
   return { mod, mark, state, tree: element.type(element.props) }
 }
 
-test('знак регистрируется в левой части строки статуса', async () => {
+test('знак регистрируется в левой части строки статуса и скрывается её меню', async () => {
   const { mark } = await renderMark()
   assert.equal(mark.id, 'mark')
   assert.equal(mark.order, 0)
+  assert.equal(mark.render, undefined, 'render в data: иначе Hermes не даёт пункт в меню видимости')
+  assert.equal(mark.data.id, 'abraxus-extended:mark')
+  assert.equal(mark.data.toggleLabel, 'ABRAXUS')
 })
 
 test('свободен: точка стоит, подпись «свободен»', async () => {
@@ -128,7 +131,7 @@ test('«Уменьшить движение»: не вращается, при �
   }
 })
 
-test('<style> строки статуса внедряется один раз и снимается при выключении', async () => {
+const fakeDocument = () => {
   const nodes = {}
   globalThis.document = {
     getElementById: id => nodes[id] ?? null,
@@ -138,15 +141,35 @@ test('<style> строки статуса внедряется один раз �
     },
     head: { appendChild: el => (nodes[el.id] = el) }
   }
+  return nodes
+}
+
+test('<style> строки статуса: перезагрузка как в Hermes — выгрузка, затем загрузка, стиль один', async () => {
+  const nodes = fakeDocument()
   try {
     const first = await loadPlugin()
-    await loadPlugin()
-    const style = nodes['abraxus-extended-status']
-    assert.ok(style, 'стиль внедрён')
-    assert.match(style.textContent, /@keyframes abx-orbit/)
-    assert.match(style.textContent, /transform-origin:50px 44\.8px/)
+    assert.match(nodes['abraxus-extended-status'].textContent, /@keyframes abx-orbit/)
+    assert.match(nodes['abraxus-extended-status'].textContent, /transform-origin:50px 44\.8px/)
     first.disposers.forEach(fn => fn())
     assert.equal(nodes['abraxus-extended-status'], undefined, 'снят при выключении')
+    const second = await loadPlugin()
+    assert.ok(nodes['abraxus-extended-status'], 'снова внедрён после загрузки')
+    assert.equal(Object.keys(nodes).length, 1, 'без дублей')
+    second.disposers.forEach(fn => fn())
+  } finally {
+    delete globalThis.document
+  }
+})
+
+test('<style> строки статуса не снимается, пока им пользуется живая копия плагина', async () => {
+  const nodes = fakeDocument()
+  try {
+    const first = await loadPlugin()
+    const second = await loadPlugin()
+    first.disposers.forEach(fn => fn())
+    assert.ok(nodes['abraxus-extended-status'], 'вторая копия ещё жива — стиль на месте')
+    second.disposers.forEach(fn => fn())
+    assert.equal(nodes['abraxus-extended-status'], undefined, 'последняя копия выключена — стиль снят')
   } finally {
     delete globalThis.document
   }

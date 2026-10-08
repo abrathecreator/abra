@@ -2,7 +2,9 @@
 // Источник — hermes-theme/extended/plugin.js в репозитории сайта; ставится копией в
 // ~/.hermes/desktop-plugins/abraxus-extended/plugin.js (см. INSTALL.md рядом).
 // Цвета берутся только из блока ABX ниже — его пишет build.mjs из tokens.json.
-import { THEMES_AREA } from '@hermes/plugin-sdk'
+import { host, STATUSBAR_AREAS, THEMES_AREA, useTheme, useValue } from '@hermes/plugin-sdk'
+import { useEffect, useState } from 'react'
+import { jsx, jsxs } from 'react/jsx-runtime'
 
 // <tokens>
 // Пишет build.mjs из hermes-theme/tokens.json — руками не править.
@@ -135,10 +137,82 @@ export const THEME = {
   customCSS: CUSTOM_CSS
 }
 
+// Строка статуса (вариант A): точка-спутник над кольцом знака. Агент свободен —
+// стоит; работает — обходит кольцо за 1,6 с. «Уменьшить движение» — не вращается,
+// при работе становится медной.
+export const STATUS_STYLE_ID = 'abraxus-extended-status'
+const STATUS_VIEWBOX = '-18 -22 136 195'
+const STATUS_CSS =
+  '.abx-orbit{transform-box:view-box;transform-origin:50px 44.8px}' +
+  '.abx-orbit--spin{animation:abx-orbit 1.6s linear infinite}' +
+  '@keyframes abx-orbit{to{transform:rotate(360deg)}}'
+
+function injectStatusStyle() {
+  if (typeof document === 'undefined') return () => {}
+  let el = document.getElementById(STATUS_STYLE_ID)
+  if (!el) {
+    el = document.createElement('style')
+    el.id = STATUS_STYLE_ID
+    el.textContent = STATUS_CSS
+    document.head.appendChild(el)
+  }
+  return () => el.remove()
+}
+
+const REDUCE_QUERY = '(prefers-reduced-motion: reduce)'
+
+function useReducedMotion() {
+  const [reduce, setReduce] = useState(() => typeof matchMedia === 'function' && matchMedia(REDUCE_QUERY).matches)
+  useEffect(() => {
+    if (typeof matchMedia !== 'function') return undefined
+    const query = matchMedia(REDUCE_QUERY)
+    const onChange = event => setReduce(event.matches)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [])
+  return reduce
+}
+
+export function StatusMark() {
+  const { themeName } = useTheme()
+  const busy = useValue(host.state.busy)
+  const reduce = useReducedMotion()
+  if (themeName !== THEME_NAME) return null
+  const label = busy ? 'ABRAXUS — работает' : 'ABRAXUS — свободен'
+  return jsx('span', {
+    role: 'img',
+    'aria-label': label,
+    title: label,
+    style: { display: 'inline-flex', alignItems: 'center', height: '100%', padding: '0 6px' },
+    children: jsxs('svg', {
+      width: 12,
+      height: 18,
+      viewBox: STATUS_VIEWBOX,
+      'aria-hidden': true,
+      children: [
+        jsx('path', {
+          d: MARK_PATH,
+          fill: 'none',
+          stroke: ABX.mark.stroke,
+          strokeWidth: 12,
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round'
+        }),
+        jsx('g', {
+          className: busy && !reduce ? 'abx-orbit abx-orbit--spin' : 'abx-orbit',
+          children: jsx('circle', { cx: 50, cy: -8, r: 10, fill: busy && reduce ? ABX.mark.stroke : ABX.mark.signal })
+        })
+      ]
+    })
+  })
+}
+
 export default {
   id: THEME_NAME,
   name: 'ABRAXUS',
   register(ctx) {
     ctx.register({ id: 'theme', area: THEMES_AREA, data: THEME })
+    ctx.onDispose(injectStatusStyle())
+    ctx.register({ id: 'mark', area: STATUSBAR_AREAS.left, order: 0, render: () => jsx(StatusMark, {}) })
   }
 }

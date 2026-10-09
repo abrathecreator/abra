@@ -20,6 +20,23 @@
 
 **Что всё равно нужно сделать при переносе зоны.** Создать на новом DNS запись `lab` — CNAME на `abra-lab.pages.dev`. Иначе пульт просто перестанет открываться (безопасно, но неудобно). После переключения проверить, что `lab.a-bra.ru` отвечает 401, а не 404 и не 200: 401 означает, что и домен доехал, и замок на месте.
 
+### На том же VPS работает `leads.a-bra.ru` — webhook-сервис Master Lead Bot
+
+Поддомен подготовлен 06.10.2026, сервис развёрнут в тот же день. Кода сервиса в этом репозитории нет: это отдельный Python/FastAPI-проект, приватный репозиторий `abrathecreator/master-lead-bot` (приём вебхуков Callibri → уведомления в MAX).
+
+Публичные адреса: `https://leads.a-bra.ru/webhooks/callibri` (POST от Callibri) и `https://leads.a-bra.ru/health` (`{"status":"ok"}`). Всё остальное на поддомене — `404`.
+
+Как устроен:
+
+- **DNS** (Cloudflare, зона `a-bra.ru`): `A leads → 157.228.191.32`, **DNS only** (без прокси, как у `@` и `www`). AAAA сознательно нет: у основного домена её тоже нет, а IPv6 на этом VPS ненадёжный (см. `CLAUDE.md`, раздел про геолокацию в форме)
+- **nginx**: отдельный файл `/etc/nginx/sites-available/leads.a-bra.ru.conf` (+ симлинк в `sites-enabled`) и сниппет `/etc/nginx/snippets/master-lead-bot-proxy.conf`. Порт 80 — редирект на HTTPS, 443 — `location = /health` и `location = /webhooks/callibri` проксируются на `127.0.0.1:8000`, `location /` — `404`. Тот же `snippets/security-headers.conf`, что у сайта. Конфиг основного сайта `a-bra.ru.conf` не трогали
+- **TLS**: отдельный сертификат Let's Encrypt `leads.a-bra.ru` (ECDSA, `certbot certonly --nginx`, certbot конфиги не правит). Продлевается тем же `certbot.timer`, что и `a-bra.ru`
+- **Приложение**: `/opt/master-lead-bot` (git clone, владелец root), venv в `.venv`, systemd-юнит `master-lead-bot.service` — Uvicorn `master_lead_bot.app:app` на `127.0.0.1:8000`, `Restart=always`, от системного пользователя `masterlead` без shell (код ему только на чтение). Секреты — `/opt/master-lead-bot/.env` (`root:masterlead`, 0640), не в git. Логи — `journalctl -u master-lead-bot`
+- **Обновление кода**: `cd /opt/master-lead-bot && git pull && .venv/bin/pip install -r requirements.txt && systemctl restart master-lead-bot`. Сервер тянет репозиторий по SSH read-only deploy key `/root/.ssh/id_ed25519_master_lead_bot` (прописан в `core.sshCommand` клона)
+- **MAX и сертификат Минцифры**: `platform-api2.max.ru` подписан «Russian Trusted Root CA», которого нет в системном хранилище Ubuntu. Доверие ему дано **только этому сервису**: `/opt/master-lead-bot/certs/ca-bundle.pem` = системные CA + этот корень (SHA-256 `D26D2D02…8ECF31`), передаётся через `SSL_CERT_FILE` в юните. Системный trust store не меняли. Бандл — снимок системных CA: после крупного обновления `ca-certificates` его стоит пересобрать (`cat /etc/ssl/certs/ca-certificates.crt certs/russian_trusted_root_ca.pem > certs/ca-bundle.pem`)
+
+**Не перепутать.** Пока на сервере был только один 443-блок (`a-bra.ru`), он был дефолтным для любого хоста. Если удалить `leads.a-bra.ru.conf`, а DNS-запись оставить, `https://leads.a-bra.ru` начнёт отдавать главный сайт с чужим сертификатом — удалять оба вместе. HSTS с `includeSubDomains` уже действует на весь `*.a-bra.ru`: поддомен обязан оставаться на HTTPS.
+
 ### Пульт остаётся на Cloudflare после переезда сайта
 
 Решение owner'а от 12.09.2026: сначала переносим только сайт, пультом займёмся потом.

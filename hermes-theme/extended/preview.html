@@ -39,8 +39,8 @@
   <p class="note">Знак, цвета и анимация — из самого plugin.js (импорт с заглушками SDK), не копия.</p>
   <h2>Заставка нового чата</h2>
   <div class="grid">
-    <div class="panel"><div class="splash" id="splash-animated"></div><p class="note">Обычный режим: контур рисуется, затем бежит штрих</p></div>
-    <div class="panel"><div class="splash" id="splash-still"></div><p class="note">«Уменьшить движение»: статичный знак</p></div>
+    <div class="panel"><div class="splash" data-slot="aui_intro"><div class="wordmark"><span>HERMES AGENT</span></div><p>Search the repo, edit files, run tests…</p></div><p class="note">Как в Hermes: настоящий CSS темы поверх вёрстки заставки. CORE — монета внутри орбиты</p></div>
+    <div class="panel"><div class="splash" id="splash-still"></div><p class="note">«Уменьшить движение»: статичный кадр</p></div>
   </div>
   <h2>Строка статуса — ORBITAL</h2>
   <p class="note">Та же анимация, что у эмодзи в Telegram (abra-motion), в размере строки статуса 18 px. Справа — увеличено ×4, чтобы разглядеть.</p>
@@ -75,15 +75,13 @@
   </div>
 </main>
 <script type="module">
-  import plugin, { CUSTOM_CSS, splashSvg, motionSvg, PAGE_MARK_SIZE, STATUS_REDUCED_BUSY_T, STATUS_SIZE } from './plugin.js'
+  import plugin, { CUSTOM_CSS, SPLASH_SIZE, motionSvg, PAGE_MARK_SIZE, STATUS_REDUCED_BUSY_T, STATUS_SIZE } from './plugin.js'
 
   document.getElementById('served-hint').remove()
   document.head.insertAdjacentHTML('beforeend', `<style>${CUSTOM_CSS}</style>`)
 
-  for (const [id, animated] of [['splash-animated', true], ['splash-still', false]]) {
-    document.getElementById(id).innerHTML =
-      `<div style="width:116px;height:170px">${splashSvg(animated)}</div><p>Search the repo, edit files, run tests…</p>`
-  }
+  document.getElementById('splash-still').innerHTML =
+    `<div style="width:${SPLASH_SIZE}px;height:${SPLASH_SIZE}px">${motionSvg('core', 0, SPLASH_SIZE)}</div><p>Search the repo, edit files, run tests…</p>`
 
   // Кадры — из motionSvg самого плагина; цикл здесь крутит превью (в Hermes это
   // делает StatusMark/PageMark через requestAnimationFrame).

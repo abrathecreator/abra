@@ -160,8 +160,12 @@
   // прямыми, поэтому отрезки идут по вершинам, а дуга — по выборке через
   // каждую единицу знака. Толщина линии не проецируется: знак остаётся
   // рисунком, а не пластиной, и на ребре не исчезает до нуля.
+  // Угол поворота монеты: модуляция скорости dwell — дольше на лицевой
+  // стороне, быстро через ребро. Общая для AXIAL · Y и CORE.
+  const coinAngle = (t) => TAU * t + T.axialY.dwell * Math.sin(2 * TAU * t);
+
   function axialY(t) {
-    const th = TAU * t + T.axialY.dwell * Math.sin(2 * TAU * t);
+    const th = coinAngle(t);
     const cos = Math.cos(th);
     const sin = Math.sin(th);
     const D = T.axialY.camera;
@@ -182,34 +186,90 @@
 
   /* ---------- 02 / ORBITAL ---------- */
 
-  function orbital(t) {
+  // Кольцо и маркер со следом. phi — угол маркера; k — масштаб знака,
+  // который помещается внутри кольца с зазором.
+  function orbit() {
     const o = T.orbital;
     // Маркер толще кольца — по нему и отмеряем поле, иначе на 12 часах
     // он упирается в край кадра.
     const R = HALF - T.canvas.pad - Math.max(o.ringWidth / 2, o.dotRadius);
     const k = (R - o.gap - o.ringWidth / 2) / R_OUT;
-    const phi = -Math.PI / 2 + TAU * t; // от 12 часов по часовой
     const onRing = (a) => [HALF + R * Math.cos(a), HALF + R * Math.sin(a)];
-
-    let trail = "";
-    const steps = 8;
-    const span = TAU * o.trail;
-    for (let j = 0; j < steps; j++) {
-      const a0 = phi - span * (1 - j / steps);
-      const a1 = phi - span * (1 - (j + 1) / steps);
-      const op = o.ringOpacity + (o.trailOpacity - o.ringOpacity) * ((j + 1) / steps);
-      trail +=
-        `<path d="M ${pt(onRing(a0))} A ${R} ${R} 0 0 1 ${pt(onRing(a1))}" ` +
-        `stroke-opacity="${r2(op)}"/>`;
-    }
-    const dot = onRing(phi);
-    return (
+    const ring =
       `<circle cx="${HALF}" cy="${HALF}" r="${r2(R)}" fill="none" stroke="${T.color.accent}" ` +
-      `stroke-width="${o.ringWidth}" stroke-opacity="${o.ringOpacity}"/>` +
-      `<g fill="none" stroke="${T.color.accent}" stroke-width="${o.ringWidth}" ` +
-      `stroke-linecap="butt">${trail}</g>` +
-      `<circle cx="${r2(dot[0])}" cy="${r2(dot[1])}" r="${o.dotRadius}" fill="${T.color.accent}"/>` +
-      markGroup(k, markPath())
+      `stroke-width="${o.ringWidth}" stroke-opacity="${o.ringOpacity}"/>`;
+    // Маркер с затухающим следом в момент t (от 12 часов по часовой).
+    const marker = (t) => {
+      const phi = -Math.PI / 2 + TAU * t;
+      let trail = "";
+      const steps = 8;
+      const span = TAU * o.trail;
+      for (let j = 0; j < steps; j++) {
+        const a0 = phi - span * (1 - j / steps);
+        const a1 = phi - span * (1 - (j + 1) / steps);
+        const op = o.ringOpacity + (o.trailOpacity - o.ringOpacity) * ((j + 1) / steps);
+        trail +=
+          `<path d="M ${pt(onRing(a0))} A ${R} ${R} 0 0 1 ${pt(onRing(a1))}" ` +
+          `stroke-opacity="${r2(op)}"/>`;
+      }
+      const dot = onRing(phi);
+      return (
+        `<g fill="none" stroke="${T.color.accent}" stroke-width="${o.ringWidth}" ` +
+        `stroke-linecap="butt">${trail}</g>` +
+        `<circle cx="${r2(dot[0])}" cy="${r2(dot[1])}" r="${o.dotRadius}" fill="${T.color.accent}"/>`
+      );
+    };
+    return { ring, marker, k };
+  }
+
+  function orbital(t) {
+    const { ring, marker, k } = orbit();
+    return ring + marker(t) + markGroup(k, markPath());
+  }
+
+  /* ---------- 03 / CORE: монета внутри орбиты ---------- */
+
+  // Знак, сжатый по ширине в c = cos(угла) относительно оси симметрии, —
+  // ортографическая монета. Сжатая дуга окружности — дуга эллипса, поэтому
+  // кадр — та же короткая строка d из пяти команд, без выборки точек. На
+  // обратной стороне (c < 0) знак зеркален, и дуга идёт в другую сторону.
+  // Толщина линии не сжимается, как и в AXIAL · Y.
+  function coinD(c, round) {
+    const x = (p) => round(AXIS_X + (p[0] - AXIS_X) * c) + " " + round(p[1]);
+    const sweep = c < 0 ? 1 - ARC.sweep : ARC.sweep;
+    return (
+      `M ${x(LEG1.a)} L ${x(ARC.a)} A ${round(Math.abs(c) * ARC.r)} ${ARC.r} 0 ` +
+      `${ARC.large} ${sweep} ${x(ARC.b)} L ${x(LEG2.b)} Z`
+    );
+  }
+  const coinAttrs = `stroke="${T.color.accent}" stroke-width="${T.mark.stroke}"`;
+
+  function core(t) {
+    const { ring, marker, k } = orbit();
+    const d = coinD(Math.cos(coinAngle(t)), r2);
+    return ring + marker(t) + markGroup(k, `<path d="${d}" ${coinAttrs}/>`);
+  }
+
+  // CORE одним самостоятельным SVG: анимация внутри файла (SMIL), без
+  // скриптов, — годится как картинка, в том числе фоном в CSS. Форма знака —
+  // по кадру на каждую 1/fps цикла, маркер со следом — поворот группы.
+  function coreAnimated(size) {
+    const { ring, marker, k } = orbit();
+    const n = Math.round(T.duration.core * T.canvas.fps);
+    const r1 = (v) => Math.round(v * 10) / 10;
+    const values = [];
+    for (let j = 0; j <= n; j++) values.push(coinD(Math.cos(coinAngle(j / n)), r1));
+    const dur = T.duration.core + "s";
+    return svg(
+      ring +
+        `<g>${marker(0)}<animateTransform attributeName="transform" type="rotate" ` +
+        `from="0 ${HALF} ${HALF}" to="360 ${HALF} ${HALF}" dur="${dur}" repeatCount="indefinite"/></g>` +
+        markGroup(
+          k,
+          `<path d="${values[0]}" ${coinAttrs}><animate attributeName="d" dur="${dur}" ` +
+            `repeatCount="indefinite" values="${values.join(";")}"/></path>`
+        ),
+      size
     );
   }
 
@@ -218,6 +278,7 @@
   const VARIANTS = {
     axialY: { id: "01-axial-y", name: "AXIAL · Y", note: "монета", draw: axialY },
     orbital: { id: "02-orbital", name: "ORBITAL", note: "маркер по орбите", draw: orbital },
+    core: { id: "03-core", name: "CORE", note: "монета внутри орбиты", draw: core },
   };
 
   root.AbraMotion = {
@@ -234,6 +295,12 @@
       if (!v) throw new Error("Нет варианта " + key);
       const u = ((t % 1) + 1) % 1;
       return svg(v.draw(u), size);
+    },
+    // CORE одним анимированным SVG (SMIL) — для мест, где нельзя крутить
+    // кадры скриптом, например фон в CSS.
+    animated(key, size) {
+      if (key !== "core") throw new Error("Одним SVG рисуется только core");
+      return coreAnimated(size);
     },
     // Исходный знак в той же раскладке, что AXIAL · Y, — для сравнения.
     original(size) {

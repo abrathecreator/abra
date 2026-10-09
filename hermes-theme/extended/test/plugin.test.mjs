@@ -62,16 +62,21 @@ test('в CSS только согласованные селекторы', async 
   assert.ok(Buffer.byteLength(mod.CUSTOM_CSS) < 32768)
 })
 
-test('заставка: анимированный знак и статичный для «Уменьшить движение»', async () => {
+test('заставка: CORE из abra-motion — монета внутри орбиты, статичный кадр для «Уменьшить движение»', async () => {
   const { mod } = await loadPlugin()
-  const [animated, still] = decodeUrls(mod.CUSTOM_CSS).filter(svg => svg.includes(mod.MARK_PATH))
-  assert.ok(animated.includes(`d="${mod.MARK_PATH}"`))
-  assert.ok(animated.includes('@keyframes'), 'есть анимация')
-  assert.ok(animated.includes(`stroke="${ABX.mark.signal}"`), 'светлый штрих')
-  assert.ok(still.includes(`stroke="${ABX.mark.stroke}"`))
-  assert.ok(!still.includes('@keyframes'), 'статичный знак без анимации')
+  // Компактный data URI меняет двойные кавычки на одинарные — сравниваем так же.
+  const quotes = svg => svg.replace(/"/g, "'")
+  const [animated, still] = decodeUrls(mod.CUSTOM_CSS).filter(svg => svg.includes(mod.MARK_PATH)).map(quotes)
+  assert.equal(animated, quotes(mod.splashSvg(true)))
+  assert.match(animated, /<animate attributeName='d'[^>]*dur='2\.8s'[^>]*repeatCount='indefinite'/, 'монета')
+  assert.match(animated, /<animateTransform attributeName='transform' type='rotate'/, 'маркер по орбите')
+  assert.ok(!animated.includes('<script'), 'без скриптов')
+  assert.equal(still, quotes(mod.motionSvg('core', 0)))
+  assert.ok(!still.includes('<animate'), 'статичный кадр без анимации')
+  assert.ok(still.includes(`stroke='${ABX.mark.stroke}'`))
   const media = mod.CUSTOM_CSS.slice(mod.CUSTOM_CSS.indexOf('@media (prefers-reduced-motion: reduce)'))
-  assert.ok(decodeUrls(media).includes(still), 'статичный знак — внутри медиазапроса')
+  assert.ok(decodeUrls(media).map(quotes).includes(still), 'статичный кадр — внутри медиазапроса')
+  assert.match(mod.CUSTOM_CSS, new RegExp(`width: ${mod.SPLASH_SIZE}px !important;\\s+height: ${mod.SPLASH_SIZE}px;`))
 })
 
 // Тело правила по точному селектору (первое совпадение).

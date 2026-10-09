@@ -242,6 +242,8 @@ const MOTION = (() => {
     duration: {
       axialY: 2.8,
       orbital: 2.8,
+      // CORE: монета и орбита в одном цикле — знак делает оборот, маркер — круг.
+      core: 2.8,
     },
 
     axialY: {
@@ -425,8 +427,12 @@ const MOTION = (() => {
   // прямыми, поэтому отрезки идут по вершинам, а дуга — по выборке через
   // каждую единицу знака. Толщина линии не проецируется: знак остаётся
   // рисунком, а не пластиной, и на ребре не исчезает до нуля.
+  // Угол поворота монеты: модуляция скорости dwell — дольше на лицевой
+  // стороне, быстро через ребро. Общая для AXIAL · Y и CORE.
+  const coinAngle = (t) => TAU * t + T.axialY.dwell * Math.sin(2 * TAU * t);
+
   function axialY(t) {
-    const th = TAU * t + T.axialY.dwell * Math.sin(2 * TAU * t);
+    const th = coinAngle(t);
     const cos = Math.cos(th);
     const sin = Math.sin(th);
     const D = T.axialY.camera;
@@ -447,34 +453,90 @@ const MOTION = (() => {
 
   /* ---------- 02 / ORBITAL ---------- */
 
-  function orbital(t) {
+  // Кольцо и маркер со следом. phi — угол маркера; k — масштаб знака,
+  // который помещается внутри кольца с зазором.
+  function orbit() {
     const o = T.orbital;
     // Маркер толще кольца — по нему и отмеряем поле, иначе на 12 часах
     // он упирается в край кадра.
     const R = HALF - T.canvas.pad - Math.max(o.ringWidth / 2, o.dotRadius);
     const k = (R - o.gap - o.ringWidth / 2) / R_OUT;
-    const phi = -Math.PI / 2 + TAU * t; // от 12 часов по часовой
     const onRing = (a) => [HALF + R * Math.cos(a), HALF + R * Math.sin(a)];
-
-    let trail = "";
-    const steps = 8;
-    const span = TAU * o.trail;
-    for (let j = 0; j < steps; j++) {
-      const a0 = phi - span * (1 - j / steps);
-      const a1 = phi - span * (1 - (j + 1) / steps);
-      const op = o.ringOpacity + (o.trailOpacity - o.ringOpacity) * ((j + 1) / steps);
-      trail +=
-        `<path d="M ${pt(onRing(a0))} A ${R} ${R} 0 0 1 ${pt(onRing(a1))}" ` +
-        `stroke-opacity="${r2(op)}"/>`;
-    }
-    const dot = onRing(phi);
-    return (
+    const ring =
       `<circle cx="${HALF}" cy="${HALF}" r="${r2(R)}" fill="none" stroke="${T.color.accent}" ` +
-      `stroke-width="${o.ringWidth}" stroke-opacity="${o.ringOpacity}"/>` +
-      `<g fill="none" stroke="${T.color.accent}" stroke-width="${o.ringWidth}" ` +
-      `stroke-linecap="butt">${trail}</g>` +
-      `<circle cx="${r2(dot[0])}" cy="${r2(dot[1])}" r="${o.dotRadius}" fill="${T.color.accent}"/>` +
-      markGroup(k, markPath())
+      `stroke-width="${o.ringWidth}" stroke-opacity="${o.ringOpacity}"/>`;
+    // Маркер с затухающим следом в момент t (от 12 часов по часовой).
+    const marker = (t) => {
+      const phi = -Math.PI / 2 + TAU * t;
+      let trail = "";
+      const steps = 8;
+      const span = TAU * o.trail;
+      for (let j = 0; j < steps; j++) {
+        const a0 = phi - span * (1 - j / steps);
+        const a1 = phi - span * (1 - (j + 1) / steps);
+        const op = o.ringOpacity + (o.trailOpacity - o.ringOpacity) * ((j + 1) / steps);
+        trail +=
+          `<path d="M ${pt(onRing(a0))} A ${R} ${R} 0 0 1 ${pt(onRing(a1))}" ` +
+          `stroke-opacity="${r2(op)}"/>`;
+      }
+      const dot = onRing(phi);
+      return (
+        `<g fill="none" stroke="${T.color.accent}" stroke-width="${o.ringWidth}" ` +
+        `stroke-linecap="butt">${trail}</g>` +
+        `<circle cx="${r2(dot[0])}" cy="${r2(dot[1])}" r="${o.dotRadius}" fill="${T.color.accent}"/>`
+      );
+    };
+    return { ring, marker, k };
+  }
+
+  function orbital(t) {
+    const { ring, marker, k } = orbit();
+    return ring + marker(t) + markGroup(k, markPath());
+  }
+
+  /* ---------- 03 / CORE: монета внутри орбиты ---------- */
+
+  // Знак, сжатый по ширине в c = cos(угла) относительно оси симметрии, —
+  // ортографическая монета. Сжатая дуга окружности — дуга эллипса, поэтому
+  // кадр — та же короткая строка d из пяти команд, без выборки точек. На
+  // обратной стороне (c < 0) знак зеркален, и дуга идёт в другую сторону.
+  // Толщина линии не сжимается, как и в AXIAL · Y.
+  function coinD(c, round) {
+    const x = (p) => round(AXIS_X + (p[0] - AXIS_X) * c) + " " + round(p[1]);
+    const sweep = c < 0 ? 1 - ARC.sweep : ARC.sweep;
+    return (
+      `M ${x(LEG1.a)} L ${x(ARC.a)} A ${round(Math.abs(c) * ARC.r)} ${ARC.r} 0 ` +
+      `${ARC.large} ${sweep} ${x(ARC.b)} L ${x(LEG2.b)} Z`
+    );
+  }
+  const coinAttrs = `stroke="${T.color.accent}" stroke-width="${T.mark.stroke}"`;
+
+  function core(t) {
+    const { ring, marker, k } = orbit();
+    const d = coinD(Math.cos(coinAngle(t)), r2);
+    return ring + marker(t) + markGroup(k, `<path d="${d}" ${coinAttrs}/>`);
+  }
+
+  // CORE одним самостоятельным SVG: анимация внутри файла (SMIL), без
+  // скриптов, — годится как картинка, в том числе фоном в CSS. Форма знака —
+  // по кадру на каждую 1/fps цикла, маркер со следом — поворот группы.
+  function coreAnimated(size) {
+    const { ring, marker, k } = orbit();
+    const n = Math.round(T.duration.core * T.canvas.fps);
+    const r1 = (v) => Math.round(v * 10) / 10;
+    const values = [];
+    for (let j = 0; j <= n; j++) values.push(coinD(Math.cos(coinAngle(j / n)), r1));
+    const dur = T.duration.core + "s";
+    return svg(
+      ring +
+        `<g>${marker(0)}<animateTransform attributeName="transform" type="rotate" ` +
+        `from="0 ${HALF} ${HALF}" to="360 ${HALF} ${HALF}" dur="${dur}" repeatCount="indefinite"/></g>` +
+        markGroup(
+          k,
+          `<path d="${values[0]}" ${coinAttrs}><animate attributeName="d" dur="${dur}" ` +
+            `repeatCount="indefinite" values="${values.join(";")}"/></path>`
+        ),
+      size
     );
   }
 
@@ -483,6 +545,7 @@ const MOTION = (() => {
   const VARIANTS = {
     axialY: { id: "01-axial-y", name: "AXIAL · Y", note: "монета", draw: axialY },
     orbital: { id: "02-orbital", name: "ORBITAL", note: "маркер по орбите", draw: orbital },
+    core: { id: "03-core", name: "CORE", note: "монета внутри орбиты", draw: core },
   };
 
   root.AbraMotion = {
@@ -500,6 +563,12 @@ const MOTION = (() => {
       const u = ((t % 1) + 1) % 1;
       return svg(v.draw(u), size);
     },
+    // CORE одним анимированным SVG (SMIL) — для мест, где нельзя крутить
+    // кадры скриптом, например фон в CSS.
+    animated(key, size) {
+      if (key !== "core") throw new Error("Одним SVG рисуется только core");
+      return coreAnimated(size);
+    },
     // Исходный знак в той же раскладке, что AXIAL · Y, — для сравнения.
     original(size) {
       return svg(markGroup(K_MAIN, markPath()), size);
@@ -516,23 +585,14 @@ export const THEME_NAME = 'abraxus-extended'
 // Знак ABRA — путь из public/mark.svg сайта. Кольцо — окружность r = 44
 // через (18; 75) и (82; 75), её центр (50; 44,8).
 export const MARK_PATH = 'M 6 155 L 82 75 A 44 44 0 1 0 18 75 L 94 155 Z'
-const SPLASH_VIEWBOX = '-14 -14 128 185'
+// Заставка нового чата: CORE из abra-motion — знак поворачивается монетой,
+// по орбите вокруг идёт маркер со следом. Анимация внутри самого SVG (SMIL):
+// фон в CSS не может крутить кадры скриптом. Без animated — кадр t = 0.
+export const SPLASH_SIZE = 160
 
-// Заставка нового чата: контур рисуется за 2,4 с, затем раз в 6 с по нему
-// пробегает светлый штрих (вариант B). Без animated — статичный знак.
 export function splashSvg(animated) {
-  const line = `fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" pathLength="1" d="${MARK_PATH}"`
-  const style = animated
-    ? '<style>.b{stroke-dasharray:1;animation:d 2.4s ease-out both}' +
-      '.t{stroke-dasharray:.07 .93;stroke-dashoffset:1;opacity:0;animation:r 6s linear 2.4s infinite}' +
-      '@keyframes d{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}' +
-      '@keyframes r{from{opacity:1;stroke-dashoffset:1}to{opacity:1;stroke-dashoffset:0}}</style>'
-    : ''
-  const trace = animated ? `<path class="t" stroke="${ABX.mark.signal}" ${line}/>` : ''
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${SPLASH_VIEWBOX}">${style}<path class="b" stroke="${ABX.mark.stroke}" ${line}/>${trace}</svg>`
+  return animated ? MOTION.animated('core') : MOTION.frame('core', 0)
 }
-
-const svgUrl = svg => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
 
 // Единственное согласованное исключение из «CSS только через переменные»:
 // надпись HERMES AGENT на заставке нового чата заменяется знаком. Если Hermes
@@ -604,11 +664,11 @@ export const CUSTOM_CSS = `
   --dt-primary-solid-foreground: ${ABX.solid.ink} !important;
 }
 ${INTRO_SELECTOR} {
-  width: 116px !important;
-  height: 170px;
+  width: ${SPLASH_SIZE}px !important;
+  height: ${SPLASH_SIZE}px;
   margin-inline: auto;
   mix-blend-mode: normal;
-  background: ${svgUrl(splashSvg(true))} center / contain no-repeat;
+  background: ${svgUrlCompact(splashSvg(true))} center / contain no-repeat;
 }
 ${INTRO_SELECTOR} > * {
   display: none !important;
@@ -671,7 +731,7 @@ ${BACKDROP_SELECTOR}::before {
     animation: none;
   }
   ${INTRO_SELECTOR} {
-    background-image: ${svgUrl(splashSvg(false))};
+    background-image: ${svgUrlCompact(splashSvg(false))};
   }
   ${COMPOSER_SELECTOR}::after {
     transition: none;

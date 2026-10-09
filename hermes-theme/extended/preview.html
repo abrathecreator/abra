@@ -6,7 +6,7 @@
 <title>ABRAXUS Extended</title>
 <script type="importmap">
 { "imports": {
-  "@hermes/plugin-sdk": "data:text/javascript,export const THEMES_AREA='themes';export const STATUSBAR_AREAS={left:'statusBar.left'};export const TITLEBAR_AREAS={center:'titleBar.center'};export const host={state:{busy:'busy'},i18n:{registerAppLocale:()=>()=>{}}};export const useTheme=()=>({themeName:'abraxus-extended'});export const useI18n=()=>({locale:'ru',t:{}});export const useValue=a=>globalThis.__busy;",
+  "@hermes/plugin-sdk": "data:text/javascript,export const THEMES_AREA='themes';export const STATUSBAR_AREAS={left:'statusBar.left'};export const TITLEBAR_AREAS={center:'titleBar.center'};export const PALETTE_AREA='palette';export const ROUTES_AREA='routes';export const SIDEBAR_NAV_AREA='sidebar.nav';export const SESSION_ROW_AREAS={leading:'sessionRow.leading'};export const atom=v=>({get:()=>v,set:n=>{v=n}});export const host={state:{busy:'busy',focusedStoredSessionId:{get:()=>null}},request:async()=>({sessions:[]}),navigate:()=>{},composer:{insertText:async()=>true},i18n:{registerAppLocale:()=>()=>{}}};export const useTheme=()=>({themeName:'abraxus-extended'});export const useI18n=()=>({locale:'ru',t:{}});export const useValue=a=>globalThis.__busy;",
   "react": "data:text/javascript,export const useState=i=>[typeof i==='function'?i():i,()=>{}];export const useEffect=()=>{};",
   "react/jsx-runtime": "data:text/javascript,export const jsx=(type,props)=>({type,props});export const jsxs=jsx;"
 } }
@@ -42,10 +42,18 @@
     <div class="panel"><div class="splash" id="splash-animated"></div><p class="note">Обычный режим: контур рисуется, затем бежит штрих</p></div>
     <div class="panel"><div class="splash" id="splash-still"></div><p class="note">«Уменьшить движение»: статичный знак</p></div>
   </div>
-  <h2>Строка статуса</h2>
+  <h2>Строка статуса — ORBITAL</h2>
+  <p class="note">Та же анимация, что у эмодзи в Telegram (abra-motion), в размере строки статуса 18 px. Справа — увеличено ×4, чтобы разглядеть.</p>
   <div class="grid">
-    <div class="panel"><div class="bar" id="bar-idle"></div><p class="note">Агент свободен</p></div>
-    <div class="panel"><div class="bar" id="bar-busy"></div><p class="note">Агент работает</p></div>
+    <div class="panel"><div class="bar" id="bar-idle"></div><p class="note">Агент свободен: маркер стоит на 12 часах</p></div>
+    <div class="panel"><div class="bar" id="bar-busy"></div><p class="note">Агент работает: маркер идёт по кольцу, цикл 2,8 с</p></div>
+    <div class="panel"><div class="bar" id="bar-reduced"></div><p class="note">«Уменьшить движение» + работает: маркер стоит на 3 часах</p></div>
+    <div class="panel" style="display:flex;gap:24px;align-items:center"><span id="zoom-idle"></span><span id="zoom-busy"></span></div>
+  </div>
+  <h2>Страница ABRAXUS — шапка, AXIAL · Y</h2>
+  <div class="panel" style="display:flex;align-items:center;gap:20px">
+    <span id="page-mark"></span>
+    <div><div style="font-size:28px;font-weight:600;color:#EDEBE6">ABRAXUS</div><div style="color:#84817C">Магии не будет. Система будет.</div></div>
   </div>
   <h2>Метки панелей и поле ввода</h2>
   <p class="note">Та же вёрстка, что у Hermes (SidebarPanelLabel, composer-surface), с настоящим CSS темы. Щёлкните в поле — уголки сомкнутся в рамку.</p>
@@ -67,7 +75,7 @@
   </div>
 </main>
 <script type="module">
-  import plugin, { CUSTOM_CSS, splashSvg, StatusMark } from './plugin.js'
+  import plugin, { CUSTOM_CSS, splashSvg, motionSvg, PAGE_MARK_SIZE, STATUS_REDUCED_BUSY_T, STATUS_SIZE } from './plugin.js'
 
   document.getElementById('served-hint').remove()
   document.head.insertAdjacentHTML('beforeend', `<style>${CUSTOM_CSS}</style>`)
@@ -77,30 +85,25 @@
       `<div style="width:116px;height:170px">${splashSvg(animated)}</div><p>Search the repo, edit files, run tests…</p>`
   }
 
-  // Мини-рендер jsx-заглушек в DOM — только для превью.
-  const SVG = 'http://www.w3.org/2000/svg'
-  const attr = k => ({ className: 'class', strokeWidth: 'stroke-width', strokeLinecap: 'stroke-linecap', strokeLinejoin: 'stroke-linejoin' })[k] ?? k
-  const toDom = (node, svg = false) => {
-    if (node == null) return document.createTextNode('')
-    if (typeof node.type === 'function') return toDom(node.type(node.props), svg)
-    const inSvg = svg || node.type === 'svg'
-    const el = inSvg ? document.createElementNS(SVG, node.type) : document.createElement(node.type)
-    for (const [k, v] of Object.entries(node.props ?? {})) {
-      if (k === 'children') continue
-      if (k === 'style') Object.assign(el.style, v)
-      else el.setAttribute(attr(k), v)
-    }
-    for (const child of [].concat(node.props?.children ?? [])) el.append(toDom(child, inSvg))
-    return el
+  // Кадры — из motionSvg самого плагина; цикл здесь крутит превью (в Hermes это
+  // делает StatusMark/PageMark через requestAnimationFrame).
+  const tail = '<b style="color:#CEC9C3">opus-5.5</b> │ ctx 22%'
+  const slot = (id, html) => { document.getElementById(id).innerHTML = html }
+  const bar = svg => `<span style="display:inline-flex;padding:0 4px">${svg}</span>${tail}`
+  slot('bar-idle', bar(motionSvg('orbital', 0, STATUS_SIZE)))
+  slot('bar-reduced', bar(motionSvg('orbital', STATUS_REDUCED_BUSY_T, STATUS_SIZE)))
+  slot('zoom-idle', motionSvg('orbital', 0, STATUS_SIZE * 4))
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const start = performance.now()
+  const tick = now => {
+    const sec = (now - start) / 1000
+    slot('bar-busy', bar(motionSvg('orbital', (sec / 2.8) % 1, STATUS_SIZE)))
+    slot('zoom-busy', motionSvg('orbital', (sec / 2.8) % 1, STATUS_SIZE * 4))
+    slot('page-mark', motionSvg('axialY', reduce ? 0 : (sec / 2.8) % 1, PAGE_MARK_SIZE))
+    if (!reduce) requestAnimationFrame(tick)
   }
-
-  plugin.register({ register: () => () => {}, onDispose: () => {} })
-  for (const [id, busy] of [['bar-idle', false], ['bar-busy', true]]) {
-    globalThis.__busy = busy
-    const bar = document.getElementById(id)
-    bar.append(toDom({ type: StatusMark, props: {} }))
-    bar.insertAdjacentHTML('beforeend', '<b style="color:#CEC9C3">opus-5.5</b> │ ctx 22%')
-  }
+  requestAnimationFrame(tick)
+  plugin.register({ register: () => () => {}, onDispose: () => {}, onEvent: () => () => {}, storage: { get: (k, f) => f, set: () => {} } })
 </script>
 </body>
 </html>

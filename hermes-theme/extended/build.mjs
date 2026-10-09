@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Вписывает в plugin.js два блока: цвета из hermes-theme/tokens.json (// <tokens>)
-// и тексты/правила из content.json (// <content>).
+// Вписывает в plugin.js три блока: цвета из hermes-theme/tokens.json (// <tokens>),
+// тексты/правила из content.json (// <content>) и анимации знака из abra-motion
+// (// <motion>) — тот же код, что рисует эмодзи для Telegram.
 //   node hermes-theme/extended/build.mjs          — переписать блоки
 //   node hermes-theme/extended/build.mjs --check  — код 1, если блоки отстали
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -13,6 +14,10 @@ export const PLUGIN_FILE = join(HERE, 'plugin.js')
 export const CONTENT_FILE = join(HERE, 'content.json')
 export const BEGIN = '// <tokens>'
 export const END = '// </tokens>'
+export const MOTION_FILES = ['tokens.js', 'motion.js'].map(name => join(HERE, '..', '..', 'abra-motion', 'src', name))
+const MOTION_BEGIN = '// <motion>'
+const MOTION_END = '// </motion>'
+const MOTION_SCOPE = '(typeof window !== "undefined" ? window : globalThis)'
 const CONTENT_BEGIN = '// <content>'
 const CONTENT_END = '// </content>'
 
@@ -117,6 +122,26 @@ export const readContentBlock = source => readMarked(source, CONTENT_BEGIN, CONT
 export const writeContentBlock = (source, content) =>
   writeMarked(source, CONTENT_BEGIN, CONTENT_END, 'CONTENT', 'hermes-theme/extended/content.json', content)
 
+// abra-motion/src/*.js — обычные скрипты, которые кладут API в window. В плагине
+// они получают свой объект вместо window: глобальных имён плагин не заводит.
+// Цвет знака в анимациях обязан совпадать с акцентом темы.
+export function buildMotion(sources, json) {
+  const accent = /accent:\s*"(#[0-9A-Fa-f]{6})"/.exec(sources[0])?.[1]?.toUpperCase()
+  const expected = flattenTokens(json).accent
+  if (accent !== expected) throw new Error(`abra-motion: accent ${accent} не совпадает с tokens.json ${expected}`)
+  const bodies = sources.map((source, i) => {
+    if (source.split(MOTION_SCOPE).length !== 2) throw new Error(`abra-motion: в ${MOTION_FILES[i]} изменилась обёртка`)
+    return source.trim().replace(MOTION_SCOPE, '(scope)')
+  })
+  return `const MOTION = (() => {\n  const scope = {}\n${bodies.map(body => `;${body}`).join('\n')}\n  return scope.AbraMotion\n})()`
+}
+
+export const writeMotionBlock = (source, code) => {
+  const [start, stop] = blockRange(source, MOTION_BEGIN, MOTION_END)
+  const block = `${MOTION_BEGIN}\n// Пишет build.mjs из abra-motion/src/tokens.js и motion.js — руками не править.\n${code}\n${MOTION_END}`
+  return source.slice(0, start) + block + source.slice(stop)
+}
+
 // content.json → блок CONTENT: проверяет форму, чтобы опечатка в правке текста
 // падала здесь, а не молча в приложении.
 export function buildContent(json) {
@@ -140,20 +165,22 @@ export function buildContent(json) {
 }
 
 function main(argv) {
-  const abx = buildAbx(JSON.parse(readFileSync(TOKENS_FILE, 'utf8')))
+  const json = JSON.parse(readFileSync(TOKENS_FILE, 'utf8'))
+  const abx = buildAbx(json)
   const content = buildContent(JSON.parse(readFileSync(CONTENT_FILE, 'utf8')))
+  const motion = buildMotion(MOTION_FILES.map(file => readFileSync(file, 'utf8')), json)
   const source = readFileSync(PLUGIN_FILE, 'utf8')
-  const next = writeContentBlock(writeBlock(source, abx), content)
+  const next = writeMotionBlock(writeContentBlock(writeBlock(source, abx), content), motion)
   if (argv.includes('--check')) {
     if (next !== source) {
-      console.error('FAIL plugin.js отстал от tokens.json или content.json — запустите: node hermes-theme/extended/build.mjs')
+      console.error('FAIL plugin.js отстал от tokens.json, content.json или abra-motion — запустите: node hermes-theme/extended/build.mjs')
       return 1
     }
-    console.log('ok   блоки токенов и содержимого в plugin.js совпадают с tokens.json и content.json')
+    console.log('ok   блоки токенов, содержимого и анимаций в plugin.js совпадают с источниками')
     return 0
   }
   if (next !== source) writeFileSync(PLUGIN_FILE, next)
-  console.log(next === source ? 'plugin.js уже актуален' : 'plugin.js обновлён из tokens.json и content.json')
+  console.log(next === source ? 'plugin.js уже актуален' : 'plugin.js обновлён из tokens.json, content.json и abra-motion')
   return 0
 }
 

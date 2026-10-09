@@ -7,7 +7,17 @@ import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { TOKENS_FILE, buildAbx, writeBlock } from './build.mjs'
+import {
+  CONTENT_FILE,
+  MOTION_FILES,
+  TOKENS_FILE,
+  buildAbx,
+  buildContent,
+  buildMotion,
+  writeBlock,
+  writeContentBlock,
+  writeMotionBlock
+} from './build.mjs'
 import { PLUGIN_FILE, loadPlugin } from './load-plugin.mjs'
 
 const HERMES = process.env.HERMES_AGENT_DIR || join(homedir(), '.hermes', 'hermes-agent')
@@ -42,8 +52,13 @@ const interfaceKeys = (source, name) => {
 
 section('1. Токены')
 const source = readFileSync(PLUGIN_FILE, 'utf8')
-const abx = buildAbx(JSON.parse(readFileSync(TOKENS_FILE, 'utf8')))
+const tokensJson = JSON.parse(readFileSync(TOKENS_FILE, 'utf8'))
+const abx = buildAbx(tokensJson)
 check(writeBlock(source, abx) === source, 'блок ABX в plugin.js совпадает со сборкой из tokens.json')
+const content = buildContent(JSON.parse(readFileSync(CONTENT_FILE, 'utf8')))
+check(writeContentBlock(source, content) === source, 'блок CONTENT в plugin.js совпадает с content.json')
+const motion = buildMotion(MOTION_FILES.map(file => readFileSync(file, 'utf8')), tokensJson)
+check(writeMotionBlock(source, motion) === source, 'блок MOTION в plugin.js совпадает с abra-motion/src (цвет знака = accent)')
 
 section('2. Тема')
 const { mod, contributions } = await loadPlugin()
@@ -116,10 +131,29 @@ for (const [what, pattern] of [
   ['useTheme', /export \{ useTheme \}/],
   ['useValue', /useStore as useValue/],
   ['host', /^export const host = \{/m],
-  ['host.state.busy', /^\s+busy: readonlyAtom<boolean>/m]
+  ['host.state.busy', /^\s+busy: readonlyAtom<boolean>/m],
+  ['TITLEBAR_AREAS', /export \{[^}]*TITLEBAR_AREAS[^}]*\} from '\.\/areas'/],
+  ['PALETTE_AREA', /export \{ PALETTE_AREA\b/],
+  ['ROUTES_AREA', /^\s+ROUTES_AREA,$/m],
+  ['SIDEBAR_NAV_AREA', /^\s+SIDEBAR_NAV_AREA,$/m],
+  ['SESSION_ROW_AREAS', /export \{ SESSION_ROW_AREAS\b/],
+  ['useI18n', /^\s+useI18n,$/m],
+  ['atom', /export \{ atom\b[^}]*\} from 'nanostores'/],
+  ['host.state.focusedStoredSessionId', /^\s+focusedStoredSessionId: readonlyAtom<null \| string>/m],
+  ['host.navigate', /^\s+navigate: \(path: string\)/m],
+  ['host.request', /^\s+request: async <T>\(method: string/m],
+  ['host.composer', /^\s+composer: composerHost,$/m],
+  ['host.i18n', /^\s+i18n: i18nHost$/m]
 ]) {
   check(pattern.test(sdk), `SDK экспортирует ${what}`)
 }
+const composer = readFileSync(join(DESKTOP, 'src', 'sdk', 'composer.ts'), 'utf8')
+check(/insertText: \(sessionId: null \| string, text: string/.test(composer), 'host.composer.insertText(null, text) — вставка в активное поле')
+const context = readFileSync(join(DESKTOP, 'src', 'contrib', 'plugin.ts'), 'utf8')
+check(/^\s+storage: PluginStorage$/m.test(context), 'контекст плагина даёт ctx.storage (ручные метки)')
+check(/^\s+onEvent: \(type: string/m.test(context), 'контекст плагина даёт ctx.onEvent')
+const events = readFileSync(join(HERMES, 'tui_gateway', 'contracts', 'events.py'), 'utf8')
+check(events.includes('event("sessions.changed"'), 'шлюз шлёт sessions.changed (перечитать названия для меток)')
 if (!existsSync(DIST)) {
   check(false, `нет собранного Desktop в ${DIST}`)
 } else {

@@ -171,19 +171,63 @@ test('знак регистрируется в левой части строк�
   assert.equal(mark.data.toggleLabel, 'ABRAXUS')
 })
 
-test('свободен: точка стоит, подпись «свободен»', async () => {
-  const { tree } = await renderMark({ busy: false })
+// Кадр в строке статуса: MotionFrame — функциональный компонент, его разметка —
+// строка SVG в dangerouslySetInnerHTML.
+const frameOf = tree => {
+  const frame = find(tree, tree.props.children.type)
+  return frame.type(frame.props)
+}
+
+test('знак строки статуса — ORBITAL из abra-motion, медный, без глобальных имён', async () => {
+  const { mod } = await loadPlugin()
+  const svg = mod.motionSvg('orbital', 0, mod.STATUS_SIZE)
+  assert.match(svg, /^<svg [^>]*width="18" height="18"/)
+  assert.match(svg, new RegExp(`stroke="${ABX.mark.stroke}"`))
+  assert.match(svg, new RegExp(mod.MARK_PATH))
+  assert.equal(mod.motionSvg('orbital', 1, 18), mod.motionSvg('orbital', 0, 18), 'цикл бесшовный')
+  assert.equal(globalThis.AbraMotion, undefined)
+  assert.equal(globalThis.AbraMotionTokens, undefined)
+})
+
+test('свободен: кадр t = 0, подпись «свободен», цикл не запущен', async () => {
+  const { mod, tree, state } = await renderMark({ busy: false })
   assert.equal(tree.props['aria-label'], 'ABRAXUS — свободен')
   assert.equal(tree.props.title, 'ABRAXUS — свободен')
   assert.equal(tree.props.role, 'img')
-  assert.equal(find(tree, 'g').props.className, 'abx-orbit')
-  assert.equal(find(tree, 'circle').props.fill, ABX.mark.signal)
+  assert.equal(frameOf(tree).props.dangerouslySetInnerHTML.__html, mod.motionSvg('orbital', 0, 18))
+  let frames = 0
+  globalThis.requestAnimationFrame = () => ++frames
+  try {
+    state.effects.forEach(fn => fn())
+    assert.equal(frames, 0)
+  } finally {
+    delete globalThis.requestAnimationFrame
+  }
 })
 
-test('работает: орбита вращается', async () => {
-  const { tree } = await renderMark({ busy: true })
+test('работает: маркер идёт по кольцу с частотой 30 кадров в секунду', async () => {
+  const { tree, state } = await renderMark({ busy: true })
   assert.equal(tree.props['aria-label'], 'ABRAXUS — работает')
-  assert.equal(find(tree, 'g').props.className, 'abx-orbit abx-orbit--spin')
+  const queued = []
+  let cancelled = null
+  let ids = 0
+  globalThis.requestAnimationFrame = fn => (queued.push(fn), ++ids)
+  globalThis.cancelAnimationFrame = id => { cancelled = id }
+  try {
+    const cleanups = state.effects.map(fn => fn())
+    assert.equal(queued.length, 1, 'цикл запущен')
+    const start = performance.now()
+    queued.shift()(start + 1400)
+    assert.ok(Math.abs(state.lastSet - 0.5) < 0.01, 'полцикла за 1,4 с')
+    queued.shift()(start + 1410)
+    assert.ok(Math.abs(state.lastSet - 0.5) < 0.01, 'кадр чаще 1/30 с пропущен')
+    cleanups.forEach(fn => fn?.())
+    assert.equal(cancelled, ids, 'отменён последний запрошенный кадр')
+    assert.equal(state.lastSet, 0, 'остановка — снова кадр t = 0')
+  } finally {
+    delete globalThis.requestAnimationFrame
+    delete globalThis.cancelAnimationFrame
+  }
 })
 
 test('другая тема — знака нет, даже если агент работает', async () => {
@@ -191,66 +235,35 @@ test('другая тема — знака нет, даже если агент 
   assert.equal(tree, null)
 })
 
-test('«Уменьшить движение»: не вращается, при работе точка медная, подписка на change', async () => {
+test('«Уменьшить движение»: цикл не запускается, при работе маркер на 3 часах, подписка на change', async () => {
   const listeners = []
   globalThis.matchMedia = query => ({
     matches: query === '(prefers-reduced-motion: reduce)',
     addEventListener: (type, fn) => listeners.push([type, fn]),
     removeEventListener: () => {}
   })
+  let frames = 0
+  globalThis.requestAnimationFrame = () => ++frames
   try {
-    const { tree, state } = await renderMark({ busy: true })
-    assert.equal(find(tree, 'g').props.className, 'abx-orbit')
-    assert.equal(find(tree, 'circle').props.fill, ABX.mark.stroke)
+    const { mod, tree, state } = await renderMark({ busy: true })
+    assert.equal(
+      frameOf(tree).props.dangerouslySetInnerHTML.__html,
+      mod.motionSvg('orbital', mod.STATUS_REDUCED_BUSY_T, 18)
+    )
     state.effects.forEach(fn => fn())
+    assert.equal(frames, 0, 'без анимации')
     assert.equal(listeners[0][0], 'change', 'реагирует на переключение без перезапуска')
     listeners[0][1]({ matches: false })
     assert.equal(state.lastSet, false)
   } finally {
     delete globalThis.matchMedia
+    delete globalThis.requestAnimationFrame
   }
 })
 
-const fakeDocument = () => {
-  const nodes = {}
-  globalThis.document = {
-    getElementById: id => nodes[id] ?? null,
-    createElement: () => {
-      const el = { remove: () => delete nodes[el.id] }
-      return el
-    },
-    head: { appendChild: el => (nodes[el.id] = el) }
-  }
-  return nodes
-}
-
-test('<style> строки статуса: перезагрузка как в Hermes — выгрузка, затем загрузка, стиль один', async () => {
-  const nodes = fakeDocument()
-  try {
-    const first = await loadPlugin()
-    assert.match(nodes['abraxus-extended-status'].textContent, /@keyframes abx-orbit/)
-    assert.match(nodes['abraxus-extended-status'].textContent, /transform-origin:50px 44\.8px/)
-    first.disposers.forEach(fn => fn())
-    assert.equal(nodes['abraxus-extended-status'], undefined, 'снят при выключении')
-    const second = await loadPlugin()
-    assert.ok(nodes['abraxus-extended-status'], 'снова внедрён после загрузки')
-    assert.equal(Object.keys(nodes).length, 1, 'без дублей')
-    second.disposers.forEach(fn => fn())
-  } finally {
-    delete globalThis.document
-  }
-})
-
-test('<style> строки статуса не снимается, пока им пользуется живая копия плагина', async () => {
-  const nodes = fakeDocument()
-  try {
-    const first = await loadPlugin()
-    const second = await loadPlugin()
-    first.disposers.forEach(fn => fn())
-    assert.ok(nodes['abraxus-extended-status'], 'вторая копия ещё жива — стиль на месте')
-    second.disposers.forEach(fn => fn())
-    assert.equal(nodes['abraxus-extended-status'], undefined, 'последняя копия выключена — стиль снят')
-  } finally {
-    delete globalThis.document
-  }
+test('страница ABRAXUS: в шапке монета AXIAL · Y из abra-motion', async () => {
+  const { mod } = await loadPlugin()
+  const page = mod.PageMark()
+  const html = page.type(page.props).props.dangerouslySetInnerHTML.__html
+  assert.equal(html, mod.motionSvg('axialY', 0, mod.PAGE_MARK_SIZE))
 })

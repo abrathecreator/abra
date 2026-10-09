@@ -33,7 +33,8 @@ test('classify: реальные названия сеансов владель�
     'как мне постреть список всех доступных тем? Как…': null,
     'Какую систему разбираем?': null,
     'Обновить кейс ЖБИ на сайте': 'abra',
-    'Сделать отчет без буквы ё': 'client'
+    'Сделать отчет без буквы ё': 'client',
+    'Отладка подсистемы': null
   }
   for (const [title, expected] of Object.entries(cases)) assert.equal(mod.classify(title), expected, title)
 })

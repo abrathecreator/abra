@@ -1,8 +1,13 @@
 # ABRAXUS MOTION
 
 Первая коллекция анимированных эмодзи на знаке ABRA для Telegram (custom emoji).
-Это отдельная папка: к сайту не подключается, в сборку Vite не попадает, Hermes
-не трогает.
+Это отдельная папка: к сайту не подключается, в сборку Vite не попадает.
+`src/tokens.js` и `src/motion.js` вписывает в плагин Hermes
+`hermes-theme/extended/build.mjs` — ORBITAL стоит в строке статуса, AXIAL · Y —
+в шапке страницы ABRAXUS. После правки здесь — перезапустить его (см.
+`hermes-theme/extended/INSTALL.md`, «Обновить»). Обёртку `(function (root) {
+… })(typeof window !== "undefined" ? window : globalThis)` не менять: сборка
+плагина подменяет её аргумент.
 
 ## Быстрый старт
 
@@ -175,4 +180,4 @@ ORBITAL, если понадобится максимальная резкост
 `motion.js` не зависит ни от DOM, ни от Telegram: `AbraMotion.frame(key, t,
 size)` отдаёт SVG-строку. Для сайта или Hermes Desktop достаточно вызывать
 её по `requestAnimationFrame` (с уважением к `prefers-reduced-motion` —
-тогда `t = 0`). Интеграции сейчас нет намеренно.
+тогда `t = 0`). Так и сделано в Hermes Desktop (плагин ABRAXUS Extended).

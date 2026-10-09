@@ -112,8 +112,11 @@ hermes-theme/         — ABRAXUS: фирменный скин для Hermes Age
                         abraxus.yaml + check.py (запускать питоном из
                         ~/.hermes/hermes-agent/venv) + preview.html + INSTALL.md.
                         extended/ — Desktop-плагин abraxus-extended:
-                        plugin.js (блок ABX пишет build.mjs из tokens.json,
+                        plugin.js (блоки ABX, CONTENT и MOTION пишет build.mjs
+                        из tokens.json, content.json и abra-motion/src —
                         руками не править) + check.mjs + тесты node --test.
+                        content.json — девиз, метки сеансов, шаблоны задач,
+                        метод для страницы ABRAXUS
                         При правке токенов сайта догонять tokens.json,
                         скин и node extended/build.mjs
 abra-motion/          — ABRAXUS MOTION: анимированные эмодзи знака для
@@ -122,7 +125,8 @@ abra-motion/          — ABRAXUS MOTION: анимированные эмодз�
                         функции), preview/index.html, scripts/export.mjs
                         (Chrome + ffmpeg → export/telegram/*.webm, сам
                         сверяет цвета со style.css и контур с mark.svg и
-                        проверяет файлы под требования Telegram)
+                        проверяет файлы под требования Telegram). Те же
+                        tokens.js/motion.js рисуют знак в плагине Hermes
 DESIGN_SYSTEM.md      — описание дизайн-системы для человека
 ARCHITECTURE.md       — человекочитаемая документация для разработчиков
 TECHDEBT.md           — известные нерешённые проблемы, читай перед крупными правками

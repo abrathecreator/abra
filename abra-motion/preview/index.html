@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABRAXUS Motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Syne:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* Значения из src/style.css сайта. #FFFFFF — не токен сайта, а фон
+     светлой темы Telegram: проверяем знак там, где он будет жить. */
+  :root {
+    --bg: #0C0B09;
+    --bg-warm: #131210;
+    --accent: #B87333;
+    --text: #CEC9C3;
+    --snow: #EDEBE6;
+    --border: rgba(206,201,195,0.07);
+    --border-control: rgba(206,201,195,0.45);
+    --stage: var(--bg);
+    --stage-text: var(--text);
+    --font-display: "Syne", "Inter", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
+  }
+  body.is-light { --stage: #FFFFFF; --stage-text: #3a3733; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 var(--font-body);
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 32px max(16px, 4vw) 64px; }
+  h1 {
+    font: 700 22px/1.2 var(--font-display);
+    letter-spacing: 0.18em;
+    color: var(--snow);
+    margin: 0 0 6px;
+  }
+  .lead { margin: 0 0 24px; opacity: 0.75; max-width: 70ch; }
+  .tag { font: 600 12px/1 var(--font-display); letter-spacing: 0.08em; color: var(--accent); }
+
+  .controls {
+    position: sticky; top: 0; z-index: 2;
+    display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
+    padding: 14px 0; margin-bottom: 20px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+  }
+  .controls label { display: inline-flex; gap: 8px; align-items: center; }
+  button, select {
+    font: 500 13px var(--font-body); color: var(--snow);
+    background: var(--bg-warm); border: 1px solid var(--border-control);
+    border-radius: 8px; padding: 7px 12px; cursor: pointer;
+  }
+  button:focus-visible, select:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  input[type="range"] { accent-color: var(--accent); width: 140px; }
+  output { font-variant-numeric: tabular-nums; min-width: 4ch; color: var(--snow); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 20px; }
+  .card { background: var(--bg-warm); border-radius: 12px; padding: 20px; }
+  .card__head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 14px; }
+  .card__title { font: 700 16px var(--font-display); letter-spacing: 0.12em; color: var(--snow); margin: 0; }
+  .card__meta { font-variant-numeric: tabular-nums; opacity: 0.6; font-size: 12px; }
+
+  .row { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
+  .row__label { font-size: 12px; opacity: 0.6; }
+  .sizes { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;
+           background: var(--stage); border-radius: 8px; padding: 12px; }
+  .sizes figure { margin: 0; display: grid; justify-items: center; gap: 6px; }
+  .sizes figcaption { font-size: 10px; color: var(--stage-text); opacity: 0.6; font-variant-numeric: tabular-nums; }
+  .sizes svg, .sizes video { display: block; }
+  .chat { color: var(--stage-text); font-size: 15px; line-height: 20px; display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .chat svg, .chat video { width: 20px; height: 20px; }
+  .missing { font-size: 12px; opacity: 0.6; color: var(--stage-text); }
+  .scrub { display: flex; align-items: center; gap: 8px; }
+  .notes { margin-top: 32px; max-width: 80ch; opacity: 0.8; }
+  .notes h2 { font: 700 14px var(--font-display); letter-spacing: 0.12em; color: var(--snow); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="tag">[ .Motion ]</p>
+  <h1>ABRAXUS MOTION</h1>
+  <p class="lead">Анимированные эмодзи на исходном знаке из public/mark.svg. Строки «живой» рисуются
+    в реальном времени из src/motion.js — тем же кодом, которым экспортируются WEBM. Строка «WEBM» —
+    готовые файлы из export/telegram.</p>
+
+  <div class="controls">
+    <button type="button" id="play" aria-pressed="true">Пауза</button>
+    <label>Скорость <input type="range" id="speed" min="0.1" max="2" step="0.05" value="1"><output id="speed-out">1×</output></label>
+    <label class="scrub">Кадр <input type="range" id="scrub" min="0" max="1" step="0.001" value="0" disabled><output id="scrub-out">—</output></label>
+    <label>Фон
+      <select id="theme">
+        <option value="dark">тёмный (--bg)</option>
+        <option value="light">светлый (Telegram)</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="notes">
+    <h2>Как читать</h2>
+    <p>«Кадр» работает на паузе: проматывает все варианты сразу по доле цикла, чтобы проверить шов
+      (0 и 1 — один и тот же кадр). Скорость меняет и живые SVG, и видео.</p>
+  </section>
+</div>
+
+<script src="../src/tokens.js"></script>
+<script src="../src/motion.js"></script>
+<script>
+(function () {
+  const M = window.AbraMotion;
+  const SIZES = [100, 32, 20];
+  const grid = document.getElementById("grid");
+  const cards = [];
+
+  for (const v of M.variants) {
+    const card = document.createElement("article");
+    card.className = "card";
+    const fig = (inner, s) => `<figure>${inner}<figcaption>${s}×${s}</figcaption></figure>`;
+    const sizes = (cls) => SIZES.map((s) => fig(`<span class="${cls}" data-size="${s}"></span>`, s)).join("");
+    const videos = SIZES.map((s) =>
+      fig(`<video src="../export/telegram/abraxus-${v.id}.webm" width="${s}" height="${s}" muted loop playsinline autoplay></video>`, s)
+    ).join("");
+    card.innerHTML = `
+      <div class="card__head">
+        <h2 class="card__title">${v.name}</h2>
+        <span class="card__meta">${v.note} · ${v.duration} с · ${v.frames} кадров</span>
+      </div>
+      <div class="row"><span class="row__label">живой</span>
+        <div class="sizes">${sizes("live")}
+          <span class="chat">на ходу <span class="live" data-size="20"></span></span></div></div>
+      <div class="row"><span class="row__label">оригинал</span>
+        <div class="sizes">${SIZES.map((s) => fig(M.original(s), s)).join("")}</div></div>
+      <div class="row"><span class="row__label">WEBM</span>
+        <div class="sizes video-row">${videos}
+          <span class="chat">на ходу <video src="../export/telegram/abraxus-${v.id}.webm" muted loop playsinline autoplay></video></span></div></div>`;
+    grid.appendChild(card);
+    const live = [...card.querySelectorAll(".live")];
+    const vids = [...card.querySelectorAll("video")];
+    vids[0].addEventListener("error", () => {
+      card.querySelector(".video-row").innerHTML =
+        '<span class="missing">Нет файла — запустите node scripts/export.mjs</span>';
+    });
+    cards.push({ v, live, vids });
+  }
+
+  let playing = true;
+  let speed = 1;
+  let clock = 0; // секунды «времени анимации», уже с учётом скорости
+  let last = performance.now();
+
+  function draw(tFor) {
+    for (const c of cards) {
+      const t = tFor(c.v);
+      for (const el of c.live) el.innerHTML = M.frame(c.v.key, t, +el.dataset.size);
+    }
+  }
+
+  function tick(now) {
+    if (playing) {
+      clock += ((now - last) / 1000) * speed;
+      draw((v) => clock / v.duration);
+    }
+    last = now;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  const allVideos = () => cards.flatMap((c) => c.vids);
+  const playBtn = document.getElementById("play");
+  const scrub = document.getElementById("scrub");
+  const scrubOut = document.getElementById("scrub-out");
+
+  playBtn.addEventListener("click", () => {
+    playing = !playing;
+    playBtn.textContent = playing ? "Пауза" : "Играть";
+    playBtn.setAttribute("aria-pressed", String(playing));
+    scrub.disabled = playing;
+    scrubOut.textContent = playing ? "—" : (+scrub.value).toFixed(3);
+    for (const vid of allVideos()) playing ? vid.play().catch(() => {}) : vid.pause();
+    if (!playing) applyScrub();
+  });
+
+  function applyScrub() {
+    const t = +scrub.value;
+    scrubOut.textContent = t.toFixed(3);
+    draw(() => t);
+    for (const c of cards) for (const vid of c.vids) {
+      if (vid.readyState > 0) vid.currentTime = Math.min(t, 0.999) * vid.duration;
+    }
+  }
+  scrub.addEventListener("input", applyScrub);
+
+  const speedIn = document.getElementById("speed");
+  speedIn.addEventListener("input", () => {
+    speed = +speedIn.value;
+    document.getElementById("speed-out").textContent = speed.toFixed(2).replace(/\.?0+$/, "") + "×";
+    for (const vid of allVideos()) vid.playbackRate = speed;
+  });
+
+  document.getElementById("theme").addEventListener("change", (e) => {
+    document.body.classList.toggle("is-light", e.target.value === "light");
+  });
+})();
+</script>
+</body>
+</html>

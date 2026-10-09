@@ -1,0 +1,85 @@
+{
+  "generated": "2026-10-09T14:42:49.473Z",
+  "telegram": [
+    {
+      "file": "export/telegram/abraxus-01-axial-y.webm",
+      "codec": "vp9",
+      "pixFmt": "yuv420p",
+      "alphaMode": "1",
+      "width": 100,
+      "height": 100,
+      "fps": 30,
+      "frames": 84,
+      "duration": 2.8,
+      "bytes": 43796,
+      "audio": false,
+      "alpha": {
+        "transparentShare": 82.3,
+        "opaqueShare": 10.6,
+        "partialShare": 7.1,
+        "cornersClear": true
+      },
+      "seam": {
+        "seamDiff": 2.99,
+        "maxNeighbourDiff": 32.49
+      },
+      "pass": {
+        "container": true,
+        "vp9": true,
+        "size100": true,
+        "fps30": true,
+        "duration3s": true,
+        "frames": true,
+        "under256k": true,
+        "noAudio": true,
+        "alphaFlag": true,
+        "alphaReal": true,
+        "seamless": true
+      }
+    },
+    {
+      "file": "export/telegram/abraxus-02-orbital.webm",
+      "codec": "vp9",
+      "pixFmt": "yuv420p",
+      "alphaMode": "1",
+      "width": 100,
+      "height": 100,
+      "fps": 30,
+      "frames": 84,
+      "duration": 2.8,
+      "bytes": 22318,
+      "audio": false,
+      "alpha": {
+        "transparentShare": 79.6,
+        "opaqueShare": 7.2,
+        "partialShare": 13.2,
+        "cornersClear": true
+      },
+      "seam": {
+        "seamDiff": 3.36,
+        "maxNeighbourDiff": 3.48
+      },
+      "pass": {
+        "container": true,
+        "vp9": true,
+        "size100": true,
+        "fps30": true,
+        "duration3s": true,
+        "frames": true,
+        "under256k": true,
+        "noAudio": true,
+        "alphaFlag": true,
+        "alphaReal": true,
+        "seamless": true
+      }
+    }
+  ],
+  "static": [
+    "export/static/abraxus-01-axial-y-100.png",
+    "export/static/abraxus-02-orbital-100.png",
+    "export/static/abraxus-original-100.png",
+    "export/static/abraxus-01-axial-y-512.png",
+    "export/static/abraxus-02-orbital-512.png",
+    "export/static/abraxus-original-512.png"
+  ]
+}

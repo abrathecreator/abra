@@ -7,6 +7,7 @@ import { initHero } from "./hero.js";
 import { initSectionIcons } from "./section-icons.js";
 import { initContactModal } from "./contact-modal.js";
 import { initNav } from "./nav.js";
+import { initOrbCards } from "./orb-card.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -26,6 +27,7 @@ const reducedMotion = window.matchMedia(
 const canvas = document.getElementById("hero-canvas");
 initHero(canvas);
 initSectionIcons();
+initOrbCards();
 
 /* HERO INTRO */
 const heroIntroSelectors = [

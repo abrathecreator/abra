@@ -1419,13 +1419,6 @@ section[id],
   display: flex;
   flex-direction: column;
   gap: 14px;
-  transition: transform 0.4s ease, border-color 0.4s ease, background 0.4s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(184, 115, 51, 0.4);
-  background: #161411;
 }
 
 .card__num {
@@ -1475,16 +1468,10 @@ section[id],
   display: flex;
   flex-direction: column;
   gap: 18px;
-  transition: border-color 0.3s ease, transform 0.3s ease;
   /* Грид-трек 1fr по умолчанию имеет min-width:auto и не может стать уже
      min-content содержимого. Без этого длинный заголовок вместе с
      .service__price растягивали документ до 369px при экране 320. */
   min-width: 0;
-}
-
-.service:hover {
-  border-color: rgba(184, 115, 51, 0.4);
-  transform: translateY(-3px);
 }
 
 .service__top {
@@ -1788,6 +1775,12 @@ section[id],
   max-width: 720px;
   margin: 0 auto;
   text-align: center;
+  /* Карточка — та же поверхность, что у .service, чтобы на ней было
+     где светиться шару .orb-card. */
+  background: var(--bg-warm);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(32px, 5vw, 48px) clamp(20px, 4vw, 40px);
 }
 
 .case-teaser__lead {
@@ -1833,6 +1826,74 @@ section[id],
 @media (max-width: 560px) {
   .case-teaser__stats {
     gap: 22px 32px;
+  }
+}
+
+/* ORB CARD — медный размытый шар за курсором внутри карточки
+   (адаптация MagicCard из Magic UI, режим orb). Вешается классом
+   .orb-card на карточку с фоном, рамкой и скруглением: .card, .service,
+   .case-teaser__inner. src/orb-card.js пишет --ox/--oy (где шар, с
+   плавным догоном) и класс .is-lit, пока над карточкой мышь.
+   ::before — сам шар, ::after — подсветка ближнего участка рамки.
+   Цвета — только --accent и --snow через rgba(). Тач и reduced-motion —
+   эффекта нет вообще. Заменил прежний hover .card/.service
+   (подъём + медная рамка целиком). */
+.orb-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.orb-card::before,
+.orb-card::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.orb-card::before {
+  --orb: 380px;
+  z-index: -1;
+  width: var(--orb);
+  height: var(--orb);
+  left: calc(var(--ox, 50%) - var(--orb) / 2);
+  top: calc(var(--oy, 50%) - var(--orb) / 2);
+  border-radius: 50%;
+  background: linear-gradient(
+    120deg,
+    rgba(184, 115, 51, 0.55),
+    rgba(184, 115, 51, 0.15) 60%,
+    rgba(237, 235, 230, 0.08)
+  );
+  filter: blur(60px);
+}
+
+.orb-card::after {
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: radial-gradient(
+    234px circle at var(--ox, 50%) var(--oy, 50%),
+    rgba(184, 115, 51, 0.45),
+    transparent 70%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.orb-card.is-lit::before,
+.orb-card.is-lit::after {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .orb-card::before,
+  .orb-card::after {
+    display: none;
   }
 }
 

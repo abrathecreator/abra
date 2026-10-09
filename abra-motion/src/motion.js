@@ -253,8 +253,7 @@
   // CORE одним самостоятельным SVG: анимация внутри файла (SMIL), без
   // скриптов, — годится как картинка, в том числе фоном в CSS. Форма знака —
   // по кадру на каждую 1/fps цикла, маркер со следом — поворот группы.
-  // opts.duration — длина цикла, с (по умолчанию как у эмодзи); opts.glitch —
-  // добавить сбои из tokens.glitch.
+  // opts.duration — длина цикла, с (по умолчанию как у эмодзи).
   function coreAnimated(size, opts) {
     const o = opts || {};
     const { ring, marker, k } = orbit();
@@ -265,63 +264,15 @@
     const dur = (o.duration || T.duration.core) + "s";
     const loop = `dur="${dur}" repeatCount="indefinite"`;
     const coin =
-      `<path id="abx-coin" d="${values[0]}"><animate attributeName="d" ${loop} ` +
+      `<path d="${values[0]}"><animate attributeName="d" ${loop} ` +
       `values="${values.join(";")}"/></path>`;
-    const mark = o.glitch ? glitched(coin, loop) : `<g stroke="${T.color.accent}" stroke-width="${T.mark.stroke}">${coin}</g>`;
+    const mark = `<g stroke="${T.color.accent}" stroke-width="${T.mark.stroke}">${coin}</g>`;
     return svg(
       ring +
         `<g>${marker(0)}<animateTransform attributeName="transform" type="rotate" ` +
         `from="0 ${HALF} ${HALF}" to="360 ${HALF} ${HALF}" ${loop}/></g>` +
         markGroup(k, mark),
       size
-    );
-  }
-
-  // Сбой: в моменты glitch.at весь знак рывком сдвигается по шагам jitter, а
-  // полосы bands — копии того же анимированного пути (<use>, без второго
-  // списка кадров) — съезжают в стороны. Вне сбоя копии невидимы.
-  function glitched(coin, loop) {
-    const g = T.glitch;
-    const steps = g.jitter.length;
-    const times = [0];
-    const shifts = ["0 0"];
-    const shown = [0];
-    for (const at of g.at) {
-      for (let j = 0; j < steps; j++) {
-        times.push(at + (g.length * j) / steps);
-        shifts.push(g.jitter[j] + " 0");
-        shown.push(1);
-      }
-      times.push(at + g.length);
-      shifts.push("0 0");
-      shown.push(0);
-    }
-    // Последний ключ — конец цикла: так надёжнее во всех движках SMIL.
-    times.push(1);
-    shifts.push("0 0");
-    shown.push(0);
-    const keyTimes = times.map((v) => Math.round(v * 1000) / 1000).join(";");
-    const discrete = (attr, list) =>
-      `<animate attributeName="${attr}" calcMode="discrete" ${loop} keyTimes="${keyTimes}" values="${list.join(";")}"/>`;
-    const clips = g.bands
-      .map(
-        ([y0, y1], j) =>
-          `<clipPath id="abx-band-${j}"><rect x="-40" y="${y0}" width="180" height="${y1 - y0}"/></clipPath>`
-      )
-      .join("");
-    const slice = (j, dx, color, opacity) =>
-      `<use href="#abx-coin" clip-path="url(#abx-band-${j})" transform="translate(${dx} 0)" ` +
-      `stroke="${color}" stroke-opacity="${opacity}"/>`;
-    return (
-      `<defs>${clips}</defs>` +
-      `<g stroke="${T.color.accent}" stroke-width="${T.mark.stroke}">` +
-      `<animateTransform attributeName="transform" type="translate" calcMode="discrete" ${loop} ` +
-      `keyTimes="${keyTimes}" values="${shifts.join(";")}"/>` +
-      coin +
-      `<g opacity="0">${discrete("opacity", shown)}` +
-      slice(0, g.shift, T.color.accent, 1) +
-      slice(1, -g.shift, T.color.text, g.textOpacity) +
-      "</g></g>"
     );
   }
 
